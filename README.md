@@ -1,73 +1,55 @@
 # Mat Notes
-Private youth wrestling results notebook built with Next.js App Router, TypeScript, and Supabase. Deploys on Vercel.
 
-## Setup status (October 25, 2026)
-- Source published to the main branch of rpmanning17/wrestling.
-- Supabase project created: https://supabase.com/dashboard/project/tprodwivvwvpmpzaedom (US East; quoted $0/month at creation).
-- Initial results migration already applied to this project. Do not execute it again there.
-- Local .env.local configured with project URL and publishable key, excluded from Git.
-- Production build, TypeScript, lint, setup/login HTTP responses, and privacy headers passed.
-- Live database transaction verified owner reads, cross-account read/update/delete isolation, spoof-owner insert rejection, and anonymous read/insert denial. Synthetic fixtures were rolled back. Security advisor returned no findings.
-- Production is live at https://wrestling-plum.vercel.app with Vercel Authentication, application sign-in, no-store responses, and no-index headers.
-- Vercel production variables are limited to the Supabase URL and publishable key; preview environments have no access to the production database.
-- The production build and signed-out redirect to /login passed. Vercel reported no fatal or error logs in the post-deploy check.
-- Still required: disable public signup/anonymous auth and create the adult login in the Supabase dashboard. The database currently has zero users, so password sign-in and the complete browser add/search/delete flow cannot pass yet.
-- Future automatic deployments from GitHub require adding the GitHub Login Connection at https://vercel.com/account/settings/authentication. The current production deployment was uploaded directly from reviewed commit 3235c78.
+A private, personal youth wrestling results notebook built with Next.js, Supabase, and Vercel.
 
-## Included
-- Password sign-in; no self-registration UI.
-- Add, search by athlete and season, and delete match records.
-- Supabase row-level security (RLS): each authenticated adult account can access only its own records, including direct API requests.
-- Signed-out users see no results. Missing configuration shows a setup screen.
-- Private, no-store response headers; no-index metadata; no analytics.
-- No real athlete records, credentials, or database exports in this repository.
+## Current setup
 
-## Local setup
-Requires Node.js 22+ and pnpm 11.25.0 (packageManager is pinned).
+- Live site: https://wrestling-plum.vercel.app
+- Source: https://github.com/rpmanning17/wrestling
+- Supabase project: https://supabase.com/dashboard/project/tprodwivvwvpmpzaedom
+- There is no application login, signup, password, or Supabase user account.
+- Vercel Authentication is the single private entrance to the site.
+- The browser never receives the database access key. Next.js sends it from the server to Supabase.
+- Supabase row-level security rejects direct reads and writes that do not have that server-only key.
+- Production database variables are scoped to Vercel Production only.
+- Responses are private/no-store and carry no-index, no-referrer, no-sniff, and frame-denial headers.
+- No athlete records, credentials, database exports, or secret values are stored in this repository.
+
+## Local development
+
+Requires Node.js 22+ and pnpm 11.25.0.
+
 1. Run `pnpm install --frozen-lockfile`.
 2. Copy `.env.example` to `.env.local`.
-3. Fill in your Supabase project URL and **publishable** key from the project's Connect dialog / API settings. These are public identifiers; RLS protects data. Never use a secret or service-role key in this app.
+3. Add the Supabase project URL, publishable key, and a local personal app key that matches the database policy.
 4. Run `pnpm dev` and open http://localhost:3000.
-5. Checks: `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm build`.
+5. Check with `pnpm lint`, `pnpm exec tsc --noEmit`, and `pnpm build`.
 
-## Supabase: first-time setup
-1. Create a dedicated project at https://supabase.com/dashboard. Choose your organization and region and review the plan/cost before creation. Keep the database password in a password manager.
-2. In SQL Editor, execute `supabase/migrations/202610250001_private_results.sql` once, or apply it through the Supabase CLI migration workflow.
-3. In Authentication settings, disable **Allow new users to sign up**, anonymous sign-ins, and unused providers. Do this before putting data into the app. A hidden sign-up screen alone does not prevent API registration.
-4. In Authentication > Users, create your adult account with an owner-assigned password (Add user > Create new user); mark the email confirmed only after verifying it yourself. Use this password to sign in. The current app does not implement invitation-link callbacks or self-service password recovery. Use dashboard account management for initial access and resets. Do not send invitation links expecting this app to complete them.
-5. Additional adult accounts have separate notebooks. Shared family workspaces are not implemented.
-6. Set Site URL to your eventual production domain. Do not allow wildcard preview redirect URLs. Password sign-in itself does not need a redirect callback.
+Never commit `.env.local` or put `SUPABASE_PERSONAL_APP_KEY` in a `NEXT_PUBLIC_` variable.
 
-## Vercel deployment
-1. The source is published at https://github.com/rpmanning17/wrestling and production is deployed at https://wrestling-plum.vercel.app.
-2. Add the GitHub Login Connection at https://vercel.com/account/settings/authentication, then connect `rpmanning17/wrestling` to the existing Vercel project for automatic deployments.
-3. Keep the Next.js framework, repository root, and default build/output settings. Vercel uses the pinned pnpm version and lockfile.
-4. Keep `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` scoped to Production only.
-5. Preview deployments can safely show the setup screen with no environment variables. Use a separate Supabase test project with synthetic records if previews need data. Never connect previews to real minors' records.
-6. Verify sign-in and RLS before entering real records. After changing environment variables, redeploy.
-7. Enable Vercel Deployment Protection for previews where available. Application authentication and RLS protect records regardless of the hosting URL.
+## Database migrations
 
-No Vercel access token or Supabase service-role key is needed by the app.
+- `202610250001_private_results.sql` created the initial owner-based schema.
+- `20261025212304_personal_app_access.sql` converts the empty database to the personal-app model: it removes account ownership, grants the minimum Data API permissions to `anon`, and requires the private server header through RLS.
 
-## Privacy and data handling
-The GitHub repository is currently public. Consider changing it to private in GitHub Settings > General > Danger Zone > Change visibility. Code can be public safely only if it contains no records or secrets. Keep names, result imports, screenshots, logs, and exports out of issues, commits, and build logs.
-Use aliases where possible. Store only necessary event information and result sources you have permission to use. Do not store birthdates, addresses, contact details, medical details, or photos. No scraping or bulk import is included.
-Delete stale or incorrect records with the Delete button. Deleting an auth account cascades removal of its records; Supabase backups may retain copies under your project's retention policy. Review your retention and correction process before collecting data.
-No-index instructions reduce discovery but are not access control. Database RLS and verified server-side sessions enforce access.
+Both migrations are already applied to the linked Supabase project. Do not run them again there.
+
+## Deployment
+
+The current production deployment is protected by Vercel Authentication. Keep that protection enabled: no-index headers are not access control.
+
+The required Production variables are:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_PERSONAL_APP_KEY` (encrypted/server-only)
+
+Preview deployments intentionally have no production database variables. A future GitHub connection is optional; the current deployment can be updated directly.
+
+## Privacy
+
+The GitHub repository is currently public, but it contains code only. Keep names, imported result files, screenshots, exports, and credentials out of commits, issues, and build logs. You may still make the repository private in GitHub settings if you prefer.
+
+Use aliases where practical. Store only necessary result information and sources you are permitted to use. Do not store birthdates, addresses, contact details, medical details, or photos. Delete stale or incorrect records. Supabase backups may retain deleted data for the project's configured retention period.
+
 Results are historical context, not a prediction or assessment of a child.
-
-## Required live acceptance checks
-Use synthetic aliases only:
-1. Signed-out visit to / redirects to /login once configured.
-2. Create adult test accounts A and B in Supabase.
-3. As A, save a synthetic match; verify search by athlete/season and delete.
-4. As B, confirm A's records are absent. Attempt direct API select/update/delete against A's record using B's token: reads must return no rows and writes must change no rows. Attempt to insert a row with A's owner_id using B's token: must fail.
-5. Use the publishable key without an authenticated token: public.results reads/writes must fail.
-6. Log out; revisit / and use browser back/reload; no data should remain available.
-7. Confirm new-user API registration is disabled.
-These checks require a configured Supabase project and cannot be replaced by a successful Next.js build.
-
-## References
-- https://supabase.com/docs/guides/auth/server-side/creating-a-client
-- https://supabase.com/docs/guides/database/postgres/row-level-security
-- https://vercel.com/docs/frameworks/full-stack/nextjs
