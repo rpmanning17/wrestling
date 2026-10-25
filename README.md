@@ -8,8 +8,11 @@ Private youth wrestling results notebook built with Next.js App Router, TypeScri
 - Local .env.local configured with project URL and publishable key, excluded from Git.
 - Production build, TypeScript, lint, setup/login HTTP responses, and privacy headers passed.
 - Live database transaction verified owner reads, cross-account read/update/delete isolation, spoof-owner insert rejection, and anonymous read/insert denial. Synthetic fixtures were rolled back. Security advisor returned no findings.
-- Still required: disable public signup/anonymous auth and create the adult login in the Supabase dashboard. Password and session flows need a final end-to-end check after that account exists.
-- Vercel import is blocked until the user adds their GitHub Login Connection at https://vercel.com/account/settings/authentication. No hosted deployment has been created.
+- Production is live at https://wrestling-plum.vercel.app with Vercel Authentication, application sign-in, no-store responses, and no-index headers.
+- Vercel production variables are limited to the Supabase URL and publishable key; preview environments have no access to the production database.
+- The production build and signed-out redirect to /login passed. Vercel reported no fatal or error logs in the post-deploy check.
+- Still required: disable public signup/anonymous auth and create the adult login in the Supabase dashboard. The database currently has zero users, so password sign-in and the complete browser add/search/delete flow cannot pass yet.
+- Future automatic deployments from GitHub require adding the GitHub Login Connection at https://vercel.com/account/settings/authentication. The current production deployment was uploaded directly from reviewed commit 3235c78.
 
 ## Included
 - Password sign-in; no self-registration UI.
@@ -36,10 +39,10 @@ Requires Node.js 22+ and pnpm 11.25.0 (packageManager is pinned).
 6. Set Site URL to your eventual production domain. Do not allow wildcard preview redirect URLs. Password sign-in itself does not need a redirect callback.
 
 ## Vercel deployment
-1. Publish the source to https://github.com/rpmanning17/wrestling.
-2. At https://vercel.com/new, import that repository. If GitHub access is requested, grant Vercel access to this repository.
-3. Select Next.js, repository root, default build/output settings. Vercel uses the pinned pnpm version and lockfile.
-4. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` under project environment variables for Production only, then deploy.
+1. The source is published at https://github.com/rpmanning17/wrestling and production is deployed at https://wrestling-plum.vercel.app.
+2. Add the GitHub Login Connection at https://vercel.com/account/settings/authentication, then connect `rpmanning17/wrestling` to the existing Vercel project for automatic deployments.
+3. Keep the Next.js framework, repository root, and default build/output settings. Vercel uses the pinned pnpm version and lockfile.
+4. Keep `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` scoped to Production only.
 5. Preview deployments can safely show the setup screen with no environment variables. Use a separate Supabase test project with synthetic records if previews need data. Never connect previews to real minors' records.
 6. Verify sign-in and RLS before entering real records. After changing environment variables, redeploy.
 7. Enable Vercel Deployment Protection for previews where available. Application authentication and RLS protect records regardless of the hosting URL.
