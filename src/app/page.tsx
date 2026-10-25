@@ -1,16 +1,10 @@
 import Link from "next/link";
 import { configured, supabase } from "@/lib/supabase";
-import { addResult, deleteResult } from "./actions";
+import { addMatch, deleteMatch } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-const fields = [
- ["athlete", "Athlete", 100],
- ["opponent", "Opponent", 100],
- ["event_name", "Event", 160],
- ["season", "Season (e.g. 2026–2027)", 20],
- ["division", "Age / weight division", 80],
-] as const;
+const methodOptions = ["F", "DEC", "TF", "MD", "FOR", "DEF", "M FOR", "DQ", "MFFL", "NC"];
 
 export default async function Home({
  searchParams,
@@ -33,12 +27,18 @@ export default async function Home({
 
  const db = supabase();
  const params = await searchParams;
- let query = db.from("results").select("*").order("event_date", { ascending: false }).limit(200);
+ const search = params.q?.trim().replace(/[%_]/g, "");
+ let query = db
+  .from("matches")
+  .select("*", { count: "exact" })
+  .order("event_date", { ascending: false })
+  .order("event_name", { ascending: true })
+  .limit(200);
 
- if (params.q) query = query.ilike("athlete", `%${params.q.replace(/[%_]/g, "")}%`);
- if (params.season) query = query.eq("season", params.season);
+ if (search) query = query.ilike("search_text", `%${search}%`);
+ if (params.season) query = query.eq("season", params.season.trim());
 
- const { data: results, error } = await query;
+ const { data: matches, error, count } = await query;
 
  return (
   <main>
@@ -48,35 +48,34 @@ export default async function Home({
    </header>
    <span className="badge">PRIVATE · PROTECTED BY VERCEL</span>
    <h1>Know the history.<br />Prepare for the next match.</h1>
-   <p>Search this year and seasons past. Results give context, never certainty.</p>
+   <p>Search both sides of 11,647 verified 2024–2025 bouts. Results give context, never certainty.</p>
 
    <section>
     <h2>Match history</h2>
     <form className="filters">
-     <label>Athlete<input name="q" defaultValue={params.q} placeholder="Search athlete" maxLength={100} /></label>
-     <label>Season<input name="season" defaultValue={params.season} placeholder="2026–2027" maxLength={20} /></label>
+     <label>Athlete, team, or event<input name="q" defaultValue={params.q} placeholder="Search either wrestler" maxLength={100} /></label>
+     <label>Season<input name="season" defaultValue={params.season ?? "2024–2025"} placeholder="2024–2025" maxLength={20} /></label>
      <button>Search</button>
      <Link href="/">Clear</Link>
     </form>
 
     {(error || params.error) && <p role="alert">Unable to complete that request. Check your entry, connection, and database setup.</p>}
-    {!error && !results?.length && <div className="empty">No results yet. Add your first verified match below.</div>}
+    {!error && !matches?.length && <div className="empty">No matching bouts found.</div>}
 
-    {!!results?.length && (
+    {!!matches?.length && (
      <>
-      <p>Up to 200 matches, newest first. Filter to narrow your search.</p>
+      <p>{count?.toLocaleString() ?? matches.length.toLocaleString()} matching bouts. Showing up to 200, newest first.</p>
       <div className="table">
        <table>
-        <thead><tr><th>Date / event</th><th>Athlete / opponent</th><th>Division</th><th>Result</th><th>Source</th><th>Manage</th></tr></thead>
+        <thead><tr><th>Date / event</th><th>Matchup</th><th>Weight / round</th><th>Result</th><th>Manage</th></tr></thead>
         <tbody>
-         {results.map((result) => (
-          <tr key={result.id}>
-           <td>{result.event_date}<small>{result.event_name} · {result.season}</small></td>
-           <td>{result.athlete}<small>vs. {result.opponent}</small></td>
-           <td>{result.division}</td>
-           <td>{result.outcome}<small>{result.method}</small></td>
-           <td>{result.source_url?.startsWith("https://") ? <a href={result.source_url} target="_blank" rel="noreferrer">Original result</a> : "Not recorded"}</td>
-           <td><form action={deleteResult}><input type="hidden" name="id" value={result.id} /><button className="secondary">Delete</button></form></td>
+         {matches.map((match) => (
+          <tr key={match.id}>
+           <td>{match.event_date}<small>{match.event_name} · {match.season}</small><small>{[match.city, match.state].filter(Boolean).join(", ")}</small></td>
+           <td><strong>{match.winner_name}</strong><small>{match.winner_team || "Team not recorded"}</small><small>over {match.loser_name} · {match.loser_team || "Team not recorded"}</small></td>
+           <td>{match.weight_class}<small>{match.round || "Round not recorded"}</small></td>
+           <td>{match.win_type}<small>{match.result || "Score not recorded"}</small></td>
+           <td><form action={deleteMatch}><input type="hidden" name="id" value={match.id} /><button className="secondary">Delete</button></form></td>
           </tr>
          ))}
         </tbody>
@@ -87,15 +86,23 @@ export default async function Home({
    </section>
 
    <section>
-    <h2>Add a verified result</h2>
-    <p>Use a short name or alias where practical. Store only results you are permitted to use.</p>
-    <form action={addResult} className="grid">
-     {fields.map(([name, label, max]) => <label key={name}>{label}<input name={name} required maxLength={max} /></label>)}
+    <h2>Add a verified bout</h2>
+    <p>Record only published match information you are permitted to use. Avoid birthdates, contact details, medical details, photos, and other personal information.</p>
+    <form action={addMatch} className="grid">
+     <label>Winner<input name="winner_name" required maxLength={100} /></label>
+     <label>Winner team<input name="winner_team" maxLength={160} /></label>
+     <label>Loser<input name="loser_name" required maxLength={100} /></label>
+     <label>Loser team<input name="loser_team" maxLength={160} /></label>
+     <label>Event<input name="event_name" required maxLength={160} /></label>
      <label>Event date<input name="event_date" type="date" required /></label>
-     <label>Outcome<select name="outcome"><option>Win</option><option>Loss</option><option>Draw</option></select></label>
-     <label>Method / score<input name="method" maxLength={80} /></label>
-     <label>Original result URL<input type="url" name="source_url" placeholder="https://" maxLength={2048} /></label>
-     <button>Save private result</button>
+     <label>Season<input name="season" defaultValue="2024–2025" required maxLength={20} /></label>
+     <label>Weight class<input name="weight_class" required maxLength={40} /></label>
+     <label>Round<input name="round" maxLength={80} /></label>
+     <label>Result / score<input name="result" maxLength={80} /></label>
+     <label>Win type<select name="win_type">{methodOptions.map((method) => <option key={method}>{method}</option>)}</select></label>
+     <label>City<input name="city" maxLength={100} /></label>
+     <label>State<input name="state" maxLength={10} /></label>
+     <button>Save private bout</button>
     </form>
    </section>
 

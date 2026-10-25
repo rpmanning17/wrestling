@@ -15,6 +15,12 @@ A private, personal youth wrestling results notebook built with Next.js, Supabas
 - Responses are private/no-store and carry no-index, no-referrer, no-sniff, and frame-denial headers.
 - No athlete records, credentials, database exports, or secret values are stored in this repository.
 
+## Imported data
+
+The private database currently contains 11,647 bouts from 38 supplied CSV files dated October 5 through December 30, 2024, under the 2024–2025 season.
+
+The import excludes BYEs and rows without a named opponent. Each imported row keeps its source filename and source row number inside the private database so a repeat import is idempotent. The source ZIP and its CSV contents are intentionally not committed to GitHub.
+
 ## Local development
 
 Requires Node.js 22+ and pnpm 11.25.0.
@@ -30,8 +36,9 @@ Never commit `.env.local` or put `SUPABASE_PERSONAL_APP_KEY` in a `NEXT_PUBLIC_`
 ## Database migrations
 
 - `202610250001_private_results.sql` created the initial owner-based schema.
-- `20261025212304_personal_app_access.sql` converts the empty database to the personal-app model: it removes account ownership, grants the minimum Data API permissions to `anon`, and requires the private server header through RLS.
-- `20261025212902_optimize_personal_access_policy.sql` keeps that check in a private, security-invoker function so it runs once per request.
+- `20261025212304_personal_app_access.sql` converted the empty database to the personal-app model.
+- `20261025212902_optimize_personal_access_policy.sql` moved the private server-key check into a security-invoker function.
+- `20261025220936_create_private_matches.sql` replaced the empty one-sided results table with the match-oriented schema used by the import.
 
 All migrations are already applied to the linked Supabase project. Do not run them again there.
 
@@ -51,6 +58,6 @@ Preview deployments intentionally have no production database variables. A futur
 
 The GitHub repository is currently public, but it contains code only. Keep names, imported result files, screenshots, exports, and credentials out of commits, issues, and build logs. You may still make the repository private in GitHub settings if you prefer.
 
-Use aliases where practical. Store only necessary result information and sources you are permitted to use. Do not store birthdates, addresses, contact details, medical details, or photos. Delete stale or incorrect records. Supabase backups may retain deleted data for the project's configured retention period.
+Store only necessary published result information you are permitted to use. Do not store birthdates, addresses, contact details, medical details, or photos. Delete stale or incorrect records. Supabase backups may retain deleted data for the project's configured retention period.
 
 Results are historical context, not a prediction or assessment of a child.

@@ -4,14 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { configured, supabase } from "@/lib/supabase";
 
-export async function addResult(form: FormData) {
+export async function addMatch(form: FormData) {
  if (!configured()) redirect("/?error=setup");
 
  const field = (key: string, max: number, required = true) => {
   const value = String(form.get(key) ?? "").trim();
-  if ((required && !value) || value.length > max) {
-   throw new Error("Invalid field");
-  }
+  if ((required && !value) || value.length > max) throw new Error("Invalid field");
   return value;
  };
 
@@ -22,39 +20,35 @@ export async function addResult(form: FormData) {
    throw new Error("Invalid date");
   }
 
-  const outcome = field("outcome", 4);
-  if (!["Win", "Loss", "Draw"].includes(outcome)) {
-   throw new Error("Invalid outcome");
-  }
-
-  const source_url = field("source_url", 2048, false);
-  if (source_url && new URL(source_url).protocol !== "https:") {
-   throw new Error("Invalid URL");
-  }
-
   row = {
-   athlete: field("athlete", 100),
-   opponent: field("opponent", 100),
-   event_name: field("event_name", 160),
-   division: field("division", 80),
-   season: field("season", 20),
    event_date,
-   outcome,
-   method: field("method", 80, false),
-   source_url: source_url || null,
+   season: field("season", 20),
+   event_name: field("event_name", 160),
+   city: field("city", 100, false),
+   state: field("state", 10, false).toUpperCase(),
+   weight_class: field("weight_class", 40),
+   round: field("round", 80, false),
+   winner_name: field("winner_name", 100),
+   winner_team: field("winner_team", 160, false),
+   loser_name: field("loser_name", 100),
+   loser_team: field("loser_team", 160, false),
+   result: field("result", 80, false),
+   win_type: field("win_type", 20).toUpperCase(),
+   source_file: null,
+   source_row: null,
   };
  } catch {
   redirect("/?error=validation");
  }
 
- const { error } = await supabase().from("results").insert(row);
+ const { error } = await supabase().from("matches").insert(row);
  if (error) redirect("/?error=save");
 
  revalidatePath("/");
  redirect("/");
 }
 
-export async function deleteResult(form: FormData) {
+export async function deleteMatch(form: FormData) {
  if (!configured()) redirect("/?error=setup");
 
  const id = String(form.get("id") ?? "");
@@ -62,7 +56,7 @@ export async function deleteResult(form: FormData) {
   redirect("/?error=delete");
  }
 
- const { error } = await supabase().from("results").delete().eq("id", id);
+ const { error } = await supabase().from("matches").delete().eq("id", id);
  if (error) redirect("/?error=delete");
 
  revalidatePath("/");
