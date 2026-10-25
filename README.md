@@ -1,6 +1,16 @@
 # Mat Notes
 Private youth wrestling results notebook built with Next.js App Router, TypeScript, and Supabase. Deploys on Vercel.
 
+## Setup status (October 25, 2026)
+- Source published to the main branch of rpmanning17/wrestling.
+- Supabase project created: https://supabase.com/dashboard/project/tprodwivvwvpmpzaedom (US East; quoted $0/month at creation).
+- Initial results migration already applied to this project. Do not execute it again there.
+- Local .env.local configured with project URL and publishable key, excluded from Git.
+- Production build, TypeScript, lint, setup/login HTTP responses, and privacy headers passed.
+- Live database transaction verified owner reads, cross-account read/update/delete isolation, spoof-owner insert rejection, and anonymous read/insert denial. Synthetic fixtures were rolled back. Security advisor returned no findings.
+- Still required: disable public signup/anonymous auth and create the adult login in the Supabase dashboard. Password and session flows need a final end-to-end check after that account exists.
+- Vercel import is blocked until the user adds their GitHub Login Connection at https://vercel.com/account/settings/authentication. No hosted deployment has been created.
+
 ## Included
 - Password sign-in; no self-registration UI.
 - Add, search by athlete and season, and delete match records.
