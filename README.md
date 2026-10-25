@@ -31,8 +31,9 @@ Never commit `.env.local` or put `SUPABASE_PERSONAL_APP_KEY` in a `NEXT_PUBLIC_`
 
 - `202610250001_private_results.sql` created the initial owner-based schema.
 - `20261025212304_personal_app_access.sql` converts the empty database to the personal-app model: it removes account ownership, grants the minimum Data API permissions to `anon`, and requires the private server header through RLS.
+- `20261025212902_optimize_personal_access_policy.sql` keeps that check in a private, security-invoker function so it runs once per request.
 
-Both migrations are already applied to the linked Supabase project. Do not run them again there.
+All migrations are already applied to the linked Supabase project. Do not run them again there.
 
 ## Deployment
 
