@@ -1,6 +1,6 @@
 # Mat Notes
 
-A private, personal youth wrestling results notebook built with Next.js, Supabase, and Vercel.
+A personal Florida youth wrestling results index built with Next.js, Supabase, and Vercel.
 
 ## Current setup
 
@@ -8,18 +8,22 @@ A private, personal youth wrestling results notebook built with Next.js, Supabas
 - Source: https://github.com/rpmanning17/wrestling
 - Supabase project: https://supabase.com/dashboard/project/tprodwivvwvpmpzaedom
 - There is no application login, signup, password, or Supabase user account.
-- Vercel Authentication is the single private entrance to the site.
+- Vercel Authentication controls access to the deployed site.
 - The browser never receives the database access key. Next.js sends it from the server to Supabase.
 - Supabase row-level security rejects direct reads and writes that do not have that server-only key.
 - Production database variables are scoped to Vercel Production only.
-- Responses are private/no-store and carry no-index, no-referrer, no-sniff, and frame-denial headers.
-- No athlete records, credentials, database exports, or secret values are stored in this repository.
+- No credentials, database exports, or raw result archives are stored in this repository.
 
 ## Imported data
 
-The private database currently contains 11,647 bouts from 38 supplied CSV files dated October 5 through December 30, 2024, under the 2024–2025 season.
+The database contains 31,177 distinct bouts:
 
-The import excludes BYEs and rows without a named opponent. Each imported row keeps its source filename and source row number inside the private database so a repeat import is idempotent. The source ZIP and its CSV contents are intentionally not committed to GitHub.
+- 11,647 bouts from 38 CSV files dated October 5 through December 30, 2024.
+- 19,530 bouts from 64 CSV files dated January 4 through October 24, 2026.
+
+The 2026 import assigns January–July bouts to the 2025–2026 season and August–October bouts to the 2026–2027 season. It excludes BYEs, rows without a named opponent, and 465 exact duplicate rows repeated across the source files.
+
+Each imported row keeps its source archive, source filename, and source row number in the database so a repeat import is idempotent. Source ZIPs and CSV contents are intentionally not committed to GitHub.
 
 ## Local development
 
@@ -37,14 +41,14 @@ Never commit `.env.local` or put `SUPABASE_PERSONAL_APP_KEY` in a `NEXT_PUBLIC_`
 
 - `202610250001_private_results.sql` created the initial owner-based schema.
 - `20261025212304_personal_app_access.sql` converted the empty database to the personal-app model.
-- `20261025212902_optimize_personal_access_policy.sql` moved the private server-key check into a security-invoker function.
-- `20261025220936_create_private_matches.sql` replaced the empty one-sided results table with the match-oriented schema used by the import.
+- `20261025212902_optimize_personal_access_policy.sql` moved the server-key check into a security-invoker function.
+- `20261025220936_create_private_matches.sql` replaced the empty one-sided results table with the match-oriented schema used by the imports.
 
 All migrations are already applied to the linked Supabase project. Do not run them again there.
 
 ## Deployment
 
-The current production deployment is protected by Vercel Authentication. Keep that protection enabled: no-index headers are not access control.
+The current production deployment is protected by Vercel Authentication.
 
 The required Production variables are:
 
@@ -52,12 +56,10 @@ The required Production variables are:
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_PERSONAL_APP_KEY` (encrypted/server-only)
 
-Preview deployments intentionally have no production database variables. A future GitHub connection is optional; the current deployment can be updated directly.
+Preview deployments intentionally have no production database variables. The current deployment can be updated directly.
 
-## Privacy
+## Data handling
 
-The GitHub repository is currently public, but it contains code only. Keep names, imported result files, screenshots, exports, and credentials out of commits, issues, and build logs. You may still make the repository private in GitHub settings if you prefer.
+The result data comes from publicly available wrestling sites. The GitHub repository contains application code and database migrations, while the result archives and imported records remain outside GitHub.
 
-Store only necessary published result information you are permitted to use. Do not store birthdates, addresses, contact details, medical details, or photos. Delete stale or incorrect records. Supabase backups may retain deleted data for the project's configured retention period.
-
-Results are historical context, not a prediction or assessment of a child.
+Results are historical context, not a prediction of a future match.

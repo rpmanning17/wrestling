@@ -14,12 +14,12 @@ export default async function Home({
  if (!configured()) {
   return (
    <main>
-    <span className="badge">MAT NOTES · PRIVATE WORKSPACE</span>
+    <span className="badge">MAT NOTES · PERSONAL WORKSPACE</span>
     <h1>Your corner.<br />Every season.</h1>
-    <p>A private notebook for wrestling results and match preparation.</p>
+    <p>A personal index for wrestling results and match preparation.</p>
     <section>
      <h2>Connect your database to begin</h2>
-     <p>Follow README.md to finish the private server configuration. Results remain unavailable until setup is complete.</p>
+     <p>Follow README.md to finish the server configuration. Results remain unavailable until setup is complete.</p>
     </section>
    </main>
   );
@@ -44,17 +44,16 @@ export default async function Home({
   <main>
    <header>
     <Link href="/" className="brand">MAT NOTES</Link>
-    <span className="badge">PERSONAL NOTEBOOK</span>
+    <span className="badge">FLORIDA YOUTH WRESTLING</span>
    </header>
-   <span className="badge">PRIVATE · PROTECTED BY VERCEL</span>
    <h1>Know the history.<br />Prepare for the next match.</h1>
-   <p>Search both sides of 11,647 verified 2024–2025 bouts. Results give context, never certainty.</p>
+   <p>Search both wrestlers, teams, and events across every recorded matchup. Results give context, never certainty.</p>
 
    <section>
     <h2>Match history</h2>
     <form className="filters">
      <label>Athlete, team, or event<input name="q" defaultValue={params.q} placeholder="Search either wrestler" maxLength={100} /></label>
-     <label>Season<input name="season" defaultValue={params.season ?? "2024–2025"} placeholder="2024–2025" maxLength={20} /></label>
+     <label>Season<input name="season" defaultValue={params.season} placeholder="2026–2027" maxLength={20} /></label>
      <button>Search</button>
      <Link href="/">Clear</Link>
     </form>
@@ -86,8 +85,8 @@ export default async function Home({
    </section>
 
    <section>
-    <h2>Add a verified bout</h2>
-    <p>Record only published match information you are permitted to use. Avoid birthdates, contact details, medical details, photos, and other personal information.</p>
+    <h2>Add a bout</h2>
+    <p>Add a published result that is not already included in an uploaded file.</p>
     <form action={addMatch} className="grid">
      <label>Winner<input name="winner_name" required maxLength={100} /></label>
      <label>Winner team<input name="winner_team" maxLength={160} /></label>
@@ -95,18 +94,18 @@ export default async function Home({
      <label>Loser team<input name="loser_team" maxLength={160} /></label>
      <label>Event<input name="event_name" required maxLength={160} /></label>
      <label>Event date<input name="event_date" type="date" required /></label>
-     <label>Season<input name="season" defaultValue="2024–2025" required maxLength={20} /></label>
+     <label>Season<input name="season" defaultValue="2026–2027" required maxLength={20} /></label>
      <label>Weight class<input name="weight_class" required maxLength={40} /></label>
      <label>Round<input name="round" maxLength={80} /></label>
      <label>Result / score<input name="result" maxLength={80} /></label>
      <label>Win type<select name="win_type">{methodOptions.map((method) => <option key={method}>{method}</option>)}</select></label>
      <label>City<input name="city" maxLength={100} /></label>
      <label>State<input name="state" maxLength={10} /></label>
-     <button>Save private bout</button>
+     <button>Save bout</button>
     </form>
    </section>
 
-   <footer>Private records · No public athlete profiles · Delete records when no longer needed</footer>
+   <footer>Public-source results · Historical context only</footer>
   </main>
  );
 }
