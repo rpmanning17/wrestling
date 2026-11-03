@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { configured, supabase } from "@/lib/supabase";
 
 export async function addMatch(form: FormData) {
- if (!configured()) redirect("/?error=setup");
+ if (!configured()) redirect("/results?error=setup");
 
  const field = (key: string, max: number, required = true) => {
   const value = String(form.get(key) ?? "").trim();
@@ -38,26 +38,27 @@ export async function addMatch(form: FormData) {
    source_row: null,
   };
  } catch {
-  redirect("/?error=validation");
+  redirect("/results?error=validation");
  }
 
  const { error } = await supabase().from("matches").insert(row);
- if (error) redirect("/?error=save");
+ if (error) redirect("/results?error=save");
 
- revalidatePath("/");
- redirect("/");
+ revalidatePath("/results");
+ redirect("/results");
 }
 
 export async function deleteMatch(form: FormData) {
- if (!configured()) redirect("/?error=setup");
+ if (!configured()) redirect("/results?error=setup");
 
  const id = String(form.get("id") ?? "");
  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
-  redirect("/?error=delete");
+  redirect("/results?error=delete");
  }
 
  const { error } = await supabase().from("matches").delete().eq("id", id);
- if (error) redirect("/?error=delete");
+ if (error) redirect("/results?error=delete");
 
- revalidatePath("/");
+ revalidatePath("/results");
 }
+
