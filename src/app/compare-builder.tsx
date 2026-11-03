@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { deleteWrestlerNote, loadProfiles, saveWrestlerNote, searchWrestlers } from "@/app/compare-actions";
-import type { WrestlerNote, WrestlerProfile, WrestlerRef, WrestlerSuggestion } from "@/lib/scouting-types";
+import type { PowerRating, WrestlerNote, WrestlerProfile, WrestlerRef, WrestlerSuggestion } from "@/lib/scouting-types";
 import { wrestlerKey } from "@/lib/scouting-types";
 
 const COMPARE_KEY = "matnotes.compare.v1";
@@ -317,6 +317,8 @@ function ProfileCard({ profile, rank, sortMode, onUpdate, onAddNote, onDeleteNot
       <div className="primary-score"><strong>{primaryScore == null ? "—" : primaryScore.toFixed(2)}</strong><span>{sortMode === "strength" ? "Strength" : "Matchup likelihood"}</span></div>
       <div className="score-pair"><div><span>Likelihood</span><strong>{profile.likelihood.toFixed(2)}</strong></div><div><span>Strength</span><strong>{profile.strength == null ? "Unrated" : profile.strength.toFixed(2)}</strong></div></div>
 
+      {profile.powerRating && <PowerRatingStrip rating={profile.powerRating} />}
+
       <dl className="facts">
         <div><dt>Record</dt><dd>{profile.wins}-{profile.losses}</dd></div>
         <div><dt>Age group</dt><dd>{profile.latestAgeGroup || "Unknown"}</dd></div>
@@ -337,6 +339,8 @@ function ProfileCard({ profile, rank, sortMode, onUpdate, onAddNote, onDeleteNot
       <p className="score-reason"><strong>Why likely:</strong> {profile.likelihoodReason}</p>
       <p className="score-reason"><strong>Why strong:</strong> {profile.strengthReason}</p>
 
+      {profile.powerRating && <RatingDetails profile={profile} rating={profile.powerRating} />}
+
       <details className="profile-details">
         <summary>History & notes</summary>
         {!!profile.placements.length && <div className="history-block"><h4>Placements</h4>{profile.placements.map((placement) => <p key={`${placement.date}-${placement.event}-${placement.division}-${placement.weightLabel}-${placement.place ?? "entry"}`}>{placement.place ? `${placement.place}${ordinal(placement.place)}` : "Entered"} · {placement.ageGroup ? `${placement.ageGroup} · ` : ""}{placement.division} · {placement.weightLabel === "HWT" ? "HWT" : `${placement.weightLabel} lb`}<span>{placement.event} · {placement.date}{placement.confidence === "identity review" ? " · identity review" : ""}</span></p>)}</div>}
@@ -348,6 +352,48 @@ function ProfileCard({ profile, rank, sortMode, onUpdate, onAddNote, onDeleteNot
         </div>
       </details>
     </article>
+  );
+}
+
+const pct = (value: number | null) => (value == null ? "—" : `${(value * 100).toFixed(0)}%`);
+const METHOD_LABELS: Record<string, string> = { decision: "Dec", major_decision: "MD", tech_fall: "TF", fall: "Fall" };
+
+function methodLine(methods: Record<string, number>) {
+  const parts = Object.entries(METHOD_LABELS).filter(([kind]) => methods[kind]).map(([kind, label]) => `${methods[kind]} ${label}`);
+  return parts.length ? parts.join(" · ") : "—";
+}
+
+/** Rating ± uncertainty, the conservative ranking score and the confidence status, always shown together. */
+function PowerRatingStrip({ rating }: { rating: PowerRating }) {
+  return (
+    <div className="power-rating" aria-label="Opponent-adjusted rating">
+      <div><span>Power rating</span><strong>{rating.rating.toFixed(0)} <small>± {rating.rd.toFixed(0)}</small></strong></div>
+      <div><span>Conservative</span><strong>{rating.conservative.toFixed(0)}</strong></div>
+      <div><span>{rating.matchCount} rated bouts</span><em className={`rating-status ${rating.status}`}>{rating.status}</em></div>
+    </div>
+  );
+}
+
+function RatingDetails({ profile, rating }: { profile: WrestlerProfile; rating: PowerRating }) {
+  const trend = rating.trend;
+  return (
+    <details className="profile-details rating-details">
+      <summary>Rating details</summary>
+      <dl className="facts">
+        <div><dt>Avg opponent</dt><dd>{rating.avgOpponentRating == null ? "—" : rating.avgOpponentRating.toFixed(0)}</dd></div>
+        <div><dt>Schedule-expected win %</dt><dd>{pct(rating.sosExpectedWinPct)}</dd></div>
+        <div><dt>Quality wins–losses</dt><dd>{rating.qualityWins}–{rating.qualityLosses}</dd></div>
+        <div><dt>Pin %</dt><dd>{pct(rating.pinPct)}</dd></div>
+        <div><dt>Bonus %</dt><dd>{pct(rating.bonusPct)}</dd></div>
+        <div><dt>Trend (90 d)</dt><dd>{trend == null ? "—" : `${trend > 0 ? "+" : ""}${trend.toFixed(0)}`}</dd></div>
+        <div><dt>Wins by</dt><dd>{methodLine(rating.winMethods)}</dd></div>
+        <div><dt>Losses by</dt><dd>{methodLine(rating.lossMethods)}</dd></div>
+        <div><dt>Avg margin W / L</dt><dd>{rating.avgWinMargin == null ? "—" : rating.avgWinMargin.toFixed(1)} / {rating.avgLossMargin == null ? "—" : rating.avgLossMargin.toFixed(1)}</dd></div>
+      </dl>
+      <p className="rating-footnote">Opponent strength uses opponents&apos; current ratings and explains the schedule only; it is not added to the rating. Model {rating.modelVersion}, through {rating.asOfDate}.</p>
+      {!!profile.headToHead.length && <div className="history-block"><h4>Head-to-head</h4>{profile.headToHead.map((line) => <p key={line.opponent}>{line.wins}–{line.losses} vs {line.opponent}<span>last {line.lastDate}</span></p>)}</div>}
+      {!!profile.commonOpponents.length && <div className="history-block"><h4>Common opponents</h4>{profile.commonOpponents.map((line) => <p key={`${line.other}-${line.opponent}`}>{line.opponent}<span>{profile.name} {line.mine.wins}–{line.mine.losses} · {line.other} {line.theirs.wins}–{line.theirs.losses}</span></p>)}</div>}
+    </details>
   );
 }
 

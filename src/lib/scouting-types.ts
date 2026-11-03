@@ -40,10 +40,52 @@ export type WrestlerNote = {
   createdAt: string;
 };
 
+export type RatingStatus = "provisional" | "developing" | "established";
+
+/** Opponent-adjusted rating from the active versioned model (see docs/RANKINGS.md). */
+export type PowerRating = {
+  modelVersion: string;
+  asOfDate: string;
+  rating: number;
+  rd: number;
+  conservative: number;
+  status: RatingStatus;
+  matchCount: number;
+  /** Opponents' CURRENT ratings: explanatory only, never an input to the rating. */
+  avgOpponentRating: number | null;
+  sosExpectedWinPct: number | null;
+  qualityWins: number;
+  qualityLosses: number;
+  pinPct: number | null;
+  bonusPct: number | null;
+  winMethods: Record<string, number>;
+  lossMethods: Record<string, number>;
+  avgWinMargin: number | null;
+  avgLossMargin: number | null;
+  trend: number | null;
+};
+
+export type HeadToHeadSummary = { opponent: string; wins: number; losses: number; lastDate: string };
+
+export type CommonOpponentLine = {
+  other: string;
+  opponent: string;
+  mine: { wins: number; losses: number };
+  theirs: { wins: number; losses: number };
+};
+
 export type WrestlerProfile = WrestlerRef & {
   key: string;
   wins: number;
   losses: number;
+  /**
+   * 0-1000 cohort display. "opponent_adjusted": min-max of the conservative score within the
+   * wrestler's age group and 10 lb band. "legacy": the original heuristic view.
+   */
+  ratingSource: "opponent_adjusted" | "legacy";
+  powerRating: PowerRating | null;
+  headToHead: HeadToHeadSummary[];
+  commonOpponents: CommonOpponentLine[];
   strength: number | null;
   strengthReason: string;
   likelihood: number;

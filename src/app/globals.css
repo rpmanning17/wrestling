@@ -162,6 +162,16 @@ td small { display: block; margin-top: 5px; }
 .add-bout > summary { color: var(--green); }
 .form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 20px; align-items: end; }
 
+.power-rating { display: grid; grid-template-columns: 1.3fr 1fr 1fr; border: 1px solid var(--line); border-top: 0; }
+.power-rating div { display: grid; gap: 5px; padding: 11px; align-content: start; }
+.power-rating div + div { border-left: 1px solid var(--line); }
+.power-rating span { color: var(--muted); font-size: .7rem; }
+.power-rating strong { font-size: .95rem; }
+.power-rating small { font-weight: 600; color: var(--muted); font-size: .75rem; }
+.rating-status { justify-self: start; padding: 3px 7px; border-radius: 99px; font-style: normal; font-size: .7rem; font-weight: 700; text-transform: capitalize; background: #e7eee9; color: #476156; }
+.rating-status.provisional { background: #fff2d7; color: #76571e; }
+.rating-status.developing { background: #e8edf4; color: #3d5470; }
+.rating-footnote { margin: 8px 0 0; color: var(--muted); font-size: .72rem; line-height: 1.4; }
 .ranking-note { display: flex; gap: 16px; align-items: center; padding: 14px 0 20px; border-bottom: 2px solid var(--ink); font-size: .82rem; }
 .ranking-note span { color: var(--muted); }
 .ranking-note a { margin-left: auto; font-weight: 800; }

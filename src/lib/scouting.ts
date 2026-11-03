@@ -5,8 +5,12 @@ import {
   likelihoodExplanation,
   likelihoodScore,
 } from "@/lib/scoring";
+import { classifyMethod, CONTESTED_BY_DEFAULT } from "@/lib/rating/outcomes";
+import { commonOpponents, headToHead, type Bout } from "@/lib/rating/relations";
 import type {
   PlacementSummary,
+  PowerRating,
+  RatingStatus,
   WrestlerProfile,
   WrestlerRef,
   WrestlerSuggestion,
@@ -101,6 +105,70 @@ type RatingRow = {
   best_placement: number | null;
   decisive_wins: number;
 };
+
+/** Row of public.wrestler_rating_current (active versioned model; migration 202611030009). */
+type PowerRow = {
+  athlete_key: string;
+  model_version: string;
+  as_of_date: string;
+  rating: number | string;
+  rating_deviation: number | string;
+  conservative_score: number | string;
+  rating_status: RatingStatus;
+  match_count: number;
+  avg_opponent_rating: number | string | null;
+  sos_expected_win_pct: number | string | null;
+  quality_wins: number;
+  quality_losses: number;
+  pin_pct: number | string | null;
+  bonus_pct: number | string | null;
+  win_methods: Record<string, number> | null;
+  loss_methods: Record<string, number> | null;
+  avg_win_margin: number | string | null;
+  avg_loss_margin: number | string | null;
+  rating_trend: number | string | null;
+};
+
+/** Row of public.wrestler_strength_current: cohort rank and 0-1000 display from the active model. */
+type CohortStrengthRow = {
+  athlete_name: string;
+  age_group: string;
+  weight_bucket: number;
+  weight_band: string;
+  evidence_date: string;
+  confidence_score: number;
+  strength_score: number | string;
+  cohort_rank: number;
+  cohort_size: number;
+  division_birth_year_start: number;
+  division_birth_year_end: number;
+};
+
+const num = (value: number | string | null | undefined) => (value == null ? null : Number(value));
+const identity = (name: string) => name.trim().toLowerCase(); // matches SQL lower(trim()) used by the rating tables
+
+function toPowerRating(row: PowerRow): PowerRating {
+  return {
+    modelVersion: row.model_version,
+    asOfDate: row.as_of_date,
+    rating: Number(row.rating),
+    rd: Number(row.rating_deviation),
+    conservative: Number(row.conservative_score),
+    status: row.rating_status,
+    matchCount: row.match_count,
+    avgOpponentRating: num(row.avg_opponent_rating),
+    sosExpectedWinPct: num(row.sos_expected_win_pct),
+    qualityWins: row.quality_wins,
+    qualityLosses: row.quality_losses,
+    pinPct: num(row.pin_pct),
+    bonusPct: num(row.bonus_pct),
+    winMethods: row.win_methods ?? {},
+    lossMethods: row.loss_methods ?? {},
+    avgWinMargin: num(row.avg_win_margin),
+    avgLossMargin: num(row.avg_loss_margin),
+    trend: num(row.rating_trend),
+  };
+}
 
 type AliasRow = {
   alias_key: string;
@@ -275,7 +343,8 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
   const keys = resolvedRefs.map((ref) => wrestlerKey(ref.name));
   const empty = { data: [] as unknown[] };
 
-  const [winsResult, lossesResult, entriesResult, observationsResult, evidenceResult, ratingsResult, notesResult] = await Promise.all([
+  const ratingKeys = [...new Set(names.map(identity))];
+  const [winsResult, lossesResult, entriesResult, observationsResult, evidenceResult, ratingsResult, notesResult, activeModelResult, powerResult, cohortResult] = await Promise.all([
     names.length
       ? db.from("matches").select("id,event_date,event_name,city,weight_class,winner_name,winner_team,loser_name,loser_team,result,win_type").in("winner_name", names).order("event_date", { ascending: false }).limit(1000)
       : empty,
@@ -295,7 +364,19 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
       ? db.from("wrestler_ratings").select("athlete_name,age_group,division_birth_year_start,division_birth_year_end,weight_bucket,weight_band,bracket_weight_lbs,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,wins,losses,best_placement,decisive_wins").in("athlete_name", names).limit(1000)
       : empty,
     db.from("wrestler_notes").select("id,wrestler_key,body,client_id,created_at").in("wrestler_key", keys).order("created_at", { ascending: false }).limit(500),
+    // Opponent-adjusted model. Errors (view not migrated yet) are tolerated: the legacy view is the fallback.
+    db.from("wrestler_rating_current").select("model_version").limit(1),
+    ratingKeys.length
+      ? db.from("wrestler_rating_current").select("athlete_key,model_version,as_of_date,rating,rating_deviation,conservative_score,rating_status,match_count,avg_opponent_rating,sos_expected_win_pct,quality_wins,quality_losses,pin_pct,bonus_pct,win_methods,loss_methods,avg_win_margin,avg_loss_margin,rating_trend").in("athlete_key", ratingKeys)
+      : empty,
+    names.length
+      ? db.from("wrestler_strength_current").select("athlete_name,age_group,weight_bucket,weight_band,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,division_birth_year_start,division_birth_year_end").in("athlete_name", names).limit(1000)
+      : empty,
   ]);
+  // A model counts as active only if the view answered without error and returned a row.
+  const modelActive = !("error" in activeModelResult && activeModelResult.error) && ((activeModelResult.data as unknown[] | null) ?? []).length > 0;
+  const powerRows = modelActive ? ((powerResult.data ?? []) as PowerRow[]) : [];
+  const cohortRows = modelActive ? ((cohortResult.data ?? []) as CohortStrengthRow[]) : [];
 
   const matches = [...(winsResult.data ?? []), ...(lossesResult.data ?? [])] as MatchRow[];
   const uniqueMatches = [...new Map(matches.map((match) => [match.id, match])).values()];
@@ -304,6 +385,22 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
   const evidence = (evidenceResult.data ?? []) as EvidenceRow[];
   const ratings = (ratingsResult.data ?? []) as RatingRow[];
   const notes = (notesResult.data ?? []) as NoteRow[];
+
+  // Head-to-head and common opponents only make sense for a handful of wrestlers (the comparison view),
+  // and use the same contested-bout definition as the rating model.
+  const withRelations = resolvedRefs.length > 1 && resolvedRefs.length <= 8;
+  const relationBouts: Bout[] = withRelations
+    ? uniqueMatches
+        .filter((match) => CONTESTED_BY_DEFAULT.includes(classifyMethod(match.win_type, match.result)))
+        .map((match) => ({
+          date: match.event_date,
+          winnerKey: normalize(match.winner_name),
+          loserKey: normalize(match.loser_name),
+          winnerName: match.winner_name,
+          loserName: match.loser_name,
+        }))
+    : [];
+  const displayNames = new Map(resolvedRefs.map((ref) => [normalize(ref.name), ref.name]));
 
   return resolvedRefs.map((ref) => {
     const key = wrestlerKey(ref.name);
@@ -399,11 +496,33 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
         const bFit = (latestAgeGroup === b.age_group ? 2 : 0) + (desiredBucket === b.weight_bucket ? 1 : 0);
         return bFit - aFit || b.evidence_date.localeCompare(a.evidence_date) || b.confidence_score - a.confidence_score;
       });
-    const rating = wrestlerRatings[0];
+    const legacyRating = wrestlerRatings[0];
+    // Opponent-adjusted model (when one is active): power rating plus cohort rank/0-1000 display.
+    const powerRow = modelActive ? powerRows.find((row) => row.athlete_key === identity(ref.name)) : undefined;
+    const powerRating = powerRow ? toPowerRating(powerRow) : null;
+    const cohortRow = modelActive
+      ? cohortRows
+          .filter((row) => normalize(row.athlete_name) === target)
+          .sort((a, b) => {
+            const aFit = (latestAgeGroup === a.age_group ? 2 : 0) + (desiredBucket === a.weight_bucket ? 1 : 0);
+            const bFit = (latestAgeGroup === b.age_group ? 2 : 0) + (desiredBucket === b.weight_bucket ? 1 : 0);
+            return bFit - aFit || b.evidence_date.localeCompare(a.evidence_date) || b.confidence_score - a.confidence_score;
+          })[0]
+      : undefined;
+    const rating = modelActive ? cohortRow : legacyRating;
     const strength = rating ? Number(rating.strength_score) : null;
-    const strengthReason = rating
-      ? `${wins}-${losses} in ${wins + losses} recorded bouts · #${rating.cohort_rank} of ${rating.cohort_size} in ${rating.age_group} ${rating.weight_band}`
-      : isNolan ? "Unrated — Nolan has no imported results yet." : "Unrated — no recorded bouts in a supported age/weight cohort.";
+    const strengthReason = modelActive
+      ? cohortRow && powerRating
+        ? `${powerRating.rating.toFixed(0)} ± ${powerRating.rd.toFixed(0)} · ${powerRating.status} · #${cohortRow.cohort_rank} of ${cohortRow.cohort_size} in ${cohortRow.age_group} ${cohortRow.weight_band}`
+        : powerRating
+          ? `Rated ${powerRating.rating.toFixed(0)} ± ${powerRating.rd.toFixed(0)}, but no age/weight cohort evidence to rank within.`
+          : isNolan ? "Unrated — Nolan has no imported results yet." : "Unrated — no contested bouts in the rating model."
+      : legacyRating
+        ? `${wins}-${losses} in ${wins + losses} recorded bouts · #${legacyRating.cohort_rank} of ${legacyRating.cohort_size} in ${legacyRating.age_group} ${legacyRating.weight_band}`
+        : isNolan ? "Unrated — Nolan has no imported results yet." : "Unrated — no recorded bouts in a supported age/weight cohort.";
+    const otherKeys = withRelations ? resolvedRefs.map((other) => normalize(other.name)).filter((other) => other !== target) : [];
+    const h2h = withRelations ? headToHead(relationBouts, target, otherKeys, displayNames) : [];
+    const common = withRelations ? commonOpponents(relationBouts, target, otherKeys, displayNames) : [];
     const latestTeam = latestEvidence?.team || latestEntry?.team || latestObservation?.team || (normalize(wrestlerMatches[0]?.winner_name ?? "") === target ? wrestlerMatches[0]?.winner_team : wrestlerMatches[0]?.loser_team) || ref.team;
     const evidenceConfidence = latestEvidence?.confidence_label ?? (confirmedEvidence ? "confirmed" : latestAgeGroup || latestWeight ? "limited" : "limited");
 
@@ -414,6 +533,11 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
       key,
       wins,
       losses,
+      ratingSource: modelActive ? "opponent_adjusted" as const : "legacy" as const,
+      powerRating,
+      headToHead: h2h.map((line) => ({ opponent: line.opponentName, wins: line.wins, losses: line.losses, lastDate: line.lastDate })),
+      commonOpponents: common.flatMap((summary) =>
+        summary.shared.map((line) => ({ other: summary.otherName, opponent: line.opponentName, mine: line.mine, theirs: line.theirs }))),
       strength: isNolan && wrestlerMatches.length === 0 ? null : strength,
       strengthReason,
       likelihood: likelihoodScore(scoreInput),
@@ -448,6 +572,19 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
 }
 
 export async function strongestPool() {
+  // Active opponent-adjusted model first; the legacy heuristic view is the fallback.
+  const adjusted = await supabase()
+    .from("wrestler_strength_current")
+    .select("athlete_name,team,strength_score,age_group,bracket_weight_lbs")
+    .eq("age_group", "12U")
+    .eq("weight_bucket", 70)
+    .order("conservative_score", { ascending: false })
+    .limit(200);
+  if (!adjusted.error && (adjusted.data ?? []).length) {
+    const rows = adjusted.data as Array<{ athlete_name: string; team: string; age_group: string; bracket_weight_lbs: number | string }>;
+    const refs = [...new Map(rows.map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team, ageGroup: row.age_group, weight: Number(row.bracket_weight_lbs) }])).values()];
+    return (await buildProfiles(refs)).sort((a, b) => (b.strength ?? -1) - (a.strength ?? -1));
+  }
   const { data } = await supabase()
     .from("wrestler_ratings")
     .select("athlete_name,team,strength_score,age_group,bracket_weight_lbs")
