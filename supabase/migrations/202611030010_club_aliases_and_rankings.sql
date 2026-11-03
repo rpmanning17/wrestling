@@ -102,4 +102,40 @@ from bout_summary b join roster_summary r on r.season=b.season and r.club_key=b.
 
 revoke all on public.club_rankings_current from public, authenticated;
 grant select on public.club_rankings_current to anon;
+
+-- Per-event club roster; does not imply permanent club affiliation.
+create view public.club_roster_current with (security_invoker = true) as
+with participations as (
+  select season,winner_team as team,winner_name as athlete_name,1 as won
+  from public.matches where upper(trim(win_type)) in ('F','DEC','MD','TF')
+  union all
+  select season,loser_team as team,loser_name as athlete_name,0 as won
+  from public.matches where upper(trim(win_type)) in ('F','DEC','MD','TF')
+), normalized as (
+  select replace(p.season,'–','-') as season,
+    coalesce(a.club_key,'raw:' || regexp_replace(lower(trim(p.team)),'[^a-z0-9]+',' ','g')) as club_key,
+    coalesce(a.canonical_name,trim(p.team)) as club_name,
+    coalesce(w.canonical_key,lower(trim(p.athlete_name))) as athlete_key,
+    coalesce(w.canonical_name,trim(p.athlete_name)) as athlete_name,p.won
+  from participations p
+  left join public.club_aliases a on a.alias_key=regexp_replace(lower(trim(p.team)),'[^a-z0-9]+',' ','g')
+  left join public.wrestler_aliases w on w.alias_key=lower(trim(p.athlete_name))
+  where nullif(trim(p.team),'') is not null and nullif(trim(p.athlete_name),'') is not null
+), scoped as (
+  select 'ALL'::text as season,club_key,club_name,athlete_key,athlete_name,won from normalized
+  union all
+  select season,club_key,club_name,athlete_key,athlete_name,won from normalized
+)
+select s.season,s.club_key,max(s.club_name) as club_name,s.athlete_key,
+  max(s.athlete_name) as athlete_name,count(*)::int as bouts,
+  sum(s.won)::int as wins,(count(*)-sum(s.won))::int as losses,
+  wr.rating,wr.rating_deviation,wr.conservative_score,wr.sos_expected_win_pct,
+  wr.avg_opponent_rating,wr.rating_status
+from scoped s
+left join public.wrestler_rating_current wr on wr.athlete_key=s.athlete_key
+group by s.season,s.club_key,s.athlete_key,wr.rating,wr.rating_deviation,
+  wr.conservative_score,wr.sos_expected_win_pct,wr.avg_opponent_rating,wr.rating_status;
+
+revoke all on public.club_roster_current from public, authenticated;
+grant select on public.club_roster_current to anon;
 commit;
