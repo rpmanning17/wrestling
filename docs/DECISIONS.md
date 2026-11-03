@@ -61,5 +61,11 @@ Newest first within each area is not required; each entry has a date, the decisi
 
 ## Not yet decided / not built
 
-- Club identity normalization and club rankings (F13/F14): no design committed. When started, record the identity-resolution approach and the rating method here and in `RANKINGS.md`.
+- Club identity normalization and initial club rankings were implemented under D20/D21; causal development analysis remains future work.
 - Whether duals should be weighted differently from tournaments: no evidence yet.
+
+## Validated activation (2026-11-03)
+
+**D23. Adopt daily Glicko-2 with decision winner score 0.8 for the first production model.** Supersedes D15's period default and D12's unvalidated status for this particular variant. The existing one-factor tuning selected daily periods and decision-0.8, then the combined candidate passed the untouched confirmation window: log-loss gain 0.00927 per bout, event-bootstrap 95% interval [-0.01156, -0.00727], calibration improved from ECE 0.02453 to 0.01567. Accuracy 66.17% across 8,146 held-out bouts. Other contested wins remain 1; margins remain off. Keep engine reference defaults unchanged and commit explicit production overrides so future backtests retain a stable reference. Rejected: adopting tuning winners without held-out confirmation; enabling arbitrary margin variants; changing uncertainty labels to make the leaderboard look more certain. See BACKTEST_REPORT.md.
+
+**D24. Activate through the existing restricted atomic SQL function using connected Supabase authorization.** No service key was requested, extracted, logged or added to Vercel. Calculated ratings/history were inserted under a building model, counts and invariants checked, then candidate promotion and `private.activate_rating_model` executed in a transaction. No public write RPC, grants or migrations were needed. Rejected: broadening anonymous permissions or using the CLI's non-atomic two-request activation. Raw match count and outcome checksum were unchanged. D19 remains in force: all candidate rematches are retained, with zero exact-row exclusions on this snapshot.

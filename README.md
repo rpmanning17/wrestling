@@ -35,8 +35,8 @@ Source ZIPs and CSV contents are intentionally not committed. The match CSV impo
 
 Two rating systems exist side by side:
 
-- **Legacy heuristic** (`public.wrestler_ratings` view, `src/lib/scoring.ts`): win rate, placement, finishing, recency and volume. It ignores opponent quality. It is what production uses until a new model is activated.
-- **Opponent-adjusted Glicko-2** (migration `202611030009`, `src/lib/rating/`, `scripts/ratings/`): rating, rating deviation (uncertainty), conservative score, provisional status, strength-of-schedule explanations and chronological backtesting. The migration is **applied to production** (2026-11-03); the code is not yet deployed and **no rating model has been calculated**, so production still shows the legacy ratings. See [`docs/STATUS.md`](docs/STATUS.md).
+- **Legacy heuristic** (`public.wrestler_ratings` view, `src/lib/scoring.ts`): win rate, placement, finishing, recency and volume. It ignores opponent quality. It remains available as fallback when no model is active.
+- **Opponent-adjusted Glicko-2** (migration `202611030009`, `src/lib/rating/`, `scripts/ratings/`): rating, rating deviation (uncertainty), conservative score, provisional status, strength-of-schedule explanations and chronological backtesting. **Live and active as of 2026-11-03:** `glicko2-daily-dec08-v1`, 7,788 wrestlers from 30,133 contested bouts. Daily periods and decision score 0.8 passed real-data held-out validation. Use `config/ratings.production.json` for recalculation; see `docs/RATING_ACTIVATION.md` for results and the secure activation procedure. See [`docs/STATUS.md`](docs/STATUS.md).
 
 The site reads the opponent-adjusted views when a model is active and falls back to the legacy view otherwise.
 
@@ -62,9 +62,9 @@ Never commit `.env.local`, and never put `SUPABASE_PERSONAL_APP_KEY` or any serv
 ### Rating commands
 
 ```
-pnpm ratings:calculate --dry-run              # calculate from the database and print; writes nothing
+pnpm ratings:calculate --config config/ratings.production.json --dry-run # validated production settings; writes nothing
 pnpm ratings:calculate --input export.json --dry-run   # offline, from { "matches": [], "aliases": [] }
-pnpm ratings:calculate --activate             # write a new versioned model and make the site use it
+pnpm ratings:calculate --config config/ratings.production.json # write candidate; review, then activate atomically through restricted SQL function
 pnpm ratings:backtest                         # chronological, leakage-free evaluation -> docs/BACKTEST_REPORT.md
 ```
 
@@ -81,7 +81,7 @@ Schema changes happen only through version-controlled files in `supabase/migrati
 | `20261025212902_optimize_personal_access_policy` | server-key check in a security-invoker function | yes |
 | `20261025220936_create_private_matches` | `matches` table used by imports | yes |
 | `202611030001`–`202611030008` | tournament entries, birth-year naming, notes, evidence + legacy ratings, observations, aliases | recorded as applied by the owner; verify with `supabase migration list` |
-| `202611030009_create_versioned_opponent_adjusted_ratings` | versioned rating tables and views | **no** |
+| `202611030009_create_versioned_opponent_adjusted_ratings` | versioned rating tables and views | **yes**, production version `20261103174437` |
 
 Do not re-run applied migrations on the linked project.
 

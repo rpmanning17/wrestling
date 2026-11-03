@@ -19,7 +19,7 @@ Source of truth for tables is `supabase/migrations/`. This document explains mea
 | `rating_backtest_runs` | Stored backtest summaries | metrics JSON per config hash |
 | `wrestler_rating_current`, `wrestler_strength_current` (views) | Active model only | strength view adds cohort rank, size and the 0..1000 display |
 
-Migration `202611030009` was **applied to production on 2026-11-03** (production version `20261103174437`). The rating tables are empty until the first model is written.
+Migration `202611030009` was **applied to production on 2026-11-03** (production version `20261103174437`). The first model was calculated and atomically activated 2026-11-03; see `RATING_ACTIVATION.md`.
 
 **Migration naming:** production records the timestamp at which each migration was applied through the Supabase connector, so 10 of 13 repo file names (`202610250001` and `202611030001` to `202611030009`) differ from the production versions. Do not run `supabase db push` against production without reconciling first.
 
@@ -28,7 +28,7 @@ Migration `202611030009` was **applied to production on 2026-11-03** (production
 | Issue | Count | Rating pipeline today |
 |---|---|---|
 | Possible duplicates (same date, event, weight class, round, participants) | 261 groups, 262 extra rows | dropped only if result and method also match; otherwise rated twice |
-| Swapped records (same bout, winner and loser reversed) | 65 pairs | both rated (cancel or distort); proposal D19 |
+| Swapped records (same bout, winner and loser reversed) | 65 preliminary audit pairs | not proven duplicates; contested rematches retained under D19 |
 | Self-matches | 12 | excluded |
 | Weight label with no parseable 30–400 number | 139 (nearly all HWT) | rated; excluded from weight-context segments |
 | Season label `2026-2027` (hyphen) vs `2026–2027` (en dash) | 668 vs 8,292 | ignored (ratings do not use `season`) |
@@ -40,7 +40,7 @@ Migration `202611030009` was **applied to production on 2026-11-03** (production
 - There is no `wrestlers` table. A wrestler's identity is a **normalized name string**: `lower(trim(name))` in SQL (`athlete_key`), `identityKey()` in TypeScript, with the app's own `wrestlerKey()` slug for notes and URLs. Matches, entries, observations and ratings relate by that key, not by foreign key.
 - `wrestler_aliases.alias_key` maps a raw label to its canonical name. Raw labels are preserved (`tournament_observations.source_athlete_name`) and aliases stay searchable. The only alias today is Grayson Piaseck → Grayson Piasecki (user confirmed). Migration 008 also rewrote `matches` names for that alias.
 - `wrestler_evidence.source_entry_id` → `tournament_entries(id)`; `source_match_id` → `matches(id)`; both cascade on delete.
-- Clubs are free-text `team` columns copied onto matches, entries, observations and ratings. **Club normalization is not implemented** (see `REQUIREMENTS.md` F13).
+- Clubs are free-text `team` columns copied onto matches, entries, observations and ratings. Confirmed club aliases and event-specific attribution are implemented by migration 010 (see `REQUIREMENTS.md` F13); raw team labels remain preserved.
 
 ## Identity resolution rules
 
@@ -58,4 +58,4 @@ Migration `202611030009` was **applied to production on 2026-11-03** (production
 
 ## Outcome representation (matches)
 
-`win_type` is a short code (at most 20 characters). The app's add-bout form uses F, DEC, TF, MD, FOR, DEF, M FOR, DQ, MFFL, NC. The importer drops BYEs and rows without a named opponent, and de-duplicates exact repeats. **The actual distribution of `win_type` values in production has not been inspected** (no database access from the sessions that wrote the rating code). `RANKINGS.md` documents the classification applied and what happens to unrecognized values.
+`win_type` is a short code (at most 20 characters). The app's add-bout form uses F, DEC, TF, MD, FOR, DEF, M FOR, DQ, MFFL, NC. The importer drops BYEs and rows without a named opponent, and de-duplicates exact repeats. **Production classification was verified 2026-11-03:** 30,134 contested source rows, of which one is a self-match; 1,710 administrative rows; one unknown OTHER1. The exact-row duplicate filter removed zero rows. Earlier candidate counts in the audit table are broad matching heuristics, not proven duplicates or actual exclusion counts. `RANKINGS.md` documents the classification applied and what happens to unrecognized values.

@@ -14,7 +14,7 @@ Source: Glickman, "Example of the Glicko-2 system" (glicko.net/glicko/glicko2.pd
 
 **What it gives.** For each wrestler: *rating* (estimated power rating), *RD* (rating deviation, the uncertainty), *volatility*, and the *conservative ranking score* = rating − k × RD (k = 1 by default, configurable). Wins over strong opponents move a rating more than wins over weak ones, and a loss to a much weaker opponent costs more, so schedule strength is already inside the rating.
 
-**Defaults** (`DEFAULT_RATING_CONFIG`, stored with every model):
+**Backtest reference defaults** (`DEFAULT_RATING_CONFIG`; complete resolved config is stored with every model). Production uses the validated overrides in `config/ratings.production.json`: daily periods and decision-win score 0.8, with other contested wins 1. See the activation decision below.
 
 | Setting | Value | Notes |
 |---|---|---|
@@ -24,10 +24,10 @@ Source: Glickman, "Example of the Glicko-2 system" (glicko.net/glicko/glicko2.pd
 | Inactivity | RD grows by volatility for each empty period (lazy: sqrt(phi² + n·sigma²), capped at 350) | Uncertainty rises during inactivity; **rating does not drop**. This is the recency policy (`glicko2_inactivity_rd_growth`); there is no separate time-decay |
 | k (conservative score) | 1 | A strong newcomer can rank above a weaker established wrestler; k = 2 would hide most newcomers |
 | Status | provisional RD ≥ 120, developing 80 to 120, established < 80 | Provisional defaults; calibrate with real data |
-| Quality-win threshold | 80th percentile of established wrestlers' ratings (all rated wrestlers if fewer than 20 established) | Explanatory |
+| Quality-win threshold | 80th percentile of non-provisional wrestlers' ratings (RD <120; all rated wrestlers if fewer than 20 non-provisional) | Explanatory |
 | Trend window | 90 days | Rating change over the window |
 
-**Documented deviations from the paper** (all deliberate): lazy multi-period inactivity inflation; an optional fractional game score used only by the experimental dominance variant; and match prediction uses the combined-RD form g(sqrt(phi_a² + phi_b²)) from Glickman's original Glicko paper (an `opponent_rd` alternative is backtested). Confidence in these choices: moderate to high; the backtest is the arbiter.
+**Documented deviations from the paper** (all deliberate): lazy multi-period inactivity inflation; an optional fractional game score, enabled for the validated production decision-0.8 variant; and match prediction uses the combined-RD form g(sqrt(phi_a² + phi_b²)) from Glickman's original Glicko paper (an `opponent_rd` alternative is backtested). Confidence in these choices: moderate to high; the backtest is the arbiter.
 
 ### What counts as a match
 
@@ -42,7 +42,7 @@ Outcome classification (`src/lib/rating/outcomes.ts`, from `win_type`, falling b
 | unknown | any unrecognized code | **no**, listed in the report so someone can classify it |
 | other exclusions | invalid date, missing/placeholder name, self-match, exact duplicate row | no, counted by reason |
 
-Placements are never turned into wins. Tournament placements do not enter the rating at all; they remain evidence. **Production values (audit 2026-11-03, 31,845 bouts):** F 18,393; DEC 4,666; TF 4,218; MD 2,857 (30,134 contested, 94.6%); FOR 1,341; DEF 150; M FOR 150; DQ 31; MFFL 19; NC 19 (1,710 excluded as non-contested); OTHER1 1 (unknown, a 0-0 bout, excluded). All other codes are recognized, so the classifier is unchanged (`DECISIONS.md` D18). These are row counts before duplicate, placeholder and self-match exclusions. Data-quality gaps the pipeline does not handle: 65 swapped winner/loser pairs (both rated) and 262 near-duplicate extra rows (rated unless result and method also match); see proposal D19. Weight labels with a trailing age tag such as `100 (14U)` would lose the bracket weight; the 139 unparseable labels found are nearly all HWT-style.
+Placements are never turned into wins. Tournament placements do not enter the rating at all; they remain evidence. **Production values (audit 2026-11-03, 31,845 bouts):** F 18,393; DEC 4,666; TF 4,218; MD 2,857 (30,134 contested, 94.6%); FOR 1,341; DEF 150; M FOR 150; DQ 31; MFFL 19; NC 19 (1,710 excluded as non-contested); OTHER1 1 (unknown, a 0-0 bout, excluded). All other codes are recognized, so the classifier is unchanged (`DECISIONS.md` D18). These are row counts before duplicate, placeholder and self-match exclusions. Data-quality gaps the pipeline does not handle: same-opponent candidate groups whose duplication is unproven; these remain rated when contested, as required by D19. Weight labels with a trailing age tag such as `100 (14U)` would lose the bracket weight; the preliminary SQL audit found 139 unparseable labels, while the rating parser reports 177 among rateable rows. These use different parsing rules and are not identical measures.
 
 ### Chronology and leakage
 
@@ -54,7 +54,7 @@ Opponent-adjusted strength of schedule: average opponent rating and the expected
 
 ### Dominance and margin (experimental, off)
 
-Margin-weighted outcomes are implemented as backtest variants only (`dominance.enabled = false`). A variant may be adopted only if its paired-bootstrap 95% interval (resampling whole events) lies entirely below the baseline log loss, the gain is at least 0.002 log loss per match, and calibration error (ECE) does not worsen by more than 0.005. Until a real-data backtest passes that rule, dominance must not be presented as fact.
+Alternative method/margin weightings are evaluated as backtest variants. Engine reference defaults have `dominance.enabled = false`; production enables only the validated decision-0.8 variant, with margins off. A variant may be adopted only if its paired-bootstrap 95% interval (resampling whole events) lies entirely below the baseline log loss, the gain is at least 0.002 log loss per match, and calibration error (ECE) does not worsen by more than 0.005. The decision-0.8 production variant passed this rule on 2026-11-03; other variants remain experimental.
 
 ## 3. Cohort rankings versus the career network
 
@@ -65,7 +65,7 @@ Margin-weighted outcomes are implemented as backtest variants only (`dominance.e
 
 ## 4. Backtesting
 
-`pnpm ratings:backtest` (`backtest.ts`, `grid.ts`, `report.ts`) predicts every scorable bout from pre-event ratings and reports accuracy, log loss, Brier score, expected calibration error, calibration by probability bucket, sample and excluded counts, and segments: newcomer vs established (fewer than 5 prior bouts vs 15 or more each), same vs cross weight, same vs cross age (known only when the weight label carries an age group), and returning after more than 180 days. Baselines: coin flip, Elo, smoothed win-rate (log5), and the legacy heuristic (not a probability). Tuning uses the early window; the last ~30% of scorable events (after a 60-day warm-up) is held out for confirmation and never used to choose a setting. Variants swept: period length, tau, initial RD and volatility, the opponent-RD predictor, dominance, and two policy variants (including disqualification/default bouts; alias handling off), which are reported but never auto-adopted. **No production backtest has been run**; see `docs/BACKTEST_REPORT.md`.
+`pnpm ratings:backtest` (`backtest.ts`, `grid.ts`, `report.ts`) predicts every scorable bout from pre-event ratings and reports accuracy, log loss, Brier score, expected calibration error, calibration by probability bucket, sample and excluded counts, and segments: newcomer vs established (fewer than 5 prior bouts vs 15 or more each), same vs cross weight, same vs cross age (known only when the weight label carries an age group), and returning after more than 180 days. Baselines: coin flip, Elo, smoothed win-rate (log5), and the legacy heuristic (not a probability). Tuning uses the early window; the last ~30% of scorable events (after a 60-day warm-up) is held out for confirmation and never used to choose a setting. Variants swept: period length, tau, initial RD and volatility, the opponent-RD predictor, dominance, and two policy variants (including disqualification/default bouts; alias handling off), which are reported but never auto-adopted. **Real-data backtest completed 2026-11-03**; see `docs/BACKTEST_REPORT.md`. The combined daily-period/decision-0.8 candidate passed tuning and held-out confirmation and is active. Engine defaults stay unchanged so the report reference does not drift; recalculate production with `--config config/ratings.production.json`.
 
 ## 5. Versioning
 
@@ -74,8 +74,14 @@ Every calculation writes a new `rating_models` row containing model id/version, 
 ## 6. Known limitations
 
 - Same-name wrestlers are one identity.
-- Calendar 2025 has no data (2024-12-30 to 2026-01-04), so returning wrestlers rely on RD growth; its effect on accuracy is measured only once the backtest runs on production data ("returning after 180+ days" segment).
-- 65 swapped-record pairs and 262 near-duplicate rows are currently rated (D19, proposed).
+- Calendar 2025 has no data (2024-12-30 to 2026-01-04), so returning wrestlers rely on RD growth; its effect is measured in the real-data backtest ("returning after 180+ days" segment).
+- Repeated and opposite-result bouts are preserved under D19; matching opponents/event is not proof of duplication. The full 2026-11-03 preparation excluded zero exact duplicate signatures.
 - Provisional/developing/established thresholds and k are defaults, not calibrated.
 - Opponent-quality metrics use current ratings and can differ from the rating at match time.
 - Dual meets and tournaments are weighted the same; there is no evidence yet on whether they should differ.
+
+## 7. Production adoption (2026-11-03)
+
+Model `glicko2-daily-dec08-v1` is active, as of 2026-11-03 through bouts dated 2026-10-31. The tuning window selected daily periods and decision winner score 0.8; the combined candidate then cleared the predefined independent confirmation gate: 8,146 bouts in 26 events, accuracy 66.17%, log loss 0.59524 versus 0.60451, ECE 0.01567 versus 0.02453, paired event-bootstrap difference -0.00927 (95% CI -0.01156 to -0.00727). Decision weighting is now validated for this dataset, not an assertion that the score is a literal probability of ability or that margin information is universally superior. Scoring margins are not enabled. Other defaults, including k and status thresholds, are retained.
+
+All 7,788 rated wrestlers have SOS metrics. Most remain provisional; high RD is exposed rather than hidden. SOS compares a reference 1500 wrestler against opponents' current ratings, so lower schedule-expected win percentage means harder opposition. The quality-win threshold implementation uses the non-provisional (developing plus established) pool, not only established wrestlers. Full operational evidence and rerun instructions are in `RATING_ACTIVATION.md`.

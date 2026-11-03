@@ -42,7 +42,7 @@ public.wrestler_aliases ─┘   (classify, dedupe,       (walk-forward Glicko-2
 - `prepare.ts` classifies outcomes, drops non-contested and duplicate rows, applies aliases, groups bouts into events, and returns an exclusion report.
 - `walk.ts` is the leakage rule shared by ratings and backtests: every bout is predicted from a snapshot taken before the rating period containing its event's first bout; updates apply after.
 - `engine.ts` produces ratings, uncertainty, status, conservative score and explanatory statistics. `backtest.ts`, `grid.ts`, `report.ts` produce the evaluation. `relations.ts` computes head-to-head and common opponents.
-- It is a **batch** pipeline on purpose (a rolling filter over time cannot be expressed as a simple SQL view). Models are immutable once written; a new calculation inserts a new model, and activation is a status switch (`private.activate_rating_model`, or the equivalent two-step in `calculate.ts`).
+- It is a **batch** pipeline on purpose (a rolling filter over time cannot be expressed as a simple SQL view). Models are immutable once written; a new calculation inserts a new model, and activation is a status switch (`private.activate_rating_model`, production activation uses this atomic function; the CLI has a non-atomic two-step alternative).
 
 ## Fallback behaviour
 
@@ -51,3 +51,7 @@ public.wrestler_aliases ─┘   (classify, dedupe,       (walk-forward Glicko-2
 ## Deployment
 
 Vercel builds from GitHub. Production variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_PERSONAL_APP_KEY`. Migrations are applied to Supabase manually (CLI or SQL editor) before deploying code that needs them. Code that reads the new views tolerates their absence.
+
+## Validated production model
+
+As of 2026-11-03 the live application reads `glicko2-daily-dec08-v1`. Production configuration is committed separately in `config/ratings.production.json`; engine defaults remain the seven-day binary-outcome reference for reproducible backtests. Rating/SOS rows and history were calculated locally from a read-only connected Supabase snapshot, inserted as a building model through the connected administrator SQL tool, validated, marked candidate and atomically activated with the existing restricted function. No extra public RPC or credential was created. See `RATING_ACTIVATION.md` for provenance and verification.

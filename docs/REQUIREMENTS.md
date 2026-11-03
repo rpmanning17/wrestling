@@ -20,14 +20,14 @@ Owner context used for the "likely opponents" feature (kept as configuration in 
 | F6 | **Flo imports:** tournament placers and weight-class tables captured from Flo event pages become `tournament_observations` with provenance (file names, ZIP hash) | Partial. Only the PowerShell builder `supabase/importers/build_tournament_observations.ps1` is in the repo. The match CSV importer is outside the repo |
 | F7 | **Age and weight inference** from division birth-year bands and bracket classes, with a confidence label; no exact body weight from a bracket; no birth date from a division | Implemented in SQL (`private.refresh_wrestler_evidence`), see `DATA_MODEL.md` |
 | F8 | **Tournament placements** are stored and shown as placements; never converted into wins or losses | Implemented |
-| F9 | **Opponent-adjusted wrestler ratings** (Glicko-2): rating, uncertainty (RD), conservative ranking score, provisional status, SOS and quality-win explanations, method and margin breakdowns, head-to-head and common opponents | Implemented and tested offline. **Not yet calculated or active in production** |
-| F10 | Chronological backtesting without future leakage, comparing the baseline against alternatives | Implemented (`pnpm ratings:backtest`). **No production results yet** |
-| F11 | Versioned, recalculable rating models that never destroy raw matches or earlier models | Implemented (migration 009 already applied to production, but no model active) |
-| F12 | Keep two views: the career opponent network (all matches, all ages) and current age/weight cohort rankings | Implemented in design; cohort view reads `wrestler_strength_current` once a model is active |
-| F13 | **Club identity normalization**: confirmed aliases, historic team attribution, unverified program relationships kept separate | Implemented on feature branch via migration 010; **not yet deployed** |
-| F14 | **Club rankings & comparisons**: roster depth, active roster rating distributions, quality of opponents, season filters, club profiles and side-by-side comparisons | Implemented on feature branch; **not yet deployed; power/SOS require an active rating model** |
+| F9 | **Opponent-adjusted wrestler ratings** (Glicko-2): rating, uncertainty (RD), conservative ranking score, provisional status, SOS and quality-win explanations, method and margin breakdowns, head-to-head and common opponents | Implemented and tested offline. **Calculated, active and live-verified 2026-11-03** |
+| F10 | Chronological backtesting without future leakage, comparing the baseline against alternatives | Implemented (`pnpm ratings:backtest`). **Real-data confirmation completed; see BACKTEST_REPORT.md** |
+| F11 | Versioned, recalculable rating models that never destroy raw matches or earlier models | Implemented (migration 009 already applied to production, active model calculated 2026-11-03) |
+| F12 | Keep two views: the career opponent network (all matches, all ages) and current age/weight cohort rankings | Live; cohort view reads `wrestler_strength_current` from the active model |
+| F13 | **Club identity normalization**: confirmed aliases, historic team attribution, unverified program relationships kept separate | Implemented on main via migration 010; **deployed and verified 2026-11-03** |
+| F14 | **Club rankings & comparisons**: roster depth, active roster rating distributions, quality of opponents, season filters, club profiles and side-by-side comparisons | Implemented on main; **deployed; power/SOS populated and live-verified 2026-11-03** |
 
-| F15 | **Athlete autocomplete**: show matches while typing; display age division, bracket weight, club beneath the name without inventing exact age or bodyweight | Implemented on club feature branch; **not yet deployed** |
+| F15 | **Athlete autocomplete**: show matches while typing; display age division, bracket weight, club beneath the name without inventing exact age or bodyweight | Implemented on main; **deployed and verified 2026-11-03** |
 
 ## Non-functional and safety requirements
 
