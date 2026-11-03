@@ -235,7 +235,7 @@ td small { display: block; margin-top: 5px; }
 .club-list { display: grid; gap: 11px; }
 .club-result { padding: 19px; display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 1.35fr); gap: 18px; align-items: center; background: var(--card); border-radius: 12px; border: 1px solid var(--line); }
 .club-result-title { display: flex; align-items: flex-start; gap: 13px; min-width: 0; }
-.club-result-title h3 { font: 800 1.1rem/1.2 inherit; margin: 2px 0 6px; overflow-wrap: anywhere; }
+.club-result-title h3 { font-weight: 800; font-size: 1.1rem; line-height: 1.2; margin: 2px 0 6px; overflow-wrap: anywhere; }
 .club-result-title h3 a { color: var(--ink); text-decoration-color: #aec5b8; text-underline-offset: 3px; }
 .club-result-title small, .club-athlete small { display: block; font-size: .72rem; line-height: 1.45; }
 .club-position { font: 500 1.5rem Georgia, serif; color: #82968a; flex: none; }
@@ -278,4 +278,16 @@ td small { display: block; margin-top: 5px; }
   .club-athlete { align-items: start; flex-direction: column; gap: 7px; }
   .club-athlete-numbers { width: 100%; gap: 15px; }
   .club-results-heading h2 { font-size: 1.35rem; }
+}
+
+.club-compare-head, .club-compare-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 12px; align-items: center; }
+.club-compare-head { padding: 15px; background: var(--dark); border-radius: 10px 10px 0 0; color: white; }
+.club-compare-head a { color: #e2efd9; overflow-wrap: anywhere; }
+.club-compare-row { padding: 13px 15px; background: var(--card); border-bottom: 1px solid var(--line); }
+.club-compare-row > div > strong, .club-compare-row small { display: block; }
+.club-compare-row small { margin-top: 4px; font-size: .68rem; }
+.club-compare-row > strong { text-align: center; font-size: 1.03rem; }
+@media (max-width: 600px) {
+  .club-compare-head, .club-compare-row { grid-template-columns: 1.1fr 1fr 1fr; gap: 6px; padding: 12px 9px; font-size: .72rem; }
+  .club-compare-row > strong { font-size: .85rem; }
 }
