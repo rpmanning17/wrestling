@@ -42,7 +42,7 @@ Outcome classification (`src/lib/rating/outcomes.ts`, from `win_type`, falling b
 | unknown | any unrecognized code | **no**, listed in the report so someone can classify it |
 | other exclusions | invalid date, missing/placeholder name, self-match, exact duplicate row | no, counted by reason |
 
-Placements are never turned into wins. Tournament placements do not enter the rating at all; they remain evidence. **Assumption:** the production `win_type` values have not been inspected; run `supabase/audits/match_outcome_audit.sql` and update `outcomes.ts` for anything unrecognized.
+Placements are never turned into wins. Tournament placements do not enter the rating at all; they remain evidence. **Assumption:** the production `win_type` values have not been inspected; run `supabase/audits/match_outcome_audit.sql` and update `outcomes.ts` for anything unrecognized. Known spellings that currently classify as unknown are listed in `DECISIONS.md` D16. Two data-quality gaps the pipeline does not handle: the same bout recorded with winner and loser swapped (audit query 8; both copies are rated) and weight labels with a trailing age tag such as `100 (14U)`, where the last number is the age, so the bracket weight is lost (audit query 7).
 
 ### Chronology and leakage
 
