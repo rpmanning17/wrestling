@@ -39,12 +39,12 @@ with participant_results as (
   select replace(m.season, '–', '-') as season, m.winner_name athlete_name,
     m.loser_name opponent_name, m.winner_team team, m.loser_team opponent_team,
     1::int as won
-  from public.matches m where upper(trim(m.win_type)) in ('F','DEC','MD','TF')
+  from public.matches m where upper(trim(m.win_type)) in ('F','DEC','MD','TF') and lower(trim(m.winner_name)) <> lower(trim(m.loser_name))
   union all
   select replace(m.season, '–', '-') as season, m.loser_name athlete_name,
     m.winner_name opponent_name, m.loser_team team, m.winner_team opponent_team,
     0::int as won
-  from public.matches m where upper(trim(m.win_type)) in ('F','DEC','MD','TF')
+  from public.matches m where upper(trim(m.win_type)) in ('F','DEC','MD','TF') and lower(trim(m.winner_name)) <> lower(trim(m.loser_name))
 ),
 resolved as (
   select p.season, p.won,
@@ -107,10 +107,10 @@ grant select on public.club_rankings_current to anon;
 create view public.club_roster_current with (security_invoker = true) as
 with participations as (
   select season,winner_team as team,winner_name as athlete_name,1 as won
-  from public.matches where upper(trim(win_type)) in ('F','DEC','MD','TF')
+  from public.matches where upper(trim(win_type)) in ('F','DEC','MD','TF') and lower(trim(winner_name)) <> lower(trim(loser_name))
   union all
   select season,loser_team as team,loser_name as athlete_name,0 as won
-  from public.matches where upper(trim(win_type)) in ('F','DEC','MD','TF')
+  from public.matches where upper(trim(win_type)) in ('F','DEC','MD','TF') and lower(trim(winner_name)) <> lower(trim(loser_name))
 ), normalized as (
   select replace(p.season,'–','-') as season,
     coalesce(a.club_key,'raw:' || regexp_replace(lower(trim(p.team)),'[^a-z0-9]+',' ','g')) as club_key,
