@@ -86,6 +86,28 @@ describe("match preparation", () => {
     assert.equal(report.byReason.duplicate_row, 1);
   });
 
+  it("retains legitimate reverse-result rematches even with blank round labels", () => {
+    // Actual Flo data contains pairs who wrestled twice in the same event, with
+    // opposite winners. A matching date/weight/name pair is NOT proof of duplication.
+    const { matches, report } = prepared([
+      raw({ event_name: "Bradenton Brawl", winner_name: "Jett Newell", loser_name: "Noah McCathy", round: "", win_type: "F", result: "16-6 1:03" }),
+      raw({ event_name: "Bradenton Brawl", winner_name: "Noah McCathy", loser_name: "Jett Newell", round: "", win_type: "DEC", result: "11-10" }),
+    ]);
+    assert.equal(matches.length, 2);
+    assert.equal(report.byReason.duplicate_row, 0);
+    assert.deepEqual(new Set(matches.map((match) => match.winnerName)), new Set(["Jett Newell", "Noah McCathy"]));
+  });
+
+  it("keeps a contested rematch even when the earlier opposite outcome was a forfeit", () => {
+    const { matches, report } = prepared([
+      raw({ event_name: "Spring Open", winner_name: "A One", loser_name: "B Two", round: "", win_type: "FOR", result: "0-0" }),
+      raw({ event_name: "Spring Open", winner_name: "B Two", loser_name: "A One", round: "", win_type: "F", result: "8-3 1:10" }),
+    ]);
+    assert.equal(matches.length, 1);
+    assert.equal(matches[0].winnerName, "B Two");
+    assert.equal(report.byReason.non_contested_method, 1);
+  });
+
   it("does not modify the source rows (original labels stay recoverable)", () => {
     const rows = [raw({ winner_name: "Grayson Piaseck", loser_name: "B Two" })];
     const snapshot = JSON.stringify(rows);
