@@ -102,6 +102,12 @@ type RatingRow = {
   decisive_wins: number;
 };
 
+type AliasRow = {
+  alias_key: string;
+  alias_name: string;
+  canonical_name: string;
+};
+
 const ORLANDO_CITIES = new Set([
   "altamonte springs",
   "apopka",
@@ -160,7 +166,7 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
     .filter((part) => part.length >= 2)
     .sort((a, b) => b.length - a.length)[0] ?? normalize(query);
 
-  const [matchResult, entryResult, evidenceResult, observationResult] = await Promise.all([
+  const [matchResult, entryResult, evidenceResult, observationResult, aliasResult] = await Promise.all([
     db
       .from("matches")
       .select("winner_name,winner_team,loser_name,loser_team,event_date")
@@ -186,6 +192,11 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
       .neq("identity_resolution", "placeholder")
       .order("event_date", { ascending: false })
       .limit(100),
+    db
+      .from("wrestler_aliases")
+      .select("alias_key,alias_name,canonical_name")
+      .ilike("alias_name", `%${token.replace(/[%_]/g, "")}%`)
+      .limit(20),
   ]);
 
   const found = new Map<string, { name: string; team: string; evidence: string; score: number }>();
@@ -209,6 +220,9 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
   }
   for (const row of (observationResult.data ?? []) as Array<Pick<ObservationRow, "athlete_name" | "team" | "division_label" | "bracket_weight_label" | "placement">>) {
     add(row.athlete_name, row.team, `${row.division_label} · ${row.bracket_weight_label} bracket · placed ${row.placement}`);
+  }
+  for (const row of (aliasResult.data ?? []) as AliasRow[]) {
+    add(row.canonical_name, "", `Also listed as ${row.alias_name}`);
   }
 
   if (normalize(query).includes("nolan")) {
@@ -246,9 +260,19 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
     .slice(0, 120);
   if (!cleanRefs.length) return [];
 
-  const names = [...new Set(cleanRefs.filter((ref) => !ref.unknown && wrestlerKey(ref.name) !== "nolan").map((ref) => ref.name))];
-  const keys = cleanRefs.map((ref) => wrestlerKey(ref.name));
   const db = supabase();
+  const requestedKeys = cleanRefs.map((ref) => wrestlerKey(ref.name));
+  const { data: aliasData } = await db
+    .from("wrestler_aliases")
+    .select("alias_key,alias_name,canonical_name")
+    .in("alias_key", requestedKeys);
+  const aliases = new Map(((aliasData ?? []) as AliasRow[]).map((row) => [row.alias_key, row.canonical_name]));
+  const resolvedRefs = cleanRefs.map((ref) => {
+    const canonicalName = aliases.get(wrestlerKey(ref.name));
+    return canonicalName ? { ...ref, name: canonicalName } : ref;
+  });
+  const names = [...new Set(resolvedRefs.filter((ref) => !ref.unknown && wrestlerKey(ref.name) !== "nolan").map((ref) => ref.name))];
+  const keys = resolvedRefs.map((ref) => wrestlerKey(ref.name));
   const empty = { data: [] as unknown[] };
 
   const [winsResult, lossesResult, entriesResult, observationsResult, evidenceResult, ratingsResult, notesResult] = await Promise.all([
@@ -281,7 +305,7 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
   const ratings = (ratingsResult.data ?? []) as RatingRow[];
   const notes = (notesResult.data ?? []) as NoteRow[];
 
-  return cleanRefs.map((ref) => {
+  return resolvedRefs.map((ref) => {
     const key = wrestlerKey(ref.name);
     const target = normalize(ref.name);
     const wrestlerMatches = uniqueMatches

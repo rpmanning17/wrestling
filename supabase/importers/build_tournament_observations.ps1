@@ -104,25 +104,34 @@ with incoming (
   values
 $($values -join ",`n")
 ),
-classified as (
+canonicalized as (
   select incoming.*,
+    incoming.athlete_name as source_athlete_name,
+    coalesce(alias.canonical_name, incoming.athlete_name) as canonical_athlete_name
+  from incoming
+  left join public.wrestler_aliases alias
+    on alias.alias_key = lower(trim(incoming.athlete_name))
+),
+classified as (
+  select canonicalized.*,
     case
-      when lower(trim(incoming.athlete_name)) in ('forfeit', 'bye') then 'placeholder'
+      when lower(trim(canonicalized.canonical_athlete_name)) in ('forfeit', 'bye') then 'placeholder'
       when exists (
         select 1 from public.tournament_entries entry
-        where lower(trim(entry.athlete_name)) = lower(trim(incoming.athlete_name))
+        where lower(trim(entry.athlete_name)) = lower(trim(canonicalized.canonical_athlete_name))
       ) or exists (
         select 1 from public.matches match
-        where lower(trim(match.winner_name)) = lower(trim(incoming.athlete_name))
-           or lower(trim(match.loser_name)) = lower(trim(incoming.athlete_name))
+        where lower(trim(match.winner_name)) = lower(trim(canonicalized.canonical_athlete_name))
+           or lower(trim(match.loser_name)) = lower(trim(canonicalized.canonical_athlete_name))
       ) then 'exact_existing'
       else 'new_identity'
     end as identity_resolution
-  from incoming
+  from canonicalized
 ),
 observed as (
   insert into public.tournament_observations (
-    event_date, event_end_date, event_name, city, state, athlete_name, team,
+    event_date, event_end_date, event_name, city, state, athlete_name,
+    source_athlete_name, team,
     division_label, division_gender, division_basis, age_group,
     eligibility_birth_year_start, eligibility_birth_year_end,
     experience_division, school_level, bracket_weight_label,
@@ -132,7 +141,8 @@ observed as (
   )
   select
     date '2026-10-31', date '2026-11-01', 'Juggernaut Fall Championships',
-    'Wellington', 'FL', athlete_name, team, division_label, division_gender,
+    'Wellington', 'FL', canonical_athlete_name, source_athlete_name, team,
+    division_label, division_gender,
     division_basis, age_group, birth_year_start, birth_year_end,
     experience_division, school_level, bracket_weight_label,
     bracket_weight_lbs, placement, true, identity_resolution,
@@ -141,6 +151,7 @@ observed as (
     'Division and bracket labels are eligibility/class evidence, not exact birth year or body weight.'
   from classified
   on conflict on constraint tournament_observations_source_unique do update set
+    source_athlete_name = excluded.source_athlete_name,
     team = excluded.team,
     placement_verified = true,
     identity_resolution = excluded.identity_resolution,
@@ -159,25 +170,25 @@ promoted as (
   )
   select
     date '2026-10-31', 'Juggernaut Fall Championships', 'Wellington', 'FL',
-    incoming.athlete_name, incoming.team, incoming.division_label,
-    incoming.age_group, incoming.birth_year_start, incoming.birth_year_end,
-    incoming.experience_division, incoming.bracket_weight_lbs,
-    incoming.placement, 'reported', 'confirmed',
-    incoming.source_placers_file, incoming.source_key
-  from incoming
-  where incoming.age_group is not null
-    and incoming.birth_year_start is not null
-    and incoming.birth_year_end is not null
-    and incoming.bracket_weight_lbs is not null
-    and lower(trim(incoming.athlete_name)) not in ('forfeit', 'bye')
+    classified.canonical_athlete_name, classified.team, classified.division_label,
+    classified.age_group, classified.birth_year_start, classified.birth_year_end,
+    classified.experience_division, classified.bracket_weight_lbs,
+    classified.placement, 'reported', 'confirmed',
+    classified.source_placers_file, classified.source_key
+  from classified
+  where classified.age_group is not null
+    and classified.birth_year_start is not null
+    and classified.birth_year_end is not null
+    and classified.bracket_weight_lbs is not null
+    and lower(trim(classified.canonical_athlete_name)) not in ('forfeit', 'bye')
     and not exists (
       select 1
       from public.tournament_entries entry
       where entry.event_date = date '2026-10-31'
         and lower(trim(entry.event_name)) = lower('Juggernaut Fall Championships')
-        and lower(trim(entry.athlete_name)) = lower(trim(incoming.athlete_name))
-        and lower(trim(entry.division_label)) = lower(trim(incoming.division_label))
-        and entry.bracket_weight_lbs = incoming.bracket_weight_lbs
+        and lower(trim(entry.athlete_name)) = lower(trim(classified.canonical_athlete_name))
+        and lower(trim(entry.division_label)) = lower(trim(classified.division_label))
+        and entry.bracket_weight_lbs = classified.bracket_weight_lbs
     )
   on conflict on constraint tournament_entries_source_unique do nothing
   returning id
@@ -185,16 +196,16 @@ promoted as (
 linked as (
   update public.tournament_observations observation
   set resolved_entry_id = entry.id, updated_at = now()
-  from public.tournament_entries entry, incoming
-  where observation.source_filter_id = incoming.source_filter_id
-    and observation.bracket_weight_label = incoming.bracket_weight_label
-    and observation.placement = incoming.placement
-    and lower(trim(observation.athlete_name)) = lower(trim(incoming.athlete_name))
+  from public.tournament_entries entry, classified
+  where observation.source_filter_id = classified.source_filter_id
+    and observation.bracket_weight_label = classified.bracket_weight_label
+    and observation.placement = classified.placement
+    and lower(trim(observation.athlete_name)) = lower(trim(classified.canonical_athlete_name))
     and entry.event_date = date '2026-10-31'
     and lower(trim(entry.event_name)) = lower('Juggernaut Fall Championships')
-    and lower(trim(entry.athlete_name)) = lower(trim(incoming.athlete_name))
-    and lower(trim(entry.division_label)) = lower(trim(incoming.division_label))
-    and entry.bracket_weight_lbs = incoming.bracket_weight_lbs
+    and lower(trim(entry.athlete_name)) = lower(trim(classified.canonical_athlete_name))
+    and lower(trim(entry.division_label)) = lower(trim(classified.division_label))
+    and entry.bracket_weight_lbs = classified.bracket_weight_lbs
   returning observation.id
 )
 select
