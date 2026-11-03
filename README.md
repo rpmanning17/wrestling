@@ -27,7 +27,7 @@ Agent-specific instructions: [`AGENTS.md`](AGENTS.md) (coding agents in general,
 
 ## Data
 
-Match results live in `public.matches`. Per the project owner's last recorded import, the database holds 31,177 distinct bouts (11,647 from 38 CSV files dated October 5 to December 30, 2024; 19,530 from 64 CSV files dated January 4 to October 24, 2026). This count was **not re-verified** by the most recent work; query the database for the current figure. The 2026 import assigns January–July bouts to the 2025–2026 season and August–October to 2026–2027, and excludes BYEs, rows without a named opponent, and exact duplicate rows. Each row keeps its source file and row number so a repeat import is idempotent.
+Match results live in `public.matches`. As of the 2026-11-03 audit the database holds 31,845 bouts dated 2024-10-05 to 2026-10-31: 11,647 in the 2024–2025 season (October 5 to December 30, 2024), 11,238 in 2025–2026 (January 4 to July 26, 2026) and 8,960 in 2026–2027 (from August 2026; 668 of them, all from 2026-10-31, carry the label `2026-2027` with a hyphen instead of an en dash). There are no bouts from calendar 2025. The earlier figure of 31,177 predates the 2026-10-31 event. The 2026 import assigns January–July bouts to the 2025–2026 season and August–October to 2026–2027, and excludes BYEs, rows without a named opponent, and exact duplicate rows. Known data-quality issues (near-duplicates, swapped records, club-label variants) are listed in [`docs/STATUS.md`](docs/STATUS.md). Each row keeps its source file and row number so a repeat import is idempotent.
 
 Source ZIPs and CSV contents are intentionally not committed. The match CSV importer is **not** in this repository; only the tournament-observation importer is (`supabase/importers/`). See [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md).
 
@@ -36,7 +36,7 @@ Source ZIPs and CSV contents are intentionally not committed. The match CSV impo
 Two rating systems exist side by side:
 
 - **Legacy heuristic** (`public.wrestler_ratings` view, `src/lib/scoring.ts`): win rate, placement, finishing, recency and volume. It ignores opponent quality. It is what production uses until a new model is activated.
-- **Opponent-adjusted Glicko-2** (migration `202611030009`, `src/lib/rating/`, `scripts/ratings/`): rating, rating deviation (uncertainty), conservative score, provisional status, strength-of-schedule explanations and chronological backtesting. Implemented and tested offline; **not yet applied to or calculated in production**. See [`docs/STATUS.md`](docs/STATUS.md).
+- **Opponent-adjusted Glicko-2** (migration `202611030009`, `src/lib/rating/`, `scripts/ratings/`): rating, rating deviation (uncertainty), conservative score, provisional status, strength-of-schedule explanations and chronological backtesting. The migration is **applied to production** (2026-11-03); the code is not yet deployed and **no rating model has been calculated**, so production still shows the legacy ratings. See [`docs/STATUS.md`](docs/STATUS.md).
 
 The site reads the opponent-adjusted views when a model is active and falls back to the legacy view otherwise.
 

@@ -46,6 +46,20 @@ Newest first within each area is not required; each entry has a date, the decisi
 
 **D17. Audit SQL is executed in tests (2026-11-03, Claude session).** `tests/db/match-audit.test.ts` runs `supabase/audits/match_outcome_audit.sql` against the migrated schema in PGlite and checks that it writes nothing and finds seeded duplicates, swapped winner/loser records, multi-club names and unparseable weights. *Reason:* the audit is the evidence for D10 and D16; a syntax error would only be discovered in the SQL editor.
 
+**D18. Outcome classifier stays unchanged; supersedes the open question in D16 (2026-11-03).** The production audit found only F, DEC, TF, MD, FOR, DEF, M FOR, DQ, MFFL, NC and one OTHER1 (a 0-0 bout, correctly excluded as unknown). None of the variant spellings listed in D16 occur, so the hyphen-normalization fix is not applied. *Reason:* changing working code for spellings the data does not contain adds risk without benefit. Revisit if a future import introduces new codes; the calculation report lists every unknown method.
+
+**D19. PROPOSED, not implemented: drop contradictory records in the rating pipeline (2026-11-03).** The audit found 65 swapped-record pairs (same date, event, weight class, round and participants, winner and loser reversed) and 261 near-duplicate groups (262 extra rows) that agree on participants and winner but not necessarily on result text or method. Today the pipeline drops a copy only if result and method also match, so the swapped pairs are both rated (each copy moves the ratings in opposite directions, adding noise and inflating match counts) and conflicting near-duplicates are rated twice.
+
+*Proposal:*
+1. **Swapped pairs:** when `round` is non-empty, drop **both** copies and report them as `contradictory_record`. We cannot tell which is right, and a bout cannot be won by both wrestlers. When `round` is blank, keep both and only report them, because two wrestlers can legitimately meet twice at one event (for example a semifinal and a true-second match) and a blank round cannot distinguish that.
+2. **Near-duplicates with the same winner:** when `round` is non-empty, keep one copy (the one with a parseable score, else the earliest `source_file`/`source_row`) and report the rest as `duplicate_row`. When `round` is blank, keep both.
+3. Put both behind config flags (`matching.dropContradictoryPairs`, `matching.dedupeSameBout`, default on once adopted) so the model config hash records the choice, and run the backtest with and without them. It is a data-cleaning rule, so adopt it unless the backtest shows it materially hurts held-out log loss.
+4. Before implementing, measure how many of the 65 pairs and 261 groups have a blank `round` (one read-only query); if most do, rule 1 removes little and the import, not the pipeline, is the better fix.
+
+*Rejected:* keeping the first or last copy of a swapped pair (arbitrary, and it silently picks a winner); deleting rows from `matches` (raw data is never modified; the fix belongs in the pipeline or a reviewed import correction).
+
+*Needs:* the owner's decision; then an implementation PR with tests in `tests/rating/outcomes-and-prepare.test.ts`.
+
 ## Not yet decided / not built
 
 - Club identity normalization and club rankings (F13/F14): no design committed. When started, record the identity-resolution approach and the rating method here and in `RANKINGS.md`.

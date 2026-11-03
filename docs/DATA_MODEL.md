@@ -19,7 +19,21 @@ Source of truth for tables is `supabase/migrations/`. This document explains mea
 | `rating_backtest_runs` | Stored backtest summaries | metrics JSON per config hash |
 | `wrestler_rating_current`, `wrestler_strength_current` (views) | Active model only | strength view adds cohort rank, size and the 0..1000 display |
 
-Migration `202611030009` is **not applied to production**; the last four objects exist only in the repo until it is.
+Migration `202611030009` was **applied to production on 2026-11-03** (production version `20261103174437`). The rating tables are empty until the first model is written.
+
+**Migration naming:** production records the timestamp at which each migration was applied through the Supabase connector, so 10 of 13 repo file names (`202610250001` and `202611030001` to `202611030009`) differ from the production versions. Do not run `supabase db push` against production without reconciling first.
+
+## Known data-quality issues in `matches` (audit 2026-11-03)
+
+| Issue | Count | Rating pipeline today |
+|---|---|---|
+| Possible duplicates (same date, event, weight class, round, participants) | 261 groups, 262 extra rows | dropped only if result and method also match; otherwise rated twice |
+| Swapped records (same bout, winner and loser reversed) | 65 pairs | both rated (cancel or distort); proposal D19 |
+| Self-matches | 12 | excluded |
+| Weight label with no parseable 30–400 number | 139 (nearly all HWT) | rated; excluded from weight-context segments |
+| Season label `2026-2027` (hyphen) vs `2026–2027` (en dash) | 668 vs 8,292 | ignored (ratings do not use `season`) |
+| `win_type` OTHER1 | 1 (0-0) | excluded as unknown |
+| No bouts 2024-12-30 to 2026-01-04 | whole of 2025 | handled by RD growth for inactivity |
 
 ## Relationships and normalization
 
@@ -30,7 +44,7 @@ Migration `202611030009` is **not applied to production**; the last four objects
 
 ## Identity resolution rules
 
-1. Exact normalized-name match is the same identity. This is a known weakness: two different wrestlers with the same name merge, and the rating model cannot separate them. `supabase/audits/match_outcome_audit.sql` query 5 lists names seen with more than one club to quantify it.
+1. Exact normalized-name match is the same identity. This is a known weakness: two different wrestlers with the same name merge, and the rating model cannot separate them. `supabase/audits/match_outcome_audit.sql` query 5 lists names seen with more than one club: on 2026-11-03, 2,439 of 7,797 distinct names (31%) appeared under more than one club label. Most are probably club-name variants or club switches rather than different people, but the data cannot tell them apart without club normalization.
 2. Spelling variants are merged only through a reviewed row in `wrestler_aliases` with a stated reason and confidence.
 3. Observation rows use `identity_resolution`; `ambiguous` rows are shown labelled "identity review" and not merged; `placeholder` rows are excluded.
 4. Rating computation applies aliases retrospectively (the whole alias table is a reviewed fact, not an outcome signal) and the backtest reports the effect of turning that off.

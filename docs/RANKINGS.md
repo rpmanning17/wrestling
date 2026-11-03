@@ -42,7 +42,7 @@ Outcome classification (`src/lib/rating/outcomes.ts`, from `win_type`, falling b
 | unknown | any unrecognized code | **no**, listed in the report so someone can classify it |
 | other exclusions | invalid date, missing/placeholder name, self-match, exact duplicate row | no, counted by reason |
 
-Placements are never turned into wins. Tournament placements do not enter the rating at all; they remain evidence. **Assumption:** the production `win_type` values have not been inspected; run `supabase/audits/match_outcome_audit.sql` and update `outcomes.ts` for anything unrecognized. Known spellings that currently classify as unknown are listed in `DECISIONS.md` D16. Two data-quality gaps the pipeline does not handle: the same bout recorded with winner and loser swapped (audit query 8; both copies are rated) and weight labels with a trailing age tag such as `100 (14U)`, where the last number is the age, so the bracket weight is lost (audit query 7).
+Placements are never turned into wins. Tournament placements do not enter the rating at all; they remain evidence. **Production values (audit 2026-11-03, 31,845 bouts):** F 18,393; DEC 4,666; TF 4,218; MD 2,857 (30,134 contested, 94.6%); FOR 1,341; DEF 150; M FOR 150; DQ 31; MFFL 19; NC 19 (1,710 excluded as non-contested); OTHER1 1 (unknown, a 0-0 bout, excluded). All other codes are recognized, so the classifier is unchanged (`DECISIONS.md` D18). These are row counts before duplicate, placeholder and self-match exclusions. Data-quality gaps the pipeline does not handle: 65 swapped winner/loser pairs (both rated) and 262 near-duplicate extra rows (rated unless result and method also match); see proposal D19. Weight labels with a trailing age tag such as `100 (14U)` would lose the bracket weight; the 139 unparseable labels found are nearly all HWT-style.
 
 ### Chronology and leakage
 
@@ -74,7 +74,8 @@ Every calculation writes a new `rating_models` row containing model id/version, 
 ## 6. Known limitations
 
 - Same-name wrestlers are one identity.
-- Production `win_type` values, duplicate rates and the effect of the 2025 data gap are unmeasured.
+- Calendar 2025 has no data (2024-12-30 to 2026-01-04), so returning wrestlers rely on RD growth; its effect on accuracy is measured only once the backtest runs on production data ("returning after 180+ days" segment).
+- 65 swapped-record pairs and 262 near-duplicate rows are currently rated (D19, proposed).
 - Provisional/developing/established thresholds and k are defaults, not calibrated.
 - Opponent-quality metrics use current ratings and can differ from the rating at match time.
 - Dual meets and tournaments are weighted the same; there is no evidence yet on whether they should differ.
