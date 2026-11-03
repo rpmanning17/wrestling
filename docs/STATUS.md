@@ -1,6 +1,13 @@
 # Status
 
-Last updated: 2026-11-03 by Claude (second session, branch `claude/opponent-adjusted-ratings-and-docs`; commits pushed; PR not yet opened; production audit and migration 009 done from the owner's main session). Update this file whenever functionality completes or priorities change.
+Last updated: 2026-11-03, club analytics and search work-in-progress. Production remains on main unless confirmed otherwise.
+
+## Current work, not yet in production
+- **PR #1**: opponent-adjusted ratings, Glicko-2 engine, SOS, UI fallback and tests on `claude/opponent-adjusted-ratings-and-docs`. The temporary PR description file was removed; PR is open as draft.
+- **Feature branch `feature/florida-club-analytics`**: adds `202611030010_club_aliases_and_rankings.sql`, event-specific club records, club profiles, rankings, club comparisons, navigation, and live athlete autocomplete with age group / bracket weight / team. Migration 010 was tested in a rollback transaction and **applied to production Supabase** as version `20261103223232` (`create_club_aliases_and_rankings`); it creates only new club objects and leaves matches and legacy views untouched. Supabase security advisors returned no findings.
+- The separate `feature/athlete-search-autocomplete` branch was created before implementation; the autocomplete is now integrated into the club feature branch.
+- **No opponent-adjusted model is active**; until one is calculated and activated, club power/SOS fields intentionally show a dash rather than guessed values.
+- **Vercel preview blocker**: `git_info_fail` when pulling GitHub refs. An attempt to link the existing repository reported that the Vercel account needs a GitHub Login Connection, and the Vercel Git namespace list was empty. Production `main` is still serving its last READY deployment. Do not recreate the Vercel project.
 
 ## What is live in production (as last known)
 
@@ -8,7 +15,7 @@ Last known production commit: `9dbe59a` ("Canonicalize saved comparison aliases"
 
 ## Implemented in the repository, not in production
 
-Everything below exists on branch `claude/opponent-adjusted-ratings-and-docs` (pushed to GitHub) and is not merged or deployed. The database migration is applied (below); the code that uses it is not deployed.
+The Glicko-2 components below exist on `claude/opponent-adjusted-ratings-and-docs` (and are inherited by the club feature branch). They are not merged or deployed. The database migration is applied (below); the code that uses it is not deployed.
 
 | Area | State |
 |---|---|
@@ -19,7 +26,7 @@ Everything below exists on branch `claude/opponent-adjusted-ratings-and-docs` (p
 | UI: power rating ± RD, conservative score, status chip, rating details, head-to-head, common opponents | Implemented with legacy fallback; compiled and type-checked; **not viewed against live data** |
 | Docs set and PR template | On the branch |
 | Audit SQL test (`tests/db/match-audit.test.ts`) and audit queries 0 and 8 | On the branch; audit **run against production 2026-11-03** (results below) |
-| PR description draft | `docs/pr/opponent-adjusted-ratings.md`; delete once the PR is opened |
+| GitHub PR | #1 opened in draft, awaiting integration/preview verification |
 
 Verification re-run 2026-11-03 in the second session (fresh `pnpm install --frozen-lockfile`, Node 22): `pnpm lint` clean, `pnpm typecheck` clean, `pnpm test` 93 passing (91 earlier plus 2 audit-SQL tests), `pnpm build` with dummy env vars succeeds. That session had a working Vercel connector but no GitHub API access (connector and `gh` token both rejected) and no Supabase connector, so the PR is not opened and no production step was done.
 
@@ -27,7 +34,7 @@ First-session verification: `pnpm lint` (clean), `pnpm typecheck` (clean), `pnpm
 
 ## Not implemented
 
-- Club identity normalization and club rankings (planned, see `REQUIREMENTS.md`).
+- Club rankings beyond the initial implemented depth, elite-strength, participation and SOS views: causal development analysis and age/weight-specific club strength remain future refinements.
 - In-repo match CSV importer (matches are imported outside the repo).
 - Any automatic identity merging beyond reviewed aliases.
 - Dominance/margin adjustments in the live model (experimental, off).
@@ -49,7 +56,7 @@ Production audit, 2026-11-03 (`supabase/audits/match_outcome_audit.sql`, read-on
 Consequences and open issues:
 
 - The classifier stays unchanged (`DECISIONS.md` D18); the spellings in D16 do not occur.
-- Swapped records (65 pairs) are both rated today; the 262 duplicate extra rows are rated unless they also match on result and method. Proposal to drop them: `DECISIONS.md` D19 (proposed, not implemented).
+- Potential same-opponent repeated records are **not verified duplicates**. Many have blank round labels and some source CSVs contain opposite wins in distinct source rows, consistent with genuine rematches. Do not suppress both results just because the pair matches (D19); only exact identical row signatures are currently removed.
 - Self-matches (12) are already excluded by the pipeline.
 - The README's earlier 31,177 was stale; the extra 668 bouts are the 2026-10-31 event.
 - The 2025 gap means every wrestler active in both 2024 and 2026 returns from more than a year of inactivity; their ratings rely on the inactivity (RD growth) policy.
@@ -60,12 +67,10 @@ Consequences and open issues:
 - Rating defaults (k, status thresholds, tau, period) are not calibrated to real data.
 - Opponent-strength metrics use current ratings (explanatory).
 
-## Next priorities (owner actions first)
+## Next steps
 
-1. Owner opens the PR from the branch link using `docs/pr/opponent-adjusted-ratings.md` as the description, then deletes that file; review and merge.
-2. ~~Run the outcome audit~~ done 2026-11-03 (above). ~~Apply migration 009~~ done 2026-11-03.
-3. Decide D19 (drop swapped and conflicting duplicate records in the rating pipeline).
-4. On the owner's computer (the cloud session has no read key): `pnpm ratings:calculate --dry-run`, review exclusions and top lists; then with `SUPABASE_SERVICE_ROLE_KEY` set **only in your local environment**, `pnpm ratings:calculate` (candidate), inspect, then `--activate`.
-5. `pnpm ratings:backtest`; commit the generated `docs/BACKTEST_REPORT.md`; adopt any default change only per the rule in `RANKINGS.md`, and record it in `DECISIONS.md`.
-6. Deploy on Vercel and check the compare page and rankings on a phone: power rating, RD, status, fallback behaviour if no model is active.
-7. Design club identity normalization and club rankings (separate PR, separate decision entry).
+1. Verify GitHub login connection for the existing Vercel project, then require a successful preview build of the latest feature commit.
+2. Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` in an authenticated development environment. Migration 010 has already been parsed and executed successfully under a rollback-only production database test.
+3. ~~Review and apply migration 010~~ done 2026-11-03; no `supabase db push` against unreconciled migration history.
+4. Merge approved PRs in dependency order. Verify new pages on a phone. Leave the legacy ratings active until the walk-forward real-data backtest and model activation are explicitly validated.
+5. Reconcile club identity candidates through confirmed aliases only; do not merge Spartan RTC with LHP or unrelated Alpha organizations without evidence.

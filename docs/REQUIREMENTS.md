@@ -22,10 +22,12 @@ Owner context used for the "likely opponents" feature (kept as configuration in 
 | F8 | **Tournament placements** are stored and shown as placements; never converted into wins or losses | Implemented |
 | F9 | **Opponent-adjusted wrestler ratings** (Glicko-2): rating, uncertainty (RD), conservative ranking score, provisional status, SOS and quality-win explanations, method and margin breakdowns, head-to-head and common opponents | Implemented and tested offline. **Not yet calculated or active in production** |
 | F10 | Chronological backtesting without future leakage, comparing the baseline against alternatives | Implemented (`pnpm ratings:backtest`). **No production results yet** |
-| F11 | Versioned, recalculable rating models that never destroy raw matches or earlier models | Implemented (migration 009, unapplied) |
+| F11 | Versioned, recalculable rating models that never destroy raw matches or earlier models | Implemented (migration 009 already applied to production, but no model active) |
 | F12 | Keep two views: the career opponent network (all matches, all ages) and current age/weight cohort rankings | Implemented in design; cohort view reads `wrestler_strength_current` once a model is active |
-| F13 | **Club identity normalization** (one canonical club per spelling variant) | **Planned. Not implemented in this repo.** Clubs are free-text `team` columns today |
-| F14 | **Club rankings** (a rating methodology for clubs, distinct from wrestler ratings) | **Planned. Not implemented in this repo.** `RANKINGS.md` describes only wrestler ratings |
+| F13 | **Club identity normalization**: confirmed aliases, historic team attribution, unverified program relationships kept separate | Implemented on feature branch via migration 010; **not yet deployed** |
+| F14 | **Club rankings & comparisons**: roster depth, active roster rating distributions, quality of opponents, season filters, club profiles and side-by-side comparisons | Implemented on feature branch; **not yet deployed; power/SOS require an active rating model** |
+
+| F15 | **Athlete autocomplete**: show matches while typing; display age division, bracket weight, club beneath the name without inventing exact age or bodyweight | Implemented on club feature branch; **not yet deployed** |
 
 ## Non-functional and safety requirements
 

@@ -18,6 +18,14 @@ Newest first within each area is not required; each entry has a date, the decisi
 
 **D6. Age group and weight come from division and bracket evidence only (existing).** No exact body weight from a bracket, no birth date from a division, no forced youth grouping for 2020 to 2022 birth years, girls' bands or high school.
 
+## Club analytics and search (2026-11-03)
+
+**D20. Club rankings are multiple transparent measures, not one arbitrary composite.** For each reporting season (and all seasons), attribute each contested result to the team name recorded for that entry. Aggregate only confirmed aliases; preserve unknown labels as separate organizations. Initial views expose observed roster size, participation, record, median current wrestler conservative score, top-five strength, and current rating of opponents (explanatory SOS). These metrics are blank when no rating model is active. No inference that a club *developed* a wrestler solely from their appearance on a roster. Historical season rosters use event affiliation, but power ratings are current estimates, never mislabeled as historical backtests.
+
+**D21. Keep similar/related club names separate until verified.** Alpha/Alpha WC/Alpha Wrestling Club are one reviewed organizational identity; Alpha Miami Grappling, Alpha Omega and Alpha Dogz remain distinct. Lake Highland Prep/LHP are one canonical identity; Spartan RTC and SpartanRTC@LHP are a separate program pending verification of their organizational relationship. NATJWA team color aliases aggregate into NATJWA while retaining their source labels. Changes to these mappings must be reviewed and reversible.
+
+**D22. Age and weight in athlete autocomplete are evidence labels, not measured facts.** Show 12U/10U etc. when age-group evidence exists and numeric bracket weight as “lb bracket,” rather than inventing an exact chronological age or current bodyweight. Club is chosen from the most recent evidence encountered. Name aliases are based on the reviewed wrestler alias table; do not create new wrestler identity merges by name similarity.
+
 ## Rating model (2026-11-03, Claude session; unvalidated on production data)
 
 **D7. Glicko-2 as the baseline.** It is a published, open specification, models uncertainty (RD) natively, grows uncertainty with inactivity without lowering ability, adjusts for opponent strength inside the update, and needs no arbitrary newcomer cap or minimum-match rule. *Rejected:* Elo (no uncertainty), Bradley-Terry/Massey batch fits (harder to explain, no natural recency), and extending the legacy heuristic (ignores opponents). Elo and a smoothed win-rate model are kept as backtest baselines.

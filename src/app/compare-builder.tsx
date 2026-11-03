@@ -25,11 +25,14 @@ export function CompareBuilder() {
   const [query, setQuery] = useState("");
   const [pasteList, setPasteList] = useState("");
   const [suggestions, setSuggestions] = useState<WrestlerSuggestion[]>([]);
+  const [searchResolved, setSearchResolved] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [mode, setMode] = useState<"likelihood" | "strength">("likelihood");
   const [message, setMessage] = useState("");
   const requestId = useRef(0);
+  const suggestionRequestId = useRef(0);
 
   const refreshProfiles = useCallback(async (nextRefs: WrestlerRef[]) => {
     const id = ++requestId.current;
@@ -112,6 +115,8 @@ export function CompareBuilder() {
     });
     setQuery("");
     setSuggestions([]);
+    setActiveSuggestion(-1);
+    setSearchResolved(false);
   };
 
   const updateRef = (key: string, changes: Partial<WrestlerRef>) => {
@@ -130,21 +135,54 @@ export function CompareBuilder() {
     });
   };
 
+  // Suggestions appear automatically after a short pause while typing.
+  // Request IDs prevent slower, stale responses from overwriting newer names.
+  useEffect(() => {
+    const name = query.trim();
+    if (name.length < 2) return;
+    const id = ++suggestionRequestId.current;
+    const timer = window.setTimeout(() => {
+      setSearching(true);
+      void searchWrestlers(name).then((found) => {
+        if (id !== suggestionRequestId.current) return;
+        setSuggestions(found);
+        setActiveSuggestion(-1);
+        setSearchResolved(true);
+      }).catch(() => {
+        if (id !== suggestionRequestId.current) return;
+        setSuggestions([]);
+        setSearchResolved(false);
+      }).finally(() => {
+        if (id === suggestionRequestId.current) setSearching(false);
+      });
+    }, 280);
+    return () => {
+      window.clearTimeout(timer);
+      suggestionRequestId.current += 1;
+    };
+  }, [query]);
+
   const runSearch = async (event: FormEvent) => {
     event.preventDefault();
-    if (query.trim().length < 2) return;
+    const name = query.trim();
+    if (name.length < 2) return;
+    const id = ++suggestionRequestId.current;
     setSearching(true);
     setMessage("");
     try {
-      const found = await searchWrestlers(query);
+      const found = await searchWrestlers(name);
+      if (id !== suggestionRequestId.current) return;
       setSuggestions(found);
+      setActiveSuggestion(-1);
+      setSearchResolved(true);
       if (!found.length) setMessage("No close result found. Add the name as a temporary wrestler below.");
     } catch {
-      setMessage("Search is unavailable right now. You can still add a temporary wrestler.");
+      if (id === suggestionRequestId.current) setMessage("Search is unavailable right now. You can still add a temporary wrestler.");
     } finally {
-      setSearching(false);
+      if (id === suggestionRequestId.current) setSearching(false);
     }
   };
+
 
   const addList = async () => {
     const names = pasteList.split(/[\n,]+/).map((name) => name.trim()).filter(Boolean).slice(0, 8 - refs.length);
@@ -229,23 +267,48 @@ export function CompareBuilder() {
         <form className="name-search" onSubmit={runSearch}>
           <label htmlFor="wrestler-search">Find one wrestler</label>
           <div className="input-action">
-            <input id="wrestler-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Name from the bracket" autoComplete="off" maxLength={100} />
+            <input id="wrestler-search" value={query} onChange={(event) => {
+              setQuery(event.target.value);
+              setSuggestions([]);
+              setSearchResolved(false);
+              setActiveSuggestion(-1);
+              setMessage("");
+            }} onKeyDown={(event) => {
+              if (event.key === "Escape") { setSuggestions([]); setActiveSuggestion(-1); }
+              if (event.key === "ArrowDown" && suggestions.length) {
+                event.preventDefault();
+                setActiveSuggestion((current) => Math.min(current + 1, suggestions.length - 1));
+              }
+              if (event.key === "ArrowUp" && suggestions.length) {
+                event.preventDefault();
+                setActiveSuggestion((current) => Math.max(current - 1, 0));
+              }
+              if (event.key === "Enter" && activeSuggestion >= 0 && suggestions[activeSuggestion]) {
+                event.preventDefault();
+                addRef(suggestions[activeSuggestion]);
+              }
+            }} role="combobox" aria-autocomplete="list" aria-expanded={suggestions.length > 0}
+              aria-controls="athlete-suggestions"
+              aria-activedescendant={activeSuggestion >= 0 ? "athlete-suggestion-" + activeSuggestion : undefined}
+              placeholder="Start typing a wrestler’s name" autoComplete="off" maxLength={100} />
             <button disabled={searching || query.trim().length < 2}>{searching ? "Finding…" : "Find"}</button>
           </div>
         </form>
 
         {!!suggestions.length && (
-          <div className="suggestions" aria-label="Search results">
-            {suggestions.map((suggestion) => (
-              <button key={`${suggestion.name}-${suggestion.team}`} type="button" onClick={() => addRef(suggestion)}>
+          <div id="athlete-suggestions" className="suggestions" role="listbox" aria-label="Matching athletes">
+            {suggestions.map((suggestion, index) => (
+              <button id={"athlete-suggestion-" + index} role="option" aria-selected={activeSuggestion === index}
+                className={activeSuggestion === index ? "selected" : ""}
+                key={`${suggestion.name}-${suggestion.team}`} type="button" onClick={() => addRef(suggestion)}>
                 <strong>{suggestion.name}</strong>
-                <span>{suggestion.team || "Team not recorded"} · {suggestion.evidence}</span>
+                <span>{suggestion.ageGroup ? suggestion.ageGroup + " division" : "Age not known"} · {suggestion.weight ? suggestion.weight + (suggestion.evidence.startsWith("Owner-supplied") ? " lb reported" : " lb bracket") : "Weight not known"} · {suggestion.team || "Club not recorded"}</span>
               </button>
             ))}
           </div>
         )}
 
-        {query.trim().length >= 2 && !suggestions.length && !searching && (
+        {query.trim().length >= 2 && searchResolved && !suggestions.length && !searching && (
           <button className="outline-button full-button" type="button" onClick={() => addRef({ name: query.trim(), unknown: true })}>Add “{query.trim()}” as temporary</button>
         )}
 
