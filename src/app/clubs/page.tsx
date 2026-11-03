@@ -42,7 +42,7 @@ export default async function ClubsPage({ searchParams }: { searchParams: Promis
       {error ? <section className="empty-state"><h2>Club data not available yet</h2><p>{error}</p></section> : <>
         {!hasRatings && <p className="club-notice">Opponent-adjusted club strength and strength of schedule will appear after the wrestler rating model is calculated and activated. For now these are observed roster and contested-match counts, not a power ranking.</p>}
         {modelSort && !hasRatings && <p className="club-notice">This ranking metric has no active ratings yet. Use “Observed roster” or “Recorded bouts” to compare participation.</p>}
-        <div className="club-results-heading"><h2>{q ? "Matching clubs" : "Club rankings"}</h2><span>{clubs.length}{clubs.length === 200 ? "+" : ""} clubs displayed</span></div>
+        <div className="club-results-heading"><h2>{q ? "Matching clubs" : "Club rankings"}</h2><span><Link href="/clubs/compare">Compare clubs</Link> · {clubs.length}{clubs.length === 200 ? "+" : ""} clubs displayed</span></div>
         {clubs.length ? <div className="club-list">
           {clubs.map((club, i) => <article className="club-result" key={club.club_key}>
             <div className="club-result-title">
