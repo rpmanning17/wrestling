@@ -49,6 +49,6 @@ export default async function ClubProfilePage({
         <div className="club-athlete-numbers"><span>Power <strong>{fmt(wrestler.conservative_score, 1)}</strong></span><span>SOS <strong>{fmt(wrestler.avg_opponent_rating, 1)}</strong></span></div>
       </div>)}
     </div>
-    <p className="club-footnote">A wrestler may appear on multiple clubs' historical rosters if they represented different teams. Only recorded contested bouts are counted; forfeits are excluded. Rating figures are current estimates, even when viewing an earlier season. Similar names such as Spartan RTC and Lake Highland Prep are not automatically combined.</p>
+    <p className="club-footnote">A wrestler may appear on multiple clubs’ historical rosters if they represented different teams. Only recorded contested bouts are counted; forfeits are excluded. Rating figures are current estimates, even when viewing an earlier season. Similar names such as Spartan RTC and Lake Highland Prep are not automatically combined.</p>
   </main>;
 }
