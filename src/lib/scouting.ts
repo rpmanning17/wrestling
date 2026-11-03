@@ -261,14 +261,14 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
   if (!cleanRefs.length) return [];
 
   const db = supabase();
-  const requestedKeys = cleanRefs.map((ref) => wrestlerKey(ref.name));
+  const requestedKeys = cleanRefs.map((ref) => normalize(ref.name));
   const { data: aliasData } = await db
     .from("wrestler_aliases")
     .select("alias_key,alias_name,canonical_name")
     .in("alias_key", requestedKeys);
   const aliases = new Map(((aliasData ?? []) as AliasRow[]).map((row) => [row.alias_key, row.canonical_name]));
   const resolvedRefs = cleanRefs.map((ref) => {
-    const canonicalName = aliases.get(wrestlerKey(ref.name));
+    const canonicalName = aliases.get(normalize(ref.name));
     return canonicalName ? { ...ref, name: canonicalName } : ref;
   });
   const names = [...new Set(resolvedRefs.filter((ref) => !ref.unknown && wrestlerKey(ref.name) !== "nolan").map((ref) => ref.name))];
