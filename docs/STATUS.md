@@ -4,7 +4,7 @@ Last updated: 2026-11-03, club analytics and search work-in-progress. Production
 
 ## Current work, not yet in production
 - **PR #1**: opponent-adjusted ratings, Glicko-2 engine, SOS, UI fallback and tests on `claude/opponent-adjusted-ratings-and-docs`. The temporary PR description file was removed; PR is open as draft.
-- **Feature branch `feature/florida-club-analytics`**: adds `202611030010_club_aliases_and_rankings.sql`, event-specific club records, club profiles, rankings, club comparisons, navigation, and live athlete autocomplete with age group / bracket weight / team. Migration 010 has been tested in a rollback transaction but is **not applied** to production.
+- **Feature branch `feature/florida-club-analytics`**: adds `202611030010_club_aliases_and_rankings.sql`, event-specific club records, club profiles, rankings, club comparisons, navigation, and live athlete autocomplete with age group / bracket weight / team. Migration 010 was tested in a rollback transaction and **applied to production Supabase** as version `20261103223232` (`create_club_aliases_and_rankings`); it creates only new club objects and leaves matches and legacy views untouched. Supabase security advisors returned no findings.
 - The separate `feature/athlete-search-autocomplete` branch was created before implementation; the autocomplete is now integrated into the club feature branch.
 - **No opponent-adjusted model is active**; until one is calculated and activated, club power/SOS fields intentionally show a dash rather than guessed values.
 - **Vercel preview blocker**: `git_info_fail` when pulling GitHub refs. An attempt to link the existing repository reported that the Vercel account needs a GitHub Login Connection, and the Vercel Git namespace list was empty. Production `main` is still serving its last READY deployment. Do not recreate the Vercel project.
@@ -71,6 +71,6 @@ Consequences and open issues:
 
 1. Verify GitHub login connection for the existing Vercel project, then require a successful preview build of the latest feature commit.
 2. Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` in an authenticated development environment. Migration 010 has already been parsed and executed successfully under a rollback-only production database test.
-3. Review and apply migration 010 once code and security review pass; do not `supabase db push` against unreconciled migration history.
+3. ~~Review and apply migration 010~~ done 2026-11-03; no `supabase db push` against unreconciled migration history.
 4. Merge approved PRs in dependency order. Verify new pages on a phone. Leave the legacy ratings active until the walk-forward real-data backtest and model activation are explicitly validated.
 5. Reconcile club identity candidates through confirmed aliases only; do not merge Spartan RTC with LHP or unrelated Alpha organizations without evidence.
