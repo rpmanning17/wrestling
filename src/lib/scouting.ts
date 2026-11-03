@@ -4,8 +4,6 @@ import { supabase } from "@/lib/supabase";
 import {
   likelihoodExplanation,
   likelihoodScore,
-  strengthExplanation,
-  strengthScore,
 } from "@/lib/scoring";
 import type {
   PlacementSummary,
@@ -48,6 +46,42 @@ type NoteRow = {
   body: string;
   client_id: string;
   created_at: string;
+};
+
+type EvidenceRow = {
+  athlete_name: string;
+  team: string;
+  event_date: string;
+  event_name: string;
+  city: string;
+  age_group: string;
+  division_birth_year_start: number;
+  division_birth_year_end: number;
+  experience_division: string | null;
+  bracket_weight_lbs: number | string;
+  confidence_score: number;
+  confidence_label: "confirmed" | "strong" | "moderate" | "limited";
+  evidence_type: string;
+  reason: string;
+};
+
+type RatingRow = {
+  athlete_name: string;
+  age_group: string;
+  division_birth_year_start: number;
+  division_birth_year_end: number;
+  weight_bucket: number;
+  weight_band: string;
+  bracket_weight_lbs: number | string;
+  evidence_date: string;
+  confidence_score: number;
+  strength_score: number | string;
+  cohort_rank: number;
+  cohort_size: number;
+  wins: number;
+  losses: number;
+  best_placement: number | null;
+  decisive_wins: number;
 };
 
 const ORLANDO_CITIES = new Set([
@@ -108,7 +142,7 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
     .filter((part) => part.length >= 2)
     .sort((a, b) => b.length - a.length)[0] ?? normalize(query);
 
-  const [matchResult, entryResult] = await Promise.all([
+  const [matchResult, entryResult, evidenceResult] = await Promise.all([
     db
       .from("matches")
       .select("winner_name,winner_team,loser_name,loser_team,event_date")
@@ -121,6 +155,12 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
       .ilike("athlete_name", `%${token.replace(/[%_]/g, "")}%`)
       .order("event_date", { ascending: false })
       .limit(80),
+    db
+      .from("wrestler_evidence")
+      .select("athlete_name,team,age_group,bracket_weight_lbs,confidence_label,event_date")
+      .ilike("athlete_name", `%${token.replace(/[%_]/g, "")}%`)
+      .order("event_date", { ascending: false })
+      .limit(100),
   ]);
 
   const found = new Map<string, { name: string; team: string; evidence: string; score: number }>();
@@ -138,6 +178,9 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
   }
   for (const row of (entryResult.data ?? []) as Array<Pick<EntryRow, "athlete_name" | "team" | "age_group" | "bracket_weight_lbs">>) {
     add(row.athlete_name, row.team, `${row.age_group} · ${Number(row.bracket_weight_lbs)} lb entry`);
+  }
+  for (const row of (evidenceResult.data ?? []) as Array<Pick<EvidenceRow, "athlete_name" | "team" | "age_group" | "bracket_weight_lbs" | "confidence_label">>) {
+    add(row.athlete_name, row.team, `${row.age_group} · ${Number(row.bracket_weight_lbs)} lb · ${row.confidence_label} evidence`);
   }
 
   if (normalize(query).includes("nolan")) {
@@ -172,7 +215,7 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
   const cleanRefs = refs
     .map((ref) => ({ ...ref, name: validName(ref.name) }))
     .filter((ref) => ref.name)
-    .slice(0, 8);
+    .slice(0, 120);
   if (!cleanRefs.length) return [];
 
   const names = [...new Set(cleanRefs.filter((ref) => !ref.unknown && wrestlerKey(ref.name) !== "nolan").map((ref) => ref.name))];
@@ -180,7 +223,7 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
   const db = supabase();
   const empty = { data: [] as unknown[] };
 
-  const [winsResult, lossesResult, entriesResult, notesResult] = await Promise.all([
+  const [winsResult, lossesResult, entriesResult, evidenceResult, ratingsResult, notesResult] = await Promise.all([
     names.length
       ? db.from("matches").select("id,event_date,event_name,city,weight_class,winner_name,winner_team,loser_name,loser_team,result,win_type").in("winner_name", names).order("event_date", { ascending: false }).limit(1000)
       : empty,
@@ -190,12 +233,20 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
     names.length
       ? db.from("tournament_entries").select("event_date,event_name,city,athlete_name,team,age_group,experience_division,bracket_weight_lbs,placement,confidence").in("athlete_name", names).order("event_date", { ascending: false }).limit(500)
       : empty,
+    names.length
+      ? db.from("wrestler_evidence").select("athlete_name,team,event_date,event_name,city,age_group,division_birth_year_start,division_birth_year_end,experience_division,bracket_weight_lbs,confidence_score,confidence_label,evidence_type,reason").in("athlete_name", names).order("event_date", { ascending: false }).limit(2500)
+      : empty,
+    names.length
+      ? db.from("wrestler_ratings").select("athlete_name,age_group,division_birth_year_start,division_birth_year_end,weight_bucket,weight_band,bracket_weight_lbs,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,wins,losses,best_placement,decisive_wins").in("athlete_name", names).limit(1000)
+      : empty,
     db.from("wrestler_notes").select("id,wrestler_key,body,client_id,created_at").in("wrestler_key", keys).order("created_at", { ascending: false }).limit(500),
   ]);
 
   const matches = [...(winsResult.data ?? []), ...(lossesResult.data ?? [])] as MatchRow[];
   const uniqueMatches = [...new Map(matches.map((match) => [match.id, match])).values()];
   const entries = (entriesResult.data ?? []) as EntryRow[];
+  const evidence = (evidenceResult.data ?? []) as EvidenceRow[];
+  const ratings = (ratingsResult.data ?? []) as RatingRow[];
   const notes = (notesResult.data ?? []) as NoteRow[];
 
   return cleanRefs.map((ref) => {
@@ -207,6 +258,9 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
     const wrestlerEntries = entries
       .filter((entry) => normalize(entry.athlete_name) === target)
       .sort((a, b) => b.event_date.localeCompare(a.event_date));
+    const wrestlerEvidence = evidence
+      .filter((item) => normalize(item.athlete_name) === target)
+      .sort((a, b) => b.event_date.localeCompare(a.event_date) || b.confidence_score - a.confidence_score);
     const wins = wrestlerMatches.filter((match) => normalize(match.winner_name) === target).length;
     const losses = wrestlerMatches.length - wins;
     const decisiveWins = wrestlerMatches.filter(
@@ -222,22 +276,25 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
       confidence: entry.confidence,
     }));
     const latestEntry = wrestlerEntries[0];
+    const latestEvidence = wrestlerEvidence[0];
     const latestMatchWeight = wrestlerMatches.map((match) => parseWeight(match.weight_class)).find((weight) => weight != null) ?? null;
     const isNolan = key === "nolan";
-    const latestAgeGroup = ref.ageGroup || latestEntry?.age_group || (isNolan ? "12U" : null);
-    const latestWeight = ref.weight ?? (latestEntry ? Number(latestEntry.bracket_weight_lbs) : latestMatchWeight) ?? (isNolan ? 71 : null);
-    const latestDate = newest([wrestlerMatches[0]?.event_date ?? null, latestEntry?.event_date ?? null]);
+    const latestAgeGroup = ref.ageGroup || latestEvidence?.age_group || latestEntry?.age_group || (isNolan ? "12U" : null);
+    const latestWeight = ref.weight ?? (latestEvidence ? Number(latestEvidence.bracket_weight_lbs) : latestEntry ? Number(latestEntry.bracket_weight_lbs) : latestMatchWeight) ?? (isNolan ? 71 : null);
+    const latestDate = newest([wrestlerMatches[0]?.event_date ?? null, latestEvidence?.event_date ?? null, latestEntry?.event_date ?? null]);
     const recentCutoff = "2026-08-01";
     const eventKeys = new Set([
       ...wrestlerMatches.map((match) => `${match.event_date}|${match.event_name}`),
       ...wrestlerEntries.map((entry) => `${entry.event_date}|${entry.event_name}`),
+      ...wrestlerEvidence.map((item) => `${item.event_date}|${item.event_name}`),
     ]);
     const orlandoKeys = new Set([
       ...wrestlerMatches.filter((match) => ORLANDO_CITIES.has(normalize(match.city))).map((match) => `${match.event_date}|${match.event_name}`),
       ...wrestlerEntries.filter((entry) => ORLANDO_CITIES.has(normalize(entry.city))).map((entry) => `${entry.event_date}|${entry.event_name}`),
+      ...wrestlerEvidence.filter((item) => ORLANDO_CITIES.has(normalize(item.city))).map((item) => `${item.event_date}|${item.event_name}`),
     ]);
     const recentKeys = new Set([...eventKeys].filter((eventKey) => eventKey.slice(0, 10) >= recentCutoff));
-    const confirmedEvidence = wrestlerEntries.some((entry) => entry.confidence === "confirmed");
+    const confirmedEvidence = wrestlerEvidence.some((item) => item.confidence_label === "confirmed") || wrestlerEntries.some((entry) => entry.confidence === "confirmed");
     const scoreInput = {
       wins,
       losses,
@@ -251,7 +308,21 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
       tournamentCount: eventKeys.size,
       confirmedEvidence,
     };
-    const latestTeam = latestEntry?.team || (normalize(wrestlerMatches[0]?.winner_name ?? "") === target ? wrestlerMatches[0]?.winner_team : wrestlerMatches[0]?.loser_team) || ref.team;
+    const desiredBucket = latestWeight == null ? null : Math.floor(latestWeight / 10) * 10;
+    const wrestlerRatings = ratings
+      .filter((rating) => normalize(rating.athlete_name) === target)
+      .sort((a, b) => {
+        const aFit = (latestAgeGroup === a.age_group ? 2 : 0) + (desiredBucket === a.weight_bucket ? 1 : 0);
+        const bFit = (latestAgeGroup === b.age_group ? 2 : 0) + (desiredBucket === b.weight_bucket ? 1 : 0);
+        return bFit - aFit || b.evidence_date.localeCompare(a.evidence_date) || b.confidence_score - a.confidence_score;
+      });
+    const rating = wrestlerRatings[0];
+    const strength = rating ? Number(rating.strength_score) : null;
+    const strengthReason = rating
+      ? `${wins}-${losses} in ${wins + losses} recorded bouts · #${rating.cohort_rank} of ${rating.cohort_size} in ${rating.age_group} ${rating.weight_band}`
+      : isNolan ? "Unrated — Nolan has no imported results yet." : "Unrated — no recorded bouts in a supported age/weight cohort.";
+    const latestTeam = latestEvidence?.team || latestEntry?.team || (normalize(wrestlerMatches[0]?.winner_name ?? "") === target ? wrestlerMatches[0]?.winner_team : wrestlerMatches[0]?.loser_team) || ref.team;
+    const evidenceConfidence = latestEvidence?.confidence_label ?? (confirmedEvidence ? "confirmed" : latestAgeGroup || latestWeight ? "limited" : "limited");
 
     return {
       ...ref,
@@ -260,13 +331,18 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
       key,
       wins,
       losses,
-      strength: isNolan && wrestlerMatches.length === 0 ? null : strengthScore(scoreInput),
-      strengthReason: isNolan && wrestlerMatches.length === 0 ? "Unrated — Nolan has no imported results yet." : strengthExplanation(scoreInput),
+      strength: isNolan && wrestlerMatches.length === 0 ? null : strength,
+      strengthReason,
       likelihood: likelihoodScore(scoreInput),
       likelihoodReason: likelihoodExplanation(scoreInput),
       latestAgeGroup,
       latestWeight,
-      evidenceConfidence: confirmedEvidence ? "confirmed" : latestAgeGroup || latestWeight ? "derived" : "limited",
+      birthYearStart: latestEvidence?.division_birth_year_start ?? rating?.division_birth_year_start ?? null,
+      birthYearEnd: latestEvidence?.division_birth_year_end ?? rating?.division_birth_year_end ?? null,
+      cohortRank: rating?.cohort_rank ?? null,
+      cohortSize: rating?.cohort_size ?? null,
+      weightBand: rating?.weight_band ?? null,
+      evidenceConfidence,
       latestDate,
       bouts: wrestlerMatches.slice(0, 8).map((match) => {
         const won = normalize(match.winner_name) === target;
@@ -290,12 +366,11 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
 
 export async function strongestPool() {
   const { data } = await supabase()
-    .from("tournament_entries")
-    .select("athlete_name,team")
+    .from("wrestler_ratings")
+    .select("athlete_name,team,strength_score")
     .eq("age_group", "12U")
-    .eq("experience_division", "open")
-    .in("bracket_weight_lbs", [70, 75])
-    .order("event_date", { ascending: false })
+    .eq("weight_bucket", 70)
+    .order("strength_score", { ascending: false })
     .limit(200);
   const refs = [...new Map(((data ?? []) as Array<{ athlete_name: string; team: string }>).map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team }])).values()];
   return (await buildProfiles(refs)).sort((a, b) => (b.strength ?? -1) - (a.strength ?? -1));
@@ -303,15 +378,13 @@ export async function strongestPool() {
 
 export async function likelyNolanPool() {
   const { data } = await supabase()
-    .from("tournament_entries")
+    .from("wrestler_evidence")
     .select("athlete_name,team")
     .eq("age_group", "12U")
-    .eq("experience_division", "open")
     .gte("bracket_weight_lbs", 65)
     .lte("bracket_weight_lbs", 80)
     .order("event_date", { ascending: false })
-    .limit(240);
+    .limit(800);
   const refs = [...new Map(((data ?? []) as Array<{ athlete_name: string; team: string }>).map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team }])).values()];
   return (await buildProfiles(refs)).sort((a, b) => b.likelihood - a.likelihood).slice(0, 6);
 }
-

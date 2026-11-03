@@ -49,7 +49,12 @@ export type WrestlerProfile = WrestlerRef & {
   likelihoodReason: string;
   latestAgeGroup: string | null;
   latestWeight: number | null;
-  evidenceConfidence: "confirmed" | "derived" | "limited";
+  birthYearStart: number | null;
+  birthYearEnd: number | null;
+  cohortRank: number | null;
+  cohortSize: number | null;
+  weightBand: string | null;
+  evidenceConfidence: "confirmed" | "strong" | "moderate" | "limited";
   latestDate: string | null;
   bouts: BoutSummary[];
   placements: PlacementSummary[];
@@ -64,4 +69,3 @@ export const wrestlerKey = (name: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 160);
-

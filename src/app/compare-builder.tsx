@@ -311,7 +311,9 @@ function ProfileCard({ profile, rank, sortMode, onUpdate, onAddNote, onDeleteNot
       <dl className="facts">
         <div><dt>Record</dt><dd>{profile.wins}-{profile.losses}</dd></div>
         <div><dt>Age group</dt><dd>{profile.latestAgeGroup || "Unknown"}</dd></div>
+        <div><dt>Birth years</dt><dd>{profile.birthYearStart && profile.birthYearEnd ? `${profile.birthYearStart}–${profile.birthYearEnd}` : "Unknown"}</dd></div>
         <div><dt>Weight</dt><dd>{profile.latestWeight ? `${profile.latestWeight} lb` : "Unknown"}</dd></div>
+        <div><dt>Cohort</dt><dd>{profile.cohortRank && profile.cohortSize ? `#${profile.cohortRank} of ${profile.cohortSize}` : "Unrated"}</dd></div>
         <div><dt>Latest</dt><dd>{profile.latestDate || "No result"}</dd></div>
       </dl>
 
@@ -344,4 +346,3 @@ function ordinal(value: number) {
   if (value % 100 >= 11 && value % 100 <= 13) return "th";
   return value % 10 === 1 ? "st" : value % 10 === 2 ? "nd" : value % 10 === 3 ? "rd" : "th";
 }
-
