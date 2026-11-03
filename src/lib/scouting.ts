@@ -276,7 +276,11 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
       confidence: entry.confidence,
     }));
     const latestEntry = wrestlerEntries[0];
-    const latestEvidence = wrestlerEvidence[0];
+    const requestedBucket = ref.weight == null ? null : Math.floor(ref.weight / 10) * 10;
+    const cohortEvidence = wrestlerEvidence.filter((item) =>
+      (!ref.ageGroup || item.age_group === ref.ageGroup)
+      && (requestedBucket == null || Math.floor(Number(item.bracket_weight_lbs) / 10) * 10 === requestedBucket));
+    const latestEvidence = cohortEvidence[0] ?? wrestlerEvidence[0];
     const latestMatchWeight = wrestlerMatches.map((match) => parseWeight(match.weight_class)).find((weight) => weight != null) ?? null;
     const isNolan = key === "nolan";
     const latestAgeGroup = ref.ageGroup || latestEvidence?.age_group || latestEntry?.age_group || (isNolan ? "12U" : null);
@@ -337,8 +341,8 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
       likelihoodReason: likelihoodExplanation(scoreInput),
       latestAgeGroup,
       latestWeight,
-      birthYearStart: latestEvidence?.division_birth_year_start ?? rating?.division_birth_year_start ?? null,
-      birthYearEnd: latestEvidence?.division_birth_year_end ?? rating?.division_birth_year_end ?? null,
+      birthYearStart: rating?.division_birth_year_start ?? latestEvidence?.division_birth_year_start ?? null,
+      birthYearEnd: rating?.division_birth_year_end ?? latestEvidence?.division_birth_year_end ?? null,
       cohortRank: rating?.cohort_rank ?? null,
       cohortSize: rating?.cohort_size ?? null,
       weightBand: rating?.weight_band ?? null,
@@ -367,24 +371,24 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
 export async function strongestPool() {
   const { data } = await supabase()
     .from("wrestler_ratings")
-    .select("athlete_name,team,strength_score")
+    .select("athlete_name,team,strength_score,age_group,bracket_weight_lbs")
     .eq("age_group", "12U")
     .eq("weight_bucket", 70)
     .order("strength_score", { ascending: false })
     .limit(200);
-  const refs = [...new Map(((data ?? []) as Array<{ athlete_name: string; team: string }>).map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team }])).values()];
+  const refs = [...new Map(((data ?? []) as Array<{ athlete_name: string; team: string; age_group: string; bracket_weight_lbs: number | string }>).map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team, ageGroup: row.age_group, weight: Number(row.bracket_weight_lbs) }])).values()];
   return (await buildProfiles(refs)).sort((a, b) => (b.strength ?? -1) - (a.strength ?? -1));
 }
 
 export async function likelyNolanPool() {
   const { data } = await supabase()
     .from("wrestler_evidence")
-    .select("athlete_name,team")
+    .select("athlete_name,team,age_group,bracket_weight_lbs,confidence_score")
     .eq("age_group", "12U")
     .gte("bracket_weight_lbs", 65)
     .lte("bracket_weight_lbs", 80)
     .order("event_date", { ascending: false })
     .limit(800);
-  const refs = [...new Map(((data ?? []) as Array<{ athlete_name: string; team: string }>).map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team }])).values()];
+  const refs = [...new Map(((data ?? []) as Array<{ athlete_name: string; team: string; age_group: string; bracket_weight_lbs: number | string }>).map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team, ageGroup: row.age_group, weight: Number(row.bracket_weight_lbs) }])).values()];
   return (await buildProfiles(refs)).sort((a, b) => b.likelihood - a.likelihood).slice(0, 6);
 }
