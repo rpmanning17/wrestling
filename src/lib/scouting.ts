@@ -259,8 +259,8 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
 
   // Search names are kept canonical where an explicit reviewed alias exists.
   // Never merge people merely because they share a name, club, or weight.
-  const aliases = new Map(((aliasResult.data ?? []) as AliasRow[])
-    .map((row) => [wrestlerKey(row.alias_name), row.canonical_name]));
+  const aliases = new Map<string, string>(((aliasResult.data ?? []) as AliasRow[])
+    .map((row): [string, string] => [wrestlerKey(row.alias_name), row.canonical_name]));
 
   type Candidate = {
     name: string; team: string; ageGroup?: string; weight?: number;
