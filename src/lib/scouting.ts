@@ -5,7 +5,7 @@ import {
   likelihoodExplanation,
   likelihoodScore,
 } from "@/lib/scoring";
-import { classifyMethod, CONTESTED_BY_DEFAULT } from "@/lib/rating/outcomes";
+import { classifyMethod, CONTESTED_BY_DEFAULT, parseAgeGroup, parseBracketWeight } from "@/lib/rating/outcomes";
 import { commonOpponents, headToHead, type Bout } from "@/lib/rating/relations";
 import type {
   PlacementSummary,
@@ -233,72 +233,109 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
     .split(" ")
     .filter((part) => part.length >= 2)
     .sort((a, b) => b.length - a.length)[0] ?? normalize(query);
+  const searchToken = token.replace(/[%_]/g, "");
 
   const [matchResult, entryResult, evidenceResult, observationResult, aliasResult] = await Promise.all([
-    db
-      .from("matches")
-      .select("winner_name,winner_team,loser_name,loser_team,event_date")
-      .ilike("search_text", `%${token.replace(/[%_]/g, "")}%`)
-      .order("event_date", { ascending: false })
-      .limit(120),
-    db
-      .from("tournament_entries")
+    db.from("matches")
+      .select("winner_name,winner_team,loser_name,loser_team,event_date,weight_class")
+      .ilike("search_text", "%" + searchToken + "%")
+      .order("event_date", { ascending: false }).limit(120),
+    db.from("tournament_entries")
       .select("athlete_name,team,age_group,bracket_weight_lbs,event_date")
-      .ilike("athlete_name", `%${token.replace(/[%_]/g, "")}%`)
-      .order("event_date", { ascending: false })
-      .limit(80),
-    db
-      .from("wrestler_evidence")
+      .ilike("athlete_name", "%" + searchToken + "%")
+      .order("event_date", { ascending: false }).limit(80),
+    db.from("wrestler_evidence")
       .select("athlete_name,team,age_group,bracket_weight_lbs,confidence_label,event_date")
-      .ilike("athlete_name", `%${token.replace(/[%_]/g, "")}%`)
-      .order("event_date", { ascending: false })
-      .limit(100),
-    db
-      .from("tournament_observations")
-      .select("athlete_name,team,division_label,bracket_weight_label,placement,event_date,identity_resolution")
-      .ilike("athlete_name", `%${token.replace(/[%_]/g, "")}%`)
+      .ilike("athlete_name", "%" + searchToken + "%")
+      .order("event_date", { ascending: false }).limit(100),
+    db.from("tournament_observations")
+      .select("athlete_name,team,division_label,age_group,bracket_weight_lbs,bracket_weight_label,placement,event_date,identity_resolution")
+      .ilike("athlete_name", "%" + searchToken + "%")
       .neq("identity_resolution", "placeholder")
-      .order("event_date", { ascending: false })
-      .limit(100),
-    db
-      .from("wrestler_aliases")
-      .select("alias_key,alias_name,canonical_name")
-      .ilike("alias_name", `%${token.replace(/[%_]/g, "")}%`)
-      .limit(20),
+      .order("event_date", { ascending: false }).limit(100),
+    db.from("wrestler_aliases").select("alias_key,alias_name,canonical_name")
+      .ilike("alias_name", "%" + searchToken + "%").limit(30),
   ]);
 
-  const found = new Map<string, { name: string; team: string; evidence: string; score: number }>();
-  const add = (name: string, team: string, evidence: string) => {
-    const score = nameMatchScore(query, name);
+  // Search names are kept canonical where an explicit reviewed alias exists.
+  // Never merge people merely because they share a name, club, or weight.
+  const aliases = new Map(((aliasResult.data ?? []) as AliasRow[])
+    .map((row) => [wrestlerKey(row.alias_name), row.canonical_name]));
+
+  type Candidate = {
+    name: string; team: string; ageGroup?: string; weight?: number;
+    evidence: string; score: number;
+    teamDate: string; ageDate: string; weightDate: string;
+  };
+  const found = new Map<string, Candidate>();
+  const bracketWeight = (value: unknown): number | undefined => {
+    if (value == null || value === "") return undefined;
+    const number = Number(value);
+    return Number.isFinite(number) && number >= 30 && number <= 400 ? number : undefined;
+  };
+  const add = (
+    sourceName: string, team: string | null | undefined, evidence: string,
+    date = "", ageGroup?: string | null, weight?: number,
+  ) => {
+    if (!sourceName) return;
+    const name = aliases.get(wrestlerKey(sourceName)) || sourceName.trim();
+    const score = Math.max(nameMatchScore(query, sourceName), nameMatchScore(query, name));
     if (score < 35) return;
     const key = wrestlerKey(name);
-    const existing = found.get(key);
-    if (!existing || score > existing.score) found.set(key, { name, team, evidence, score });
+    let candidate = found.get(key);
+    if (!candidate) {
+      candidate = { name, team: "", evidence, score, teamDate: "", ageDate: "", weightDate: "" };
+      found.set(key, candidate);
+    }
+    if (score > candidate.score) {
+      candidate.score = score;
+      candidate.evidence = evidence;
+    }
+    if (team?.trim() && (!candidate.team || date >= candidate.teamDate)) {
+      candidate.team = team.trim();
+      candidate.teamDate = date;
+    }
+    if (ageGroup?.trim() && (!candidate.ageGroup || date >= candidate.ageDate)) {
+      candidate.ageGroup = ageGroup.trim();
+      candidate.ageDate = date;
+    }
+    if (weight !== undefined && (!candidate.weight || date >= candidate.weightDate)) {
+      candidate.weight = weight;
+      candidate.weightDate = date;
+    }
   };
 
-  for (const row of (matchResult.data ?? []) as Pick<MatchRow, "winner_name" | "winner_team" | "loser_name" | "loser_team">[]) {
-    add(row.winner_name, row.winner_team, "Recorded match history");
-    add(row.loser_name, row.loser_team, "Recorded match history");
+  for (const row of (matchResult.data ?? []) as Array<Pick<MatchRow,
+    "winner_name" | "winner_team" | "loser_name" | "loser_team" | "event_date" | "weight_class">>) {
+    const age = parseAgeGroup(row.weight_class);
+    const weight = parseBracketWeight(row.weight_class) ?? undefined;
+    add(row.winner_name, row.winner_team, "Recorded match", row.event_date, age, weight);
+    add(row.loser_name, row.loser_team, "Recorded match", row.event_date, age, weight);
   }
-  for (const row of (entryResult.data ?? []) as Array<Pick<EntryRow, "athlete_name" | "team" | "age_group" | "bracket_weight_lbs">>) {
-    add(row.athlete_name, row.team, `${row.age_group} · ${Number(row.bracket_weight_lbs)} lb entry`);
+  for (const row of (entryResult.data ?? []) as Array<Pick<EntryRow,
+    "athlete_name" | "team" | "age_group" | "bracket_weight_lbs" | "event_date">>) {
+    add(row.athlete_name, row.team, "Tournament entry", row.event_date, row.age_group, bracketWeight(row.bracket_weight_lbs));
   }
-  for (const row of (evidenceResult.data ?? []) as Array<Pick<EvidenceRow, "athlete_name" | "team" | "age_group" | "bracket_weight_lbs" | "confidence_label">>) {
-    add(row.athlete_name, row.team, `${row.age_group} · ${Number(row.bracket_weight_lbs)} lb · ${row.confidence_label} evidence`);
+  for (const row of (evidenceResult.data ?? []) as Array<Pick<EvidenceRow,
+    "athlete_name" | "team" | "age_group" | "bracket_weight_lbs" | "event_date">>) {
+    add(row.athlete_name, row.team, "Age and weight evidence", row.event_date, row.age_group, bracketWeight(row.bracket_weight_lbs));
   }
-  for (const row of (observationResult.data ?? []) as Array<Pick<ObservationRow, "athlete_name" | "team" | "division_label" | "bracket_weight_label" | "placement">>) {
-    add(row.athlete_name, row.team, `${row.division_label} · ${row.bracket_weight_label} bracket · placed ${row.placement}`);
+  for (const row of (observationResult.data ?? []) as Array<Pick<ObservationRow,
+    "athlete_name" | "team" | "age_group" | "bracket_weight_lbs" | "bracket_weight_label" | "event_date">>) {
+    add(row.athlete_name, row.team, "Tournament observation", row.event_date,
+      row.age_group, bracketWeight(row.bracket_weight_lbs) ?? parseBracketWeight(row.bracket_weight_label) ?? undefined);
   }
   for (const row of (aliasResult.data ?? []) as AliasRow[]) {
-    add(row.canonical_name, "", `Also listed as ${row.alias_name}`);
+    add(row.alias_name, "", "Also listed as " + row.alias_name);
   }
 
-  if (normalize(query).includes("nolan")) {
+  // Nolan is not yet in the imported match results. Keep his manually supplied
+  // information distinct from inferred tournament bracket weight.
+  if (normalize(query) === "nolan") {
     found.set("nolan", {
-      name: "Nolan",
-      team: "Alpha",
-      evidence: "12U open · 69 lb now · projected 71 lb",
-      score: normalize(query) === "nolan" ? 100 : 85,
+      name: "Nolan", team: "Alpha", ageGroup: "12U", weight: 69,
+      evidence: "Owner-supplied weight; not an imported tournament result",
+      score: 100, teamDate: "", ageDate: "", weightDate: "",
     });
   }
 
@@ -308,6 +345,8 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
     .map((item) => ({
       name: item.name,
       team: item.team || undefined,
+      ageGroup: item.ageGroup,
+      weight: item.weight,
       evidence: item.evidence,
       matchScore: item.score,
     }));
