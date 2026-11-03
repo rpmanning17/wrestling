@@ -7,6 +7,7 @@ export function AppNav() {
       <nav aria-label="Primary navigation">
         <Link href="/">Compare</Link>
         <Link href="/rankings">Rankings</Link>
+        <Link href="/clubs">Clubs</Link>
         <Link href="/results">Results</Link>
       </nav>
     </header>

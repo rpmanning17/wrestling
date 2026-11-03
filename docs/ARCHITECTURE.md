@@ -1,0 +1,53 @@
+# Architecture
+
+## Runtime
+
+- **Next.js 16 App Router** on Vercel. Server components and server actions read and write Supabase using a server-only key. The browser only receives rendered HTML and action results.
+- **Supabase Postgres** with row-level security. The `anon` role may read/write only when the request carries the personal-app key (`private.personal_app_request_is_valid()`); `service_role` is used for batch writes run from the owner's machine. Views use `security_invoker`.
+- No authentication layer in the app. `src/proxy.ts` adds `Cache-Control: private, no-store`, `X-Robots-Tag: noindex, nofollow, noarchive` and other hardening headers to every response.
+
+## Code map
+
+```
+src/app/                    pages, server actions, UI (mobile-first CSS in globals.css)
+  compare-builder.tsx       comparison UI; ProfileCard, PowerRatingStrip, RatingDetails
+  rankings/page.tsx         "most likely for Nolan" and strongest list
+  results/page.tsx          result browser
+src/lib/
+  supabase.ts               server-side client (adds x-personal-app-key)
+  scouting.ts               findWrestlers, buildProfiles, strongestPool, likelyNolanPool
+  scouting-types.ts         WrestlerProfile, PowerRating, ...
+  scoring.ts                legacy strength heuristic and matchup likelihood
+  rating/                   pure rating engine (no I/O), see below
+scripts/ratings/            CLIs: calculate.ts, backtest.ts, common.ts (I/O lives here)
+supabase/migrations/        the only way the schema changes
+supabase/importers/         tournament-observation SQL builder (PowerShell)
+supabase/audits/            read-only audit SQL
+tests/rating, tests/db      node:test suites (tests/db applies migrations in PGlite)
+```
+
+## Rating pipeline
+
+```
+public.matches ──read──▶ prepareMatches ──▶ calculateRatings ──▶ batch write ──▶ rating_models (building→candidate→active)
+public.wrestler_aliases ─┘   (classify, dedupe,       (walk-forward Glicko-2)        wrestler_model_ratings
+                              alias, events)                                         wrestler_rating_history
+                                                                                      │
+                                              wrestler_rating_current / wrestler_strength_current (views, active model only)
+                                                                                      │
+                                               scouting.ts ──▶ ProfileCard / rankings page
+```
+
+- `src/lib/rating/glicko2.ts` implements Glickman's published Glicko-2 (validated against the paper's worked example in tests).
+- `prepare.ts` classifies outcomes, drops non-contested and duplicate rows, applies aliases, groups bouts into events, and returns an exclusion report.
+- `walk.ts` is the leakage rule shared by ratings and backtests: every bout is predicted from a snapshot taken before the rating period containing its event's first bout; updates apply after.
+- `engine.ts` produces ratings, uncertainty, status, conservative score and explanatory statistics. `backtest.ts`, `grid.ts`, `report.ts` produce the evaluation. `relations.ts` computes head-to-head and common opponents.
+- It is a **batch** pipeline on purpose (a rolling filter over time cannot be expressed as a simple SQL view). Models are immutable once written; a new calculation inserts a new model, and activation is a status switch (`private.activate_rating_model`, or the equivalent two-step in `calculate.ts`).
+
+## Fallback behaviour
+
+`buildProfiles` first checks `wrestler_rating_current`. If the view is missing (migration not applied), errors, or has no active model, `ratingSource` is `"legacy"` and the original `wrestler_ratings` view drives the 0 to 1000 number. When a model is active, every wrestler is scored from it (a wrestler with no contested bouts shows as unrated rather than falling back), so one comparison never mixes the two systems.
+
+## Deployment
+
+Vercel builds from GitHub. Production variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_PERSONAL_APP_KEY`. Migrations are applied to Supabase manually (CLI or SQL editor) before deploying code that needs them. Code that reads the new views tolerates their absence.
