@@ -25,6 +25,7 @@ insert into public.club_aliases (alias_key,club_key,canonical_name,relationship)
  ('spartan rtc', 'spartan-rtc', 'Spartan RTC', 'program'),
  ('spartanrtc', 'spartan-rtc', 'Spartan RTC', 'program'),
  ('spartan rtc lhp', 'spartan-rtc', 'Spartan RTC', 'program'),
+ ('spartanrtc lhp', 'spartan-rtc', 'Spartan RTC', 'program'),
  ('natjwa', 'natjwa', 'NATJWA', 'alias'),
  ('natjwa gold', 'natjwa', 'NATJWA', 'team'),
  ('natjwa black', 'natjwa', 'NATJWA', 'team'),
@@ -85,17 +86,18 @@ roster_summary as (
 ),
 bout_summary as (
   select s.season,s.club_key,max(s.club_name) as display_name,
-    count(*) filter(where s.club_key<>s.opponent_club_key)::int as bouts,
-    count(*) filter(where s.won=1 and s.club_key<>s.opponent_club_key)::int as wins,
-    count(*) filter(where s.won=0 and s.club_key<>s.opponent_club_key)::int as losses,
-    round(avg(opp.rating) filter(where s.club_key<>s.opponent_club_key)::numeric,1) as avg_opponent_rating
+    count(*)::int as bouts,
+    count(*) filter(where s.won=1)::int as wins,
+    count(*) filter(where s.won=0)::int as losses,
+    count(*) filter(where s.club_key=s.opponent_club_key)::int as in_house_bouts,
+    round(avg(opp.rating)::numeric,1) as avg_opponent_rating
   from scoped s
   left join public.wrestler_rating_current opp on opp.athlete_key=s.opponent_key
   group by s.season,s.club_key
 )
 select b.season,b.club_key,b.display_name as club_name,b.bouts,b.wins,b.losses,
   r.wrestlers,r.rated_wrestlers,r.avg_conservative,r.median_conservative,
-  r.top_five_conservative,r.avg_rating_deviation,b.avg_opponent_rating
+  r.top_five_conservative,r.avg_rating_deviation,b.avg_opponent_rating,b.in_house_bouts
 from bout_summary b join roster_summary r on r.season=b.season and r.club_key=b.club_key;
 
 revoke all on public.club_rankings_current from public, authenticated;
