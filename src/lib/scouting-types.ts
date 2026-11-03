@@ -25,9 +25,10 @@ export type PlacementSummary = {
   date: string;
   event: string;
   place: number | null;
-  ageGroup: string;
+  ageGroup: string | null;
   division: string;
-  weight: number;
+  weight: number | null;
+  weightLabel: string;
   confidence: string;
 };
 
