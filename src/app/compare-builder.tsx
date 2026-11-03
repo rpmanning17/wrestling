@@ -41,7 +41,16 @@ export function CompareBuilder() {
     setLoading(true);
     try {
       const nextProfiles = await loadProfiles(nextRefs);
-      if (id === requestId.current) setProfiles(nextProfiles);
+      if (id === requestId.current) {
+        setProfiles(nextProfiles);
+        const canonicalRefs = nextRefs.map((ref, index) => ({
+          ...ref,
+          name: nextProfiles[index]?.name ?? ref.name,
+          team: nextProfiles[index]?.team ?? ref.team,
+        }));
+        const uniqueRefs = [...new Map(canonicalRefs.map((ref) => [wrestlerKey(ref.name), ref])).values()].slice(0, 8);
+        setRefs((current) => JSON.stringify(current) === JSON.stringify(uniqueRefs) ? current : uniqueRefs);
+      }
     } catch {
       if (id === requestId.current) setMessage("Could not refresh scouting data. Your comparison is still saved on this device.");
     } finally {
