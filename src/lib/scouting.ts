@@ -301,3 +301,17 @@ export async function strongestPool() {
   return (await buildProfiles(refs)).sort((a, b) => (b.strength ?? -1) - (a.strength ?? -1));
 }
 
+export async function likelyNolanPool() {
+  const { data } = await supabase()
+    .from("tournament_entries")
+    .select("athlete_name,team")
+    .eq("age_group", "12U")
+    .eq("experience_division", "open")
+    .gte("bracket_weight_lbs", 65)
+    .lte("bracket_weight_lbs", 80)
+    .order("event_date", { ascending: false })
+    .limit(240);
+  const refs = [...new Map(((data ?? []) as Array<{ athlete_name: string; team: string }>).map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team }])).values()];
+  return (await buildProfiles(refs)).sort((a, b) => b.likelihood - a.likelihood).slice(0, 6);
+}
+

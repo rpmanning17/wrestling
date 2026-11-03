@@ -172,6 +172,9 @@ td small { display: block; margin-top: 5px; }
 .ranking-list p { margin: 0 0 4px; font-size: .8rem; }
 .ranking-list small { display: block; }
 .ranking-score { font-family: Georgia, serif; font-size: 1.7rem; font-weight: 400; }
+.strongest-section { margin-top: 34px; padding-top: 20px; border-top: 2px solid var(--ink); }
+.strongest-section > summary { color: var(--green); font-size: 1.25rem; font-weight: 900; cursor: pointer; }
+.strongest-section > p { max-width: 750px; margin: 12px 0 4px; }
 .setup-screen { padding-top: 100px; max-width: 850px; }
 
 @media (max-width: 760px) {
