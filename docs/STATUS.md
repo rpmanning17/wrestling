@@ -1,5 +1,14 @@
 # Status
 
+## 2026-11-04 — reviewed club normalization
+
+Production migration **20261104161409** (source `20261104161040_approved_club_normalization.sql`) is applied. Clubs: **1,182 → 952**; aliases: 13 → 390 (377 insertions); memberships: 11,007 → 9,943; raw in-house contested matches: 2,009 → 2,076. The finite reconstruction differs from the unavailable earlier SQL's subsidiary projections (375 insertions / 1,066 memberships consolidated); actual values are 377 / 1,064. See [CLUB_NORMALIZATION.md](CLUB_NORMALIZATION.md) for provenance and rollback.
+
+All raw/evidence/history/model/cohort full-row checksums are unchanged. Independent audit: 2,248 club/season summaries, zero record/roster/SOS mismatches. Unauthorized reads return zero. Advisor: one informational no-policy notice for the deliberately denied private ledger, no warnings/errors. Live list, Camden/Longwood rosters, club comparison, rankings and phone layouts verified. Waylon stays 524.34 / #12 of 28 / Tier 5. Source publication/deployment verification is recorded in the final release report; aliases are already live through ordinary views.
+
+Validation: **132 tests passed**, plus lint, typecheck and optimized production build. Build used dummy environment values. Latest production error/fatal log scan (20-minute window covering migration and browser checks) returned no matching entries. No monitoring/drain configuration was changed.
+
+
 Last verified: 2026-11-03 against GitHub main, production Supabase and the live Vercel application.
 
 ## Live in production

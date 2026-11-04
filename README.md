@@ -1,5 +1,8 @@
 # Mat Notes
 
+Reviewed club normalization is live (952 identities). [Mapping, verification and rollback](docs/CLUB_NORMALIZATION.md) documents the finite alias set and actual results.
+
+
 A personal, mobile-first Florida youth wrestling scouting site: look up wrestlers, compare a bracket, read results, placements and age/weight evidence, rank opponents, and keep scouting notes. Built with Next.js (App Router), Supabase (Postgres) and Vercel.
 
 **This repository is the authoritative record of the project.** Chat histories are not. Humans, Claude and ChatGPT/Codex all start from the documents below. Before changing anything, read them in this order:

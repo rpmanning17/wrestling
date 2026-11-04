@@ -1,5 +1,8 @@
 # Requirements
 
+Club normalization expansion (2026-11-04): finite owner-approved aliases are applied and production-verified at 952 identities. F13/F14 retain event-specific labels and records. See CLUB_NORMALIZATION.md for actual counts and reconstruction differences from the earlier projection.
+
+
 Status column: **Implemented** means code exists in this repo and is covered as described in `STATUS.md`. **Partial** and **Planned** are labelled honestly. Anything marked *unverified* has not been checked against production data.
 
 ## Product

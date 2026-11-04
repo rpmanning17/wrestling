@@ -41,6 +41,51 @@ before(async () => {
 after(async () => { await db.close(); });
 
 describe("event-specific club normalization and rankings", () => {
+  it("preserves punctuation-boundary spaces in alias keys and resolves each exact key", async () => {
+    // PostgreSQL trims BEFORE replacing punctuation. A final JS trim would
+    // silently collapse the two Gateway keys and the two Sunset keys.
+    const rows = (await db.query<{ label: string; key: string }>(`
+      select label, regexp_replace(lower(trim(label)), '[^a-z0-9]+', ' ', 'g') as key
+      from (values ('Gateway (Fort Myers)'), ('Gateway Fort Myers'),
+        ('Sunset sniper.'), ('Sunset sniper')) as labels(label)
+    `)).rows;
+    assert.deepEqual(rows.map((row) => row.key), [
+      "gateway fort myers ", "gateway fort myers", "sunset sniper ", "sunset sniper",
+    ]);
+    assert.equal(new Set(rows.map((row) => row.key)).size, 4);
+    await db.exec("begin");
+    try {
+      // Use synthetic canonical keys so this regression remains independent of
+      // the reviewed production mapping and of any future alias migration.
+      await db.exec(`
+        delete from public.club_aliases where alias_key in
+          ('gateway fort myers ', 'gateway fort myers', 'sunset sniper ', 'sunset sniper');
+        insert into public.club_aliases(alias_key,club_key,canonical_name) values
+          ('gateway fort myers ', 'fixture-gateway', 'Fixture Gateway'),
+          ('gateway fort myers', 'fixture-gateway', 'Fixture Gateway'),
+          ('sunset sniper ', 'fixture-sunset', 'Fixture Sunset'),
+          ('sunset sniper', 'fixture-sunset', 'Fixture Sunset');
+      `);
+      await db.exec([
+        bout("2026-2027", "Key 1", "Key A", "Gateway (Fort Myers)", "Key B", "Sunset sniper."),
+        bout("2026-2027", "Key 2", "Key A", "Gateway Fort Myers", "Key B", "Sunset sniper"),
+      ].join(";\n"));
+      const rosters = (await db.query<{ club_key: string; bouts: number }>(`
+        select club_key,bouts from public.club_roster_current
+        where season='ALL' and club_key in ('fixture-gateway','fixture-sunset') order by club_key
+      `)).rows;
+      assert.deepEqual(rosters, [
+        { club_key: "fixture-gateway", bouts: 2 }, { club_key: "fixture-sunset", bouts: 2 },
+      ]);
+      assert.equal(await count(`select count(*) as n from public.matches
+        where round in ('Key 1','Key 2')`), 2);
+      assert.equal(await count(`select count(distinct winner_team) as n from public.matches
+        where round in ('Key 1','Key 2')`), 2);
+    } finally {
+      await db.exec("rollback");
+    }
+  });
+
   it("groups confirmed aliases but never merges unrelated Alpha clubs or Spartan RTC into LHP", async () => {
     const rows = (await db.query<{ club_key: string; bouts: number; wins: number; losses: number; wrestlers: number }>(`
       select club_key, bouts, wins, losses, wrestlers from public.club_rankings_current

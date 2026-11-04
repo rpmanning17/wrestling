@@ -1,5 +1,8 @@
 # Decisions
 
+**D30. Apply only a finite reviewed club alias manifest (2026-11-04).** Owner-approved cross-group relationships connect entire naming groups; Camden County A is a team, Spartan Wrestling Club joins Spartan RTC as a program separate from LHP, combined Caveman/Phoenix labels are programs. Preserve all existing aliases, exact keys (including trailing spaces), original labels, bouts, histories and ratings. Reject conflicts, capture actual insertions privately, and abort rollback after later edits. Never use the discovery heuristic to fuzzy-merge future imports. The recovered decisions reconstruct 952 clubs but differ from the unavailable earlier SQL's subsidiary counts; publish actual measurements and this limitation in CLUB_NORMALIZATION.md. Rejected: destructive rewriting, counting repeated memberships as duplicate bouts, inventing mappings to force a projection, or weakening access controls.
+
+
 Newest first within each area is not required; each entry has a date, the decision, the reasons, and what was rejected. Add an entry for every major decision. Do not rewrite history: supersede an entry by adding a new one that references it.
 
 ## Project and process

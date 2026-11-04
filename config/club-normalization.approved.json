@@ -1,0 +1,3547 @@
+{
+  "version": 1,
+  "approval": "Owner approved 154 naming-pattern groups and explicit cross-group relationships on 2026-11-04. Reconstructed finite mapping; never apply discovery rules to future labels automatically.",
+  "groups": [
+    {
+      "club_key": "alpha-omega-wrestling-club",
+      "canonical_name": "Alpha Omega Wrestling Club",
+      "members": [
+        {
+          "source_name": "Alpha Omega",
+          "source_club_key": "raw:alpha omega",
+          "alias_key": "alpha omega",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Alpha Omega WC",
+          "source_club_key": "raw:alpha omega wc",
+          "alias_key": "alpha omega wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Alpha Omega Wrestling Club",
+          "source_club_key": "raw:alpha omega wrestling club",
+          "alias_key": "alpha omega wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "altamonte",
+      "canonical_name": "Altamonte",
+      "members": [
+        {
+          "source_name": "Altamonte",
+          "source_club_key": "raw:altamonte",
+          "alias_key": "altamonte",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Altamonte Wrestling Club",
+          "source_club_key": "raw:altamonte wrestling club",
+          "alias_key": "altamonte wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "american-heritage",
+      "canonical_name": "American Heritage",
+      "members": [
+        {
+          "source_name": "American Heritage",
+          "source_club_key": "raw:american heritage",
+          "alias_key": "american heritage",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "American Heritage W.C",
+          "source_club_key": "raw:american heritage w c",
+          "alias_key": "american heritage w c",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "American Heritage WC",
+          "source_club_key": "raw:american heritage wc",
+          "alias_key": "american heritage wc",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "andalusia-youth-wrestling",
+      "canonical_name": "Andalusia youth wrestling",
+      "members": [
+        {
+          "source_name": "Andalusia youth wrestling",
+          "source_club_key": "raw:andalusia youth wrestling",
+          "alias_key": "andalusia youth wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Andalusia youth wrestling club",
+          "source_club_key": "raw:andalusia youth wrestling club",
+          "alias_key": "andalusia youth wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "art-in-motion-wrestling",
+      "canonical_name": "Art In Motion Wrestling",
+      "members": [
+        {
+          "source_name": "Art In Motion",
+          "source_club_key": "raw:art in motion",
+          "alias_key": "art in motion",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Art In Motion Wrestling",
+          "source_club_key": "raw:art in motion wrestling",
+          "alias_key": "art in motion wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "mocco-wrestling",
+      "canonical_name": "Mocco Wrestling",
+      "members": [
+        {
+          "source_name": "ATT/MOCCO",
+          "source_club_key": "raw:att mocco",
+          "alias_key": "att mocco",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "ATT/Mocco Wrestling",
+          "source_club_key": "raw:att mocco wrestling",
+          "alias_key": "att mocco wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "ATT/Mocco Wrestling Academy",
+          "source_club_key": "raw:att mocco wrestling academy",
+          "alias_key": "att mocco wrestling academy",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Mocco",
+          "source_club_key": "raw:mocco",
+          "alias_key": "mocco",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "MOCCO WRESTLING",
+          "source_club_key": "raw:mocco wrestling",
+          "alias_key": "mocco wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "attack",
+      "canonical_name": "Attack",
+      "members": [
+        {
+          "source_name": "Attack",
+          "source_club_key": "raw:attack",
+          "alias_key": "attack",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Attack Wrestling Club",
+          "source_club_key": "raw:attack wrestling club",
+          "alias_key": "attack wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "bad-bay-wc",
+      "canonical_name": "Bad Bay WC",
+      "members": [
+        {
+          "source_name": "Bad Bay",
+          "source_club_key": "raw:bad bay",
+          "alias_key": "bad bay",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Bad Bay WC",
+          "source_club_key": "raw:bad bay wc",
+          "alias_key": "bad bay wc",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "team-barracuda",
+      "canonical_name": "Team Barracuda",
+      "members": [
+        {
+          "source_name": "Barracuda",
+          "source_club_key": "raw:barracuda",
+          "alias_key": "barracuda",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Barracuda Club",
+          "source_club_key": "raw:barracuda club",
+          "alias_key": "barracuda club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Barracuda Wrestling Club",
+          "source_club_key": "raw:barracuda wrestling club",
+          "alias_key": "barracuda wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Team Barracuda",
+          "source_club_key": "raw:team barracuda",
+          "alias_key": "team barracuda",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Team Barracuda Wrestling Club",
+          "source_club_key": "raw:team barracuda wrestling club",
+          "alias_key": "team barracuda wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Team Barracuda Wrestling.",
+          "source_club_key": "raw:team barracuda wrestling ",
+          "alias_key": "team barracuda wrestling ",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Team Barracuda`s",
+          "source_club_key": null,
+          "alias_key": "team barracuda s",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "bartow-wrestling-club",
+      "canonical_name": "Bartow Wrestling Club",
+      "members": [
+        {
+          "source_name": "Bartow",
+          "source_club_key": "raw:bartow",
+          "alias_key": "bartow",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Bartow Wrestling Club",
+          "source_club_key": "raw:bartow wrestling club",
+          "alias_key": "bartow wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "battalion-wrestling-club",
+      "canonical_name": "Battalion Wrestling Club",
+      "members": [
+        {
+          "source_name": "Battalion",
+          "source_club_key": "raw:battalion",
+          "alias_key": "battalion",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Battalion Wrestling Club",
+          "source_club_key": "raw:battalion wrestling club",
+          "alias_key": "battalion wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "bay-county-elite-wrestling",
+      "canonical_name": "Bay County Elite Wrestling",
+      "members": [
+        {
+          "source_name": "Bay County Elite",
+          "source_club_key": "raw:bay county elite",
+          "alias_key": "bay county elite",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Bay County Elite Wrestling",
+          "source_club_key": "raw:bay county elite wrestling",
+          "alias_key": "bay county elite wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "beach-bombers",
+      "canonical_name": "Beach Bombers",
+      "members": [
+        {
+          "source_name": "Beach Bombers",
+          "source_club_key": "raw:beach bombers",
+          "alias_key": "beach bombers",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Beach Bombers Wrestling Club",
+          "source_club_key": "raw:beach bombers wrestling club",
+          "alias_key": "beach bombers wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "bear-clan-wrestling-club",
+      "canonical_name": "Bear Clan Wrestling Club",
+      "members": [
+        {
+          "source_name": "Bear Clan",
+          "source_club_key": "raw:bear clan",
+          "alias_key": "bear clan",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Bear Clan Wrestling Club",
+          "source_club_key": "raw:bear clan wrestling club",
+          "alias_key": "bear clan wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "beebe-trained",
+      "canonical_name": "Beebe Trained",
+      "members": [
+        {
+          "source_name": "Beebe",
+          "source_club_key": "raw:beebe",
+          "alias_key": "beebe",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Beebe Trained",
+          "source_club_key": "raw:beebe trained",
+          "alias_key": "beebe trained",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Beebe Trained Wrestling",
+          "source_club_key": "raw:beebe trained wrestling",
+          "alias_key": "beebe trained wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Beebe Wrestling Club",
+          "source_club_key": "raw:beebe wrestling club",
+          "alias_key": "beebe wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "black-creek-wrestling-club",
+      "canonical_name": "Black Creek Wrestling Club",
+      "members": [
+        {
+          "source_name": "Black Creek Wrestling",
+          "source_club_key": "raw:black creek wrestling",
+          "alias_key": "black creek wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Black Creek Wrestling Club",
+          "source_club_key": "raw:black creek wrestling club",
+          "alias_key": "black creek wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "black-flag-wrestling-academy",
+      "canonical_name": "Black Flag Wrestling Academy",
+      "members": [
+        {
+          "source_name": "Black Flag",
+          "source_club_key": "raw:black flag",
+          "alias_key": "black flag",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Black Flag Wreslting Academy",
+          "source_club_key": "raw:black flag wreslting academy",
+          "alias_key": "black flag wreslting academy",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Black Flag Wrestling Academy",
+          "source_club_key": "raw:black flag wrestling academy",
+          "alias_key": "black flag wrestling academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "black-hive-wrestling-club",
+      "canonical_name": "Black Hive Wrestling Club",
+      "members": [
+        {
+          "source_name": "Black Hive",
+          "source_club_key": "raw:black hive",
+          "alias_key": "black hive",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Black Hive WC",
+          "source_club_key": "raw:black hive wc",
+          "alias_key": "black hive wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Black Hive Wrestling",
+          "source_club_key": "raw:black hive wrestling",
+          "alias_key": "black hive wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Black Hive Wrestling Club",
+          "source_club_key": "raw:black hive wrestling club",
+          "alias_key": "black hive wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "bleacher-creatures",
+      "canonical_name": "Bleacher Creatures",
+      "members": [
+        {
+          "source_name": "Bleacher Creatures",
+          "source_club_key": "raw:bleacher creatures",
+          "alias_key": "bleacher creatures",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Bleacher Creatures Wrestling C",
+          "source_club_key": "raw:bleacher creatures wrestling c",
+          "alias_key": "bleacher creatures wrestling c",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Bleacher Creatures Wrestling Club",
+          "source_club_key": "raw:bleacher creatures wrestling club",
+          "alias_key": "bleacher creatures wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "blue-steel",
+      "canonical_name": "Blue Steel",
+      "members": [
+        {
+          "source_name": "Blue Steel",
+          "source_club_key": "raw:blue steel",
+          "alias_key": "blue steel",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Team Blue Steel WC",
+          "source_club_key": "raw:team blue steel wc",
+          "alias_key": "team blue steel wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Team Blue Steel Wrestling Club",
+          "source_club_key": "raw:team blue steel wrestling club",
+          "alias_key": "team blue steel wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "brandon-wrestling",
+      "canonical_name": "Brandon Wrestling",
+      "members": [
+        {
+          "source_name": "Brandon Wrestling",
+          "source_club_key": "raw:brandon wrestling",
+          "alias_key": "brandon wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Brandon Wrestling Club",
+          "source_club_key": "raw:brandon wrestling club",
+          "alias_key": "brandon wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "braves-wrestling-club",
+      "canonical_name": "Braves Wrestling Club",
+      "members": [
+        {
+          "source_name": "Braves",
+          "source_club_key": "raw:braves",
+          "alias_key": "braves",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Braves WC",
+          "source_club_key": "raw:braves wc",
+          "alias_key": "braves wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Braves Wrestling",
+          "source_club_key": "raw:braves wrestling",
+          "alias_key": "braves wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Braves Wrestling Club",
+          "source_club_key": "raw:braves wrestling club",
+          "alias_key": "braves wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "buffalo-stampeders",
+      "canonical_name": "Buffalo Stampeders",
+      "members": [
+        {
+          "source_name": "Buffalo Stampeders",
+          "source_club_key": "raw:buffalo stampeders",
+          "alias_key": "buffalo stampeders",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Buffalo Stampeders Wrestling C",
+          "source_club_key": "raw:buffalo stampeders wrestling c",
+          "alias_key": "buffalo stampeders wrestling c",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "caldwell-combat",
+      "canonical_name": "Caldwell Combat",
+      "members": [
+        {
+          "source_name": "Caldwell",
+          "source_club_key": "raw:caldwell",
+          "alias_key": "caldwell",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Caldwell Combat",
+          "source_club_key": "raw:caldwell combat",
+          "alias_key": "caldwell combat",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Caldwell Combat Academy",
+          "source_club_key": "raw:caldwell combat academy",
+          "alias_key": "caldwell combat academy",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Caldwell Combat Wrestling",
+          "source_club_key": "raw:caldwell combat wrestling",
+          "alias_key": "caldwell combat wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Caldwell Wrestling Academy",
+          "source_club_key": "raw:caldwell wrestling academy",
+          "alias_key": "caldwell wrestling academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "callan-wrestling",
+      "canonical_name": "Callan Wrestling",
+      "members": [
+        {
+          "source_name": "Callan Wrestling",
+          "source_club_key": "raw:callan wrestling",
+          "alias_key": "callan wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Callan Wrestling Academy",
+          "source_club_key": "raw:callan wrestling academy",
+          "alias_key": "callan wrestling academy",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Callan Wrestling Club",
+          "source_club_key": "raw:callan wrestling club",
+          "alias_key": "callan wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "camden-outsiders",
+      "canonical_name": "Camden Outsiders",
+      "members": [
+        {
+          "source_name": "Camden County A",
+          "source_club_key": "raw:camden county a",
+          "alias_key": "camden county a",
+          "relationship": "team",
+          "existing": false
+        },
+        {
+          "source_name": "Camden Outsiders",
+          "source_club_key": "raw:camden outsiders",
+          "alias_key": "camden outsiders",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "The Outsiders",
+          "source_club_key": "raw:the outsiders",
+          "alias_key": "the outsiders",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "canes",
+      "canonical_name": "Canes",
+      "members": [
+        {
+          "source_name": "Canes",
+          "source_club_key": "raw:canes",
+          "alias_key": "canes",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Canes Wrestling Club",
+          "source_club_key": "raw:canes wrestling club",
+          "alias_key": "canes wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "caveman-wrestling",
+      "canonical_name": "Caveman Wrestling",
+      "members": [
+        {
+          "source_name": "Caveman",
+          "source_club_key": "raw:caveman",
+          "alias_key": "caveman",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Caveman Wrestling",
+          "source_club_key": "raw:caveman wrestling",
+          "alias_key": "caveman wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Caveman Wrestling Club",
+          "source_club_key": "raw:caveman wrestling club",
+          "alias_key": "caveman wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Caveman-Phoenix",
+          "source_club_key": "raw:caveman phoenix",
+          "alias_key": "caveman phoenix",
+          "relationship": "program",
+          "existing": false
+        },
+        {
+          "source_name": "Caveman/Florida Phoenix",
+          "source_club_key": "raw:caveman florida phoenix",
+          "alias_key": "caveman florida phoenix",
+          "relationship": "program",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "celtics-wrestling",
+      "canonical_name": "Celtics Wrestling",
+      "members": [
+        {
+          "source_name": "Celtics Wrestling",
+          "source_club_key": "raw:celtics wrestling",
+          "alias_key": "celtics wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Celtics Wrestling Team",
+          "source_club_key": "raw:celtics wrestling team",
+          "alias_key": "celtics wrestling team",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "central-florida-wrestling",
+      "canonical_name": "Central Florida Wrestling",
+      "members": [
+        {
+          "source_name": "Central Florida",
+          "source_club_key": "raw:central florida",
+          "alias_key": "central florida",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Central Florida Wrestling",
+          "source_club_key": "raw:central florida wrestling",
+          "alias_key": "central florida wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "charlotte-wrestling",
+      "canonical_name": "Charlotte Wrestling",
+      "members": [
+        {
+          "source_name": "Charlotte",
+          "source_club_key": "raw:charlotte",
+          "alias_key": "charlotte",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Charlotte Wrestling",
+          "source_club_key": "raw:charlotte wrestling",
+          "alias_key": "charlotte wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Charlotte youth wrestling",
+          "source_club_key": "raw:charlotte youth wrestling",
+          "alias_key": "charlotte youth wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "charlotte-hammerheads",
+      "canonical_name": "Charlotte Hammerheads",
+      "members": [
+        {
+          "source_name": "Charlotte Hammerheads",
+          "source_club_key": "raw:charlotte hammerheads",
+          "alias_key": "charlotte hammerheads",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Hammerheads",
+          "source_club_key": "raw:hammerheads",
+          "alias_key": "hammerheads",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "citrus-ridge-academy",
+      "canonical_name": "Citrus Ridge Academy",
+      "members": [
+        {
+          "source_name": "Citrus Ridge",
+          "source_club_key": "raw:citrus ridge",
+          "alias_key": "citrus ridge",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Citrus Ridge Academy",
+          "source_club_key": "raw:citrus ridge academy",
+          "alias_key": "citrus ridge academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "citrus-wrestling-club",
+      "canonical_name": "CITRUs wrestling club",
+      "members": [
+        {
+          "source_name": "Citrus WC",
+          "source_club_key": "raw:citrus wc",
+          "alias_key": "citrus wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "CITRUs wrestling club",
+          "source_club_key": "raw:citrus wrestling club",
+          "alias_key": "citrus wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "claw-wrestling",
+      "canonical_name": "Claw Wrestling",
+      "members": [
+        {
+          "source_name": "Claw",
+          "source_club_key": "raw:claw",
+          "alias_key": "claw",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Claw Wrestling",
+          "source_club_key": "raw:claw wrestling",
+          "alias_key": "claw wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Claw Wrestling Club",
+          "source_club_key": "raw:claw wrestling club",
+          "alias_key": "claw wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "team-clay",
+      "canonical_name": "Team Clay",
+      "members": [
+        {
+          "source_name": "Clay",
+          "source_club_key": "raw:clay",
+          "alias_key": "clay",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Clay Youth Wrestling Club",
+          "source_club_key": "raw:clay youth wrestling club",
+          "alias_key": "clay youth wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Team Clay",
+          "source_club_key": "raw:team clay",
+          "alias_key": "team clay",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "coastal-elite-wrestling-club",
+      "canonical_name": "Coastal Elite Wrestling Club",
+      "members": [
+        {
+          "source_name": "Coastal Elite",
+          "source_club_key": "raw:coastal elite",
+          "alias_key": "coastal elite",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Coastal Elite Wrestling Club",
+          "source_club_key": "raw:coastal elite wrestling club",
+          "alias_key": "coastal elite wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "cocoa-beach-wc",
+      "canonical_name": "Cocoa Beach WC",
+      "members": [
+        {
+          "source_name": "Cocoa Beach",
+          "source_club_key": "raw:cocoa beach",
+          "alias_key": "cocoa beach",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Cocoa Beach WC",
+          "source_club_key": "raw:cocoa beach wc",
+          "alias_key": "cocoa beach wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Cocoa Beach Wrestling",
+          "source_club_key": "raw:cocoa beach wrestling",
+          "alias_key": "cocoa beach wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Cocoa Beach Wrestling Club",
+          "source_club_key": "raw:cocoa beach wrestling club",
+          "alias_key": "cocoa beach wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "conch-republic-wrestling-club",
+      "canonical_name": "Conch Republic Wrestling Club",
+      "members": [
+        {
+          "source_name": "Conch Republic",
+          "source_club_key": "raw:conch republic",
+          "alias_key": "conch republic",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Conch Republic Wrestling Club",
+          "source_club_key": "raw:conch republic wrestling club",
+          "alias_key": "conch republic wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "coral-springs-wrestling",
+      "canonical_name": "Coral Springs Wrestling",
+      "members": [
+        {
+          "source_name": "Coral Springs",
+          "source_club_key": "raw:coral springs",
+          "alias_key": "coral springs",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Coral Springs Wrestling",
+          "source_club_key": "raw:coral springs wrestling",
+          "alias_key": "coral springs wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "cowboy-wrestling-club",
+      "canonical_name": "Cowboy Wrestling Club",
+      "members": [
+        {
+          "source_name": "Cowboy",
+          "source_club_key": "raw:cowboy",
+          "alias_key": "cowboy",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Cowboy Wrestling Club",
+          "source_club_key": "raw:cowboy wrestling club",
+          "alias_key": "cowboy wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Cowboy Wrestling Team",
+          "source_club_key": "raw:cowboy wrestling team",
+          "alias_key": "cowboy wrestling team",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Cowboys",
+          "source_club_key": "raw:cowboys",
+          "alias_key": "cowboys",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Cowboys Wrestling",
+          "source_club_key": "raw:cowboys wrestling",
+          "alias_key": "cowboys wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Cowboys Wrestling Club",
+          "source_club_key": "raw:cowboys wrestling club",
+          "alias_key": "cowboys wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "creeks-wrestling",
+      "canonical_name": "Creeks Wrestling",
+      "members": [
+        {
+          "source_name": "Creeks",
+          "source_club_key": "raw:creeks",
+          "alias_key": "creeks",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Creeks Wrestling",
+          "source_club_key": "raw:creeks wrestling",
+          "alias_key": "creeks wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "crystal-river-wrestling",
+      "canonical_name": "Crystal river wrestling",
+      "members": [
+        {
+          "source_name": "Crystal River",
+          "source_club_key": "raw:crystal river",
+          "alias_key": "crystal river",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Crystal river wrestling",
+          "source_club_key": "raw:crystal river wrestling",
+          "alias_key": "crystal river wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Crystal River Wrestling Club",
+          "source_club_key": "raw:crystal river wrestling club",
+          "alias_key": "crystal river wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "dv-saints-wrestling",
+      "canonical_name": "dv saints wrestling",
+      "members": [
+        {
+          "source_name": "DV Saints",
+          "source_club_key": "raw:dv saints",
+          "alias_key": "dv saints",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "dv saints wrestling",
+          "source_club_key": "raw:dv saints wrestling",
+          "alias_key": "dv saints wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "eagle-empire",
+      "canonical_name": "Eagle Empire",
+      "members": [
+        {
+          "source_name": "Eagle Empire",
+          "source_club_key": "raw:eagle empire",
+          "alias_key": "eagle empire",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Eagle Empire Wrestling",
+          "source_club_key": "raw:eagle empire wrestling",
+          "alias_key": "eagle empire wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "east-lake-wrestling-club",
+      "canonical_name": "East Lake Wrestling Club",
+      "members": [
+        {
+          "source_name": "East Lake",
+          "source_club_key": "raw:east lake",
+          "alias_key": "east lake",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "East Lake Wrestling",
+          "source_club_key": "raw:east lake wrestling",
+          "alias_key": "east lake wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "East Lake Wrestling Club",
+          "source_club_key": "raw:east lake wrestling club",
+          "alias_key": "east lake wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "east-orlando-wrestling-academy",
+      "canonical_name": "East orlando wrestling academy",
+      "members": [
+        {
+          "source_name": "East Orlando",
+          "source_club_key": "raw:east orlando",
+          "alias_key": "east orlando",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "East orlando wrestling academy",
+          "source_club_key": "raw:east orlando wrestling academy",
+          "alias_key": "east orlando wrestling academy",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "East Orlando Wrestling Club",
+          "source_club_key": "raw:east orlando wrestling club",
+          "alias_key": "east orlando wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "ecs-wrestling",
+      "canonical_name": "ECS Wrestling",
+      "members": [
+        {
+          "source_name": "ECS",
+          "source_club_key": "raw:ecs",
+          "alias_key": "ecs",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "ECS Wrestling",
+          "source_club_key": "raw:ecs wrestling",
+          "alias_key": "ecs wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "elevate",
+      "canonical_name": "Elevate",
+      "members": [
+        {
+          "source_name": "Elevate",
+          "source_club_key": "raw:elevate",
+          "alias_key": "elevate",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Elevate Wrestling Club",
+          "source_club_key": "raw:elevate wrestling club",
+          "alias_key": "elevate wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "elite-east-river",
+      "canonical_name": "Elite East River",
+      "members": [
+        {
+          "source_name": "Elite East River",
+          "source_club_key": "raw:elite east river",
+          "alias_key": "elite east river",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Elite wrestling east river",
+          "source_club_key": "raw:elite wrestling east river",
+          "alias_key": "elite wrestling east river",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "florida-elite",
+      "canonical_name": "Florida Elite",
+      "members": [
+        {
+          "source_name": "elite wrestling",
+          "source_club_key": "raw:elite wrestling",
+          "alias_key": "elite wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Elite wrestling club",
+          "source_club_key": "raw:elite wrestling club",
+          "alias_key": "elite wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Florida Elite",
+          "source_club_key": "raw:florida elite",
+          "alias_key": "florida elite",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "emerald-coast",
+      "canonical_name": "Emerald Coast",
+      "members": [
+        {
+          "source_name": "Emerald Coast",
+          "source_club_key": "raw:emerald coast",
+          "alias_key": "emerald coast",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Emerald Coast Wrestling Club",
+          "source_club_key": "raw:emerald coast wrestling club",
+          "alias_key": "emerald coast wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "empowered-wrestling-club",
+      "canonical_name": "Empowered Wrestling Club",
+      "members": [
+        {
+          "source_name": "Empowered WC",
+          "source_club_key": "raw:empowered wc",
+          "alias_key": "empowered wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Empowered Wrestling Club",
+          "source_club_key": "raw:empowered wrestling club",
+          "alias_key": "empowered wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "fernandina-beach",
+      "canonical_name": "Fernandina Beach",
+      "members": [
+        {
+          "source_name": "Fernandina Beach",
+          "source_club_key": "raw:fernandina beach",
+          "alias_key": "fernandina beach",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Fernandina Beach Wrestling",
+          "source_club_key": "raw:fernandina beach wrestling",
+          "alias_key": "fernandina beach wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "flagler-wrestling-club",
+      "canonical_name": "Flagler Wrestling Club",
+      "members": [
+        {
+          "source_name": "Flagler",
+          "source_club_key": "raw:flagler",
+          "alias_key": "flagler",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Flagler Wrestling",
+          "source_club_key": "raw:flagler wrestling",
+          "alias_key": "flagler wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Flagler Wrestling Club",
+          "source_club_key": "raw:flagler wrestling club",
+          "alias_key": "flagler wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "florida-heatwave",
+      "canonical_name": "Florida heatwave",
+      "members": [
+        {
+          "source_name": "Florida heatwave",
+          "source_club_key": "raw:florida heatwave",
+          "alias_key": "florida heatwave",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Florida Heatwave Wrestling",
+          "source_club_key": "raw:florida heatwave wrestling",
+          "alias_key": "florida heatwave wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "florida-scorpions",
+      "canonical_name": "Florida Scorpions",
+      "members": [
+        {
+          "source_name": "Florida Scorpions",
+          "source_club_key": "raw:florida scorpions",
+          "alias_key": "florida scorpions",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Florida Scorpions Wrestling",
+          "source_club_key": "raw:florida scorpions wrestling",
+          "alias_key": "florida scorpions wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "fort-myers-wrestling-club",
+      "canonical_name": "Fort Myers Wrestling Club",
+      "members": [
+        {
+          "source_name": "Fort Myers",
+          "source_club_key": "raw:fort myers",
+          "alias_key": "fort myers",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Fort Myers Wrestling Club",
+          "source_club_key": "raw:fort myers wrestling club",
+          "alias_key": "fort myers wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "freedom-wrestling",
+      "canonical_name": "Freedom Wrestling",
+      "members": [
+        {
+          "source_name": "Freedom Wrestling",
+          "source_club_key": "raw:freedom wrestling",
+          "alias_key": "freedom wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Freedom Wrestling Academy",
+          "source_club_key": "raw:freedom wrestling academy",
+          "alias_key": "freedom wrestling academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "frick-bros",
+      "canonical_name": "Frick Bros",
+      "members": [
+        {
+          "source_name": "Frick Bros",
+          "source_club_key": "raw:frick bros",
+          "alias_key": "frick bros",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Frick Bros Wrestling",
+          "source_club_key": "raw:frick bros wrestling",
+          "alias_key": "frick bros wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "gainesville-takedown-club",
+      "canonical_name": "Gainesville Takedown Club",
+      "members": [
+        {
+          "source_name": "Gainesville takedown",
+          "source_club_key": "raw:gainesville takedown",
+          "alias_key": "gainesville takedown",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Gainesville Takedown Club",
+          "source_club_key": "raw:gainesville takedown club",
+          "alias_key": "gainesville takedown club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "gateway-wrestling-club",
+      "canonical_name": "Gateway Wrestling Club",
+      "members": [
+        {
+          "source_name": "Gateway",
+          "source_club_key": "raw:gateway",
+          "alias_key": "gateway",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Gateway (Fort Myers)",
+          "source_club_key": "raw:gateway fort myers ",
+          "alias_key": "gateway fort myers ",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Gateway Fort Myers",
+          "source_club_key": "raw:gateway fort myers",
+          "alias_key": "gateway fort myers",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Gateway Wrestling Club",
+          "source_club_key": "raw:gateway wrestling club",
+          "alias_key": "gateway wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "gilchrist",
+      "canonical_name": "Gilchrist",
+      "members": [
+        {
+          "source_name": "Gilchrist",
+          "source_club_key": "raw:gilchrist",
+          "alias_key": "gilchrist",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Gilchrist wrestling club",
+          "source_club_key": "raw:gilchrist wrestling club",
+          "alias_key": "gilchrist wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "gladiator-wrestling",
+      "canonical_name": "Gladiator Wrestling",
+      "members": [
+        {
+          "source_name": "Gladiator",
+          "source_club_key": "raw:gladiator",
+          "alias_key": "gladiator",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Gladiator Wrestling",
+          "source_club_key": "raw:gladiator wrestling",
+          "alias_key": "gladiator wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Gladiator Wrestling Club",
+          "source_club_key": "raw:gladiator wrestling club",
+          "alias_key": "gladiator wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "gladiators-academy-wrestling",
+      "canonical_name": "Gladiators Academy Wrestling",
+      "members": [
+        {
+          "source_name": "Gladiators Academy Wrestling",
+          "source_club_key": "raw:gladiators academy wrestling",
+          "alias_key": "gladiators academy wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Gladiators wrestling academy",
+          "source_club_key": "raw:gladiators wrestling academy",
+          "alias_key": "gladiators wrestling academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "goal-catchers-wrestling",
+      "canonical_name": "Goal Catchers Wrestling",
+      "members": [
+        {
+          "source_name": "Goal Catchers",
+          "source_club_key": "raw:goal catchers",
+          "alias_key": "goal catchers",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Goal Catchers Wrestling",
+          "source_club_key": "raw:goal catchers wrestling",
+          "alias_key": "goal catchers wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "gold-coast-wrestling-academy",
+      "canonical_name": "Gold Coast Wrestling Academy",
+      "members": [
+        {
+          "source_name": "Gold Coast",
+          "source_club_key": "raw:gold coast",
+          "alias_key": "gold coast",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Gold Coast Wrestling Academy",
+          "source_club_key": "raw:gold coast wrestling academy",
+          "alias_key": "gold coast wrestling academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "golden-bears-wrestling-club",
+      "canonical_name": "GOLDEN BEARS WRESTLING CLUB",
+      "members": [
+        {
+          "source_name": "Golden Bears",
+          "source_club_key": "raw:golden bears",
+          "alias_key": "golden bears",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Golden Bears Wrestling",
+          "source_club_key": "raw:golden bears wrestling",
+          "alias_key": "golden bears wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "GOLDEN BEARS WRESTLING CLUB",
+          "source_club_key": "raw:golden bears wrestling club",
+          "alias_key": "golden bears wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "grappling-house-wrestling-club",
+      "canonical_name": "Grappling House Wrestling Club",
+      "members": [
+        {
+          "source_name": "Grappling House",
+          "source_club_key": "raw:grappling house",
+          "alias_key": "grappling house",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Grappling House Wrestling Club",
+          "source_club_key": "raw:grappling house wrestling club",
+          "alias_key": "grappling house wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "green-cove",
+      "canonical_name": "Green Cove",
+      "members": [
+        {
+          "source_name": "Green Cove",
+          "source_club_key": "raw:green cove",
+          "alias_key": "green cove",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Green Cove Youth Wrestling",
+          "source_club_key": "raw:green cove youth wrestling",
+          "alias_key": "green cove youth wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "green-cove-springs",
+      "canonical_name": "Green Cove Springs",
+      "members": [
+        {
+          "source_name": "Green Cove Springs",
+          "source_club_key": "raw:green cove springs",
+          "alias_key": "green cove springs",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Green Cove Springs Wrestling C",
+          "source_club_key": "raw:green cove springs wrestling c",
+          "alias_key": "green cove springs wrestling c",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "green-machine-wrestling",
+      "canonical_name": "Green Machine Wrestling",
+      "members": [
+        {
+          "source_name": "Green Machine",
+          "source_club_key": "raw:green machine",
+          "alias_key": "green machine",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Green Machine Wrestling",
+          "source_club_key": "raw:green machine wrestling",
+          "alias_key": "green machine wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "guerriero-gold",
+      "canonical_name": "Guerriero Gold",
+      "members": [
+        {
+          "source_name": "Guerriero Gold",
+          "source_club_key": "raw:guerriero gold",
+          "alias_key": "guerriero gold",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Guerriero Gold Wrestling Club",
+          "source_club_key": "raw:guerriero gold wrestling club",
+          "alias_key": "guerriero gold wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "harmony",
+      "canonical_name": "Harmony",
+      "members": [
+        {
+          "source_name": "Harmony",
+          "source_club_key": "raw:harmony",
+          "alias_key": "harmony",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Harmony Wrestling",
+          "source_club_key": "raw:harmony wrestling",
+          "alias_key": "harmony wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Harmony Wrestling Club",
+          "source_club_key": "raw:harmony wrestling club",
+          "alias_key": "harmony wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "heatwave-wrestling-club",
+      "canonical_name": "Heatwave Wrestling Club",
+      "members": [
+        {
+          "source_name": "Heatwave",
+          "source_club_key": "raw:heatwave",
+          "alias_key": "heatwave",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Heatwave Wrestling Club",
+          "source_club_key": "raw:heatwave wrestling club",
+          "alias_key": "heatwave wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "hernando-wrestling-club",
+      "canonical_name": "Hernando Wrestling Club",
+      "members": [
+        {
+          "source_name": "Hernando",
+          "source_club_key": "raw:hernando",
+          "alias_key": "hernando",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Hernando wrestling",
+          "source_club_key": "raw:hernando wrestling",
+          "alias_key": "hernando wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Hernando Wrestling Club",
+          "source_club_key": "raw:hernando wrestling club",
+          "alias_key": "hernando wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "homestead",
+      "canonical_name": "Homestead",
+      "members": [
+        {
+          "source_name": "Homestead",
+          "source_club_key": "raw:homestead",
+          "alias_key": "homestead",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Homestead Wrestling",
+          "source_club_key": "raw:homestead wrestling",
+          "alias_key": "homestead wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "iron-lion-wrestling",
+      "canonical_name": "Iron Lion Wrestling",
+      "members": [
+        {
+          "source_name": "Iron Lion Wrestling",
+          "source_club_key": "raw:iron lion wrestling",
+          "alias_key": "iron lion wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Iron Lion Wrestling Club",
+          "source_club_key": "raw:iron lion wrestling club",
+          "alias_key": "iron lion wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "irons-elite-wrestling-club",
+      "canonical_name": "Irons Elite Wrestling Club",
+      "members": [
+        {
+          "source_name": "Irons Elite",
+          "source_club_key": "raw:irons elite",
+          "alias_key": "irons elite",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Irons Elite Wrestling",
+          "source_club_key": "raw:irons elite wrestling",
+          "alias_key": "irons elite wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Irons Elite Wrestling Club",
+          "source_club_key": "raw:irons elite wrestling club",
+          "alias_key": "irons elite wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "islestyle",
+      "canonical_name": "Islestyle",
+      "members": [
+        {
+          "source_name": "Islestyle",
+          "source_club_key": "raw:islestyle",
+          "alias_key": "islestyle",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Islestyle Wrestling",
+          "source_club_key": "raw:islestyle wrestling",
+          "alias_key": "islestyle wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Islestyle Wrestling Club",
+          "source_club_key": "raw:islestyle wrestling club",
+          "alias_key": "islestyle wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "jayhawk-wrestling-club",
+      "canonical_name": "Jayhawk Wrestling Club",
+      "members": [
+        {
+          "source_name": "Jayhawk",
+          "source_club_key": "raw:jayhawk",
+          "alias_key": "jayhawk",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Jayhawk wrestling",
+          "source_club_key": "raw:jayhawk wrestling",
+          "alias_key": "jayhawk wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Jayhawk Wrestling Club",
+          "source_club_key": "raw:jayhawk wrestling club",
+          "alias_key": "jayhawk wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "JayHawks",
+          "source_club_key": "raw:jayhawks",
+          "alias_key": "jayhawks",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Jayhawks Wrestling Club",
+          "source_club_key": "raw:jayhawks wrestling club",
+          "alias_key": "jayhawks wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "kongkrete-wrestling-academy",
+      "canonical_name": "KONGKRETE WRESTLING ACADEMY",
+      "members": [
+        {
+          "source_name": "KongKrete",
+          "source_club_key": "raw:kongkrete",
+          "alias_key": "kongkrete",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Kongkrete Wrestling",
+          "source_club_key": "raw:kongkrete wrestling",
+          "alias_key": "kongkrete wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "KONGKRETE WRESTLING ACADEMY",
+          "source_club_key": "raw:kongkrete wrestling academy",
+          "alias_key": "kongkrete wrestling academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "lake-city",
+      "canonical_name": "Lake City",
+      "members": [
+        {
+          "source_name": "Lake City",
+          "source_club_key": "raw:lake city",
+          "alias_key": "lake city",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Lake City Wrestling",
+          "source_club_key": "raw:lake city wrestling",
+          "alias_key": "lake city wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "lake-gibson",
+      "canonical_name": "Lake Gibson",
+      "members": [
+        {
+          "source_name": "Lake Gibson",
+          "source_club_key": "raw:lake gibson",
+          "alias_key": "lake gibson",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Lake Gibson Wrestling",
+          "source_club_key": "raw:lake gibson wrestling",
+          "alias_key": "lake gibson wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "lake-nona-wrestling-club",
+      "canonical_name": "Lake Nona Wrestling Club",
+      "members": [
+        {
+          "source_name": "Lake Nona",
+          "source_club_key": "raw:lake nona",
+          "alias_key": "lake nona",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Lake Nona Wrestling Club",
+          "source_club_key": "raw:lake nona wrestling club",
+          "alias_key": "lake nona wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "lakers-wrestling-club",
+      "canonical_name": "Lakers Wrestling Club",
+      "members": [
+        {
+          "source_name": "Lakers WC",
+          "source_club_key": "raw:lakers wc",
+          "alias_key": "lakers wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Lakers Wrestling Club",
+          "source_club_key": "raw:lakers wrestling club",
+          "alias_key": "lakers wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "lemon-bay",
+      "canonical_name": "Lemon Bay",
+      "members": [
+        {
+          "source_name": "Lemon Bay",
+          "source_club_key": "raw:lemon bay",
+          "alias_key": "lemon bay",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Lemon Bay Wrestling",
+          "source_club_key": "raw:lemon bay wrestling",
+          "alias_key": "lemon bay wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Lemon Bay Wrestling Club",
+          "source_club_key": "raw:lemon bay wrestling club",
+          "alias_key": "lemon bay wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "lions-den",
+      "canonical_name": "Lions Den",
+      "members": [
+        {
+          "source_name": "Lions Den",
+          "source_club_key": "raw:lions den",
+          "alias_key": "lions den",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Lions Den Wrestling Club",
+          "source_club_key": "raw:lions den wrestling club",
+          "alias_key": "lions den wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "lions-wrestling-club",
+      "canonical_name": "Lions Wrestling Club",
+      "members": [
+        {
+          "source_name": "Lions WC",
+          "source_club_key": "raw:lions wc",
+          "alias_key": "lions wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Lions Wrestling Club",
+          "source_club_key": "raw:lions wrestling club",
+          "alias_key": "lions wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "longwood-wrestling-club",
+      "canonical_name": "Longwood Wrestling Club",
+      "members": [
+        {
+          "source_name": "Longwood",
+          "source_club_key": "raw:longwood",
+          "alias_key": "longwood",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Longwood Wrestling Club",
+          "source_club_key": "longwood-wrestling-club",
+          "alias_key": "longwood wrestling club",
+          "relationship": "alias",
+          "existing": true
+        },
+        {
+          "source_name": "Longwood Wrestlinv",
+          "source_club_key": "raw:longwood wrestlinv",
+          "alias_key": "longwood wrestlinv",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "lost-tribe-wrestling-club",
+      "canonical_name": "LOST TRiBE WRESTLING CLUB",
+      "members": [
+        {
+          "source_name": "Lost Tribe",
+          "source_club_key": "raw:lost tribe",
+          "alias_key": "lost tribe",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Lost Tribe Wrestling",
+          "source_club_key": "raw:lost tribe wrestling",
+          "alias_key": "lost tribe wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "LOST TRiBE WRESTLING CLUB",
+          "source_club_key": "raw:lost tribe wrestling club",
+          "alias_key": "lost tribe wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "lugo-wrestling-club",
+      "canonical_name": "Lugo Wrestling Club",
+      "members": [
+        {
+          "source_name": "Lugo",
+          "source_club_key": "raw:lugo",
+          "alias_key": "lugo",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Lugo Wrestling",
+          "source_club_key": "raw:lugo wrestling",
+          "alias_key": "lugo wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Lugo Wrestling Club",
+          "source_club_key": "raw:lugo wrestling club",
+          "alias_key": "lugo wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "m80-wrestling-club",
+      "canonical_name": "M80 Wrestling Club",
+      "members": [
+        {
+          "source_name": "M80 Wrestling",
+          "source_club_key": "raw:m80 wrestling",
+          "alias_key": "m80 wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "M80 Wrestling Club",
+          "source_club_key": "raw:m80 wrestling club",
+          "alias_key": "m80 wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "mariner-high-school-wrestling",
+      "canonical_name": "Mariner High School Wrestling",
+      "members": [
+        {
+          "source_name": "Mariner High School",
+          "source_club_key": "raw:mariner high school",
+          "alias_key": "mariner high school",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Mariner High School Wrestling",
+          "source_club_key": "raw:mariner high school wrestling",
+          "alias_key": "mariner high school wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "maximum-performance",
+      "canonical_name": "Maximum Performance",
+      "members": [
+        {
+          "source_name": "Maximum Performance",
+          "source_club_key": "raw:maximum performance",
+          "alias_key": "maximum performance",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Maximum Performance  W.C",
+          "source_club_key": "raw:maximum performance w c",
+          "alias_key": "maximum performance w c",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Maximum Performance Wrestling",
+          "source_club_key": "raw:maximum performance wrestling",
+          "alias_key": "maximum performance wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "miami-wrestling-club",
+      "canonical_name": "MIAMI WRESTLING CLUB",
+      "members": [
+        {
+          "source_name": "Miami",
+          "source_club_key": "raw:miami",
+          "alias_key": "miami",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "MIAMI WRESTLING CLUB",
+          "source_club_key": "raw:miami wrestling club",
+          "alias_key": "miami wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "mo-muscle",
+      "canonical_name": "Mo Muscle",
+      "members": [
+        {
+          "source_name": "Mo Muscle",
+          "source_club_key": "raw:mo muscle",
+          "alias_key": "mo muscle",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Mo Muscle Wrestling Club",
+          "source_club_key": "raw:mo muscle wrestling club",
+          "alias_key": "mo muscle wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "morris-fitness-wrestling-club",
+      "canonical_name": "Morris Fitness Wrestling Club",
+      "members": [
+        {
+          "source_name": "Morris Fitness",
+          "source_club_key": "raw:morris fitness",
+          "alias_key": "morris fitness",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Morris Fitness Wrestling Club",
+          "source_club_key": "raw:morris fitness wrestling club",
+          "alias_key": "morris fitness wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "newsome",
+      "canonical_name": "Newsome",
+      "members": [
+        {
+          "source_name": "Newsome",
+          "source_club_key": "raw:newsome",
+          "alias_key": "newsome",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Newsome Wrestling Club",
+          "source_club_key": "raw:newsome wrestling club",
+          "alias_key": "newsome wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "niceville-wrestling-academy",
+      "canonical_name": "Niceville Wrestling Academy",
+      "members": [
+        {
+          "source_name": "Niceville",
+          "source_club_key": "raw:niceville",
+          "alias_key": "niceville",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Niceville Wrestling Academy",
+          "source_club_key": "raw:niceville wrestling academy",
+          "alias_key": "niceville wrestling academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "nigel-hamilton",
+      "canonical_name": "Nigel Hamilton",
+      "members": [
+        {
+          "source_name": "Nigel Hamilton",
+          "source_club_key": "raw:nigel hamilton",
+          "alias_key": "nigel hamilton",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Nigel Hamilton Wrestling Club",
+          "source_club_key": "raw:nigel hamilton wrestling club",
+          "alias_key": "nigel hamilton wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "north-port",
+      "canonical_name": "North Port",
+      "members": [
+        {
+          "source_name": "North Port",
+          "source_club_key": "raw:north port",
+          "alias_key": "north port",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "North Port Youth Wrestling",
+          "source_club_key": "raw:north port youth wrestling",
+          "alias_key": "north port youth wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "northside-wc",
+      "canonical_name": "NorthSide WC",
+      "members": [
+        {
+          "source_name": "North Side Wrestling",
+          "source_club_key": "raw:north side wrestling",
+          "alias_key": "north side wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "North Side Wrestling Club",
+          "source_club_key": "raw:north side wrestling club",
+          "alias_key": "north side wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "NorthSide WC",
+          "source_club_key": "raw:northside wc",
+          "alias_key": "northside wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Northside Wrestling Club",
+          "source_club_key": "raw:northside wrestling club",
+          "alias_key": "northside wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "oakleaf",
+      "canonical_name": "Oakleaf",
+      "members": [
+        {
+          "source_name": "Oakleaf",
+          "source_club_key": "raw:oakleaf",
+          "alias_key": "oakleaf",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Oakleaf Wrestling Club",
+          "source_club_key": "raw:oakleaf wrestling club",
+          "alias_key": "oakleaf wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "okeechobee-wrestling-club",
+      "canonical_name": "Okeechobee Wrestling Club",
+      "members": [
+        {
+          "source_name": "Okeechobee",
+          "source_club_key": "raw:okeechobee",
+          "alias_key": "okeechobee",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Okeechobee Wrestling Club",
+          "source_club_key": "raw:okeechobee wrestling club",
+          "alias_key": "okeechobee wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "orange-city-wrestling",
+      "canonical_name": "Orange City Wrestling",
+      "members": [
+        {
+          "source_name": "Orange City",
+          "source_club_key": "raw:orange city",
+          "alias_key": "orange city",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Orange City Wrestling",
+          "source_club_key": "raw:orange city wrestling",
+          "alias_key": "orange city wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "palmetto-bay-wrestling-club",
+      "canonical_name": "Palmetto Bay Wrestling Club",
+      "members": [
+        {
+          "source_name": "Palmetto Bay",
+          "source_club_key": "raw:palmetto bay",
+          "alias_key": "palmetto bay",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Palmetto Bay wrestling",
+          "source_club_key": "raw:palmetto bay wrestling",
+          "alias_key": "palmetto bay wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Palmetto Bay Wrestling Club",
+          "source_club_key": "raw:palmetto bay wrestling club",
+          "alias_key": "palmetto bay wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "pin-n-win-wrestling-club",
+      "canonical_name": "Pin N Win Wrestling Club",
+      "members": [
+        {
+          "source_name": "Pin N Win Wrestling Club",
+          "source_club_key": "raw:pin n win wrestling club",
+          "alias_key": "pin n win wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Pin-N-Win",
+          "source_club_key": "raw:pin n win",
+          "alias_key": "pin n win",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "ponte-vedra-wrestling",
+      "canonical_name": "Ponte Vedra Wrestling",
+      "members": [
+        {
+          "source_name": "Ponte Vedra",
+          "source_club_key": "raw:ponte vedra",
+          "alias_key": "ponte vedra",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Ponte Vedra Wrestling",
+          "source_club_key": "raw:ponte vedra wrestling",
+          "alias_key": "ponte vedra wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "team-punishment-wrestling-club",
+      "canonical_name": "Team Punishment Wrestling club",
+      "members": [
+        {
+          "source_name": "Punishment",
+          "source_club_key": "raw:punishment",
+          "alias_key": "punishment",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Team punishment",
+          "source_club_key": "raw:team punishment",
+          "alias_key": "team punishment",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Team Punishment Wrestling club",
+          "source_club_key": "raw:team punishment wrestling club",
+          "alias_key": "team punishment wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "raider-wrestling-club",
+      "canonical_name": "Raider Wrestling Club",
+      "members": [
+        {
+          "source_name": "Raider",
+          "source_club_key": "raw:raider",
+          "alias_key": "raider",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Raider Wrestling Club",
+          "source_club_key": "raw:raider wrestling club",
+          "alias_key": "raider wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "raptor-wrestling",
+      "canonical_name": "Raptor Wrestling",
+      "members": [
+        {
+          "source_name": "Raptor Wrestling",
+          "source_club_key": "raw:raptor wrestling",
+          "alias_key": "raptor wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Raptor Wrestling Club",
+          "source_club_key": "raw:raptor wrestling club",
+          "alias_key": "raptor wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "reverence-wrestling-club",
+      "canonical_name": "Reverence Wrestling Club",
+      "members": [
+        {
+          "source_name": "Reverence Wrestling",
+          "source_club_key": "raw:reverence wrestling",
+          "alias_key": "reverence wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Reverence Wrestling Club",
+          "source_club_key": "raw:reverence wrestling club",
+          "alias_key": "reverence wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "riverdale-wrestling-club",
+      "canonical_name": "Riverdale Wrestling Club",
+      "members": [
+        {
+          "source_name": "Riverdale",
+          "source_club_key": "raw:riverdale",
+          "alias_key": "riverdale",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Riverdale WC",
+          "source_club_key": "raw:riverdale wc",
+          "alias_key": "riverdale wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Riverdale Wrestling Club",
+          "source_club_key": "raw:riverdale wrestling club",
+          "alias_key": "riverdale wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "royals",
+      "canonical_name": "Royals",
+      "members": [
+        {
+          "source_name": "Royals",
+          "source_club_key": "raw:royals",
+          "alias_key": "royals",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Royals Wrestling Club",
+          "source_club_key": "raw:royals wrestling club",
+          "alias_key": "royals wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "rpa-wrestling",
+      "canonical_name": "RPA Wrestling",
+      "members": [
+        {
+          "source_name": "RPA",
+          "source_club_key": "raw:rpa",
+          "alias_key": "rpa",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "RPA Wrestling",
+          "source_club_key": "raw:rpa wrestling",
+          "alias_key": "rpa wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "sarasota-wrestling-club",
+      "canonical_name": "Sarasota Wrestling Club",
+      "members": [
+        {
+          "source_name": "Sarasota",
+          "source_club_key": "raw:sarasota",
+          "alias_key": "sarasota",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Sarasota Wrestling",
+          "source_club_key": "raw:sarasota wrestling",
+          "alias_key": "sarasota wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Sarasota Wrestling Club",
+          "source_club_key": "raw:sarasota wrestling club",
+          "alias_key": "sarasota wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "seminole-wrestling",
+      "canonical_name": "Seminole Wrestling",
+      "members": [
+        {
+          "source_name": "Seminole",
+          "source_club_key": "raw:seminole",
+          "alias_key": "seminole",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Seminole Wrestling",
+          "source_club_key": "raw:seminole wrestling",
+          "alias_key": "seminole wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "somerset",
+      "canonical_name": "Somerset",
+      "members": [
+        {
+          "source_name": "Somerset",
+          "source_club_key": "raw:somerset",
+          "alias_key": "somerset",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Somerset Academy",
+          "source_club_key": "raw:somerset academy",
+          "alias_key": "somerset academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "sot-doz",
+      "canonical_name": "SOT/DOZ",
+      "members": [
+        {
+          "source_name": "Sons Of Thunder",
+          "source_club_key": "raw:sons of thunder",
+          "alias_key": "sons of thunder",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "SOT/DOZ",
+          "source_club_key": "raw:sot doz",
+          "alias_key": "sot doz",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "south-plantation-high-school",
+      "canonical_name": "South Plantation High School",
+      "members": [
+        {
+          "source_name": "South Plantation High School",
+          "source_club_key": "raw:south plantation high school",
+          "alias_key": "south plantation high school",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "South Plantation High School W",
+          "source_club_key": "raw:south plantation high school w",
+          "alias_key": "south plantation high school w",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "South Plantation High School Wrestling Club",
+          "source_club_key": "raw:south plantation high school wrestling club",
+          "alias_key": "south plantation high school wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "sowal-elite-wc",
+      "canonical_name": "SoWal Elite WC",
+      "members": [
+        {
+          "source_name": "SoWal Elite",
+          "source_club_key": "raw:sowal elite",
+          "alias_key": "sowal elite",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "SoWal Elite WC",
+          "source_club_key": "raw:sowal elite wc",
+          "alias_key": "sowal elite wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "SoWal Elite Wrestling",
+          "source_club_key": "raw:sowal elite wrestling",
+          "alias_key": "sowal elite wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "SoWal Elite Wrestling Club",
+          "source_club_key": "raw:sowal elite wrestling club",
+          "alias_key": "sowal elite wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "space-coast-wc",
+      "canonical_name": "Space Coast WC",
+      "members": [
+        {
+          "source_name": "Space Coast",
+          "source_club_key": "raw:space coast",
+          "alias_key": "space coast",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Space Coast WC",
+          "source_club_key": "raw:space coast wc",
+          "alias_key": "space coast wc",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "spartan-rtc",
+      "canonical_name": "Spartan RTC",
+      "members": [
+        {
+          "source_name": "Spartan RTC",
+          "source_club_key": "spartan-rtc",
+          "alias_key": "spartan rtc",
+          "relationship": "program",
+          "existing": true
+        },
+        {
+          "source_name": "Spartan Wrestling Club",
+          "source_club_key": "raw:spartan wrestling club",
+          "alias_key": "spartan wrestling club",
+          "relationship": "program",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "sunbear-wrestling-club",
+      "canonical_name": "Sunbear Wrestling Club",
+      "members": [
+        {
+          "source_name": "Sunbear Wrestling",
+          "source_club_key": "raw:sunbear wrestling",
+          "alias_key": "sunbear wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Sunbear Wrestling Club",
+          "source_club_key": "raw:sunbear wrestling club",
+          "alias_key": "sunbear wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "sunbears",
+      "canonical_name": "Sunbears",
+      "members": [
+        {
+          "source_name": "Sunbears",
+          "source_club_key": "raw:sunbears",
+          "alias_key": "sunbears",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Sunbears Wrestling Club",
+          "source_club_key": "raw:sunbears wrestling club",
+          "alias_key": "sunbears wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "sunset-sniper",
+      "canonical_name": "Sunset sniper",
+      "members": [
+        {
+          "source_name": "Sunset sniper",
+          "source_club_key": "raw:sunset sniper",
+          "alias_key": "sunset sniper",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Sunset sniper.",
+          "source_club_key": "raw:sunset sniper ",
+          "alias_key": "sunset sniper ",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "swamp-reapers-wrestling-club",
+      "canonical_name": "Swamp Reapers Wrestling Club",
+      "members": [
+        {
+          "source_name": "Swamp Reapers WC",
+          "source_club_key": "raw:swamp reapers wc",
+          "alias_key": "swamp reapers wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Swamp Reapers Wrestling Club",
+          "source_club_key": "raw:swamp reapers wrestling club",
+          "alias_key": "swamp reapers wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "talon-wrestling-club",
+      "canonical_name": "Talon Wrestling Club",
+      "members": [
+        {
+          "source_name": "Talon WC",
+          "source_club_key": "raw:talon wc",
+          "alias_key": "talon wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Talon Wrestling Club",
+          "source_club_key": "raw:talon wrestling club",
+          "alias_key": "talon wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "tampa-bay-tigers",
+      "canonical_name": "Tampa Bay Tigers",
+      "members": [
+        {
+          "source_name": "Tampa Bay Tiger",
+          "source_club_key": "raw:tampa bay tiger",
+          "alias_key": "tampa bay tiger",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "TAMPA BAY TIGER WC",
+          "source_club_key": "raw:tampa bay tiger wc",
+          "alias_key": "tampa bay tiger wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Tampa Bay Tiger Wrestling",
+          "source_club_key": "raw:tampa bay tiger wrestling",
+          "alias_key": "tampa bay tiger wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Tampa Bay Tiger Wrestling Club",
+          "source_club_key": "raw:tampa bay tiger wrestling club",
+          "alias_key": "tampa bay tiger wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Tampa Bay Tigers",
+          "source_club_key": "raw:tampa bay tigers",
+          "alias_key": "tampa bay tigers",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Tampa Bay Tigers Wrestling",
+          "source_club_key": "raw:tampa bay tigers wrestling",
+          "alias_key": "tampa bay tigers wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Tampa Bay Tigers Wrestling Club",
+          "source_club_key": "raw:tampa bay tigers wrestling club",
+          "alias_key": "tampa bay tigers wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "wakulla",
+      "canonical_name": "Wakulla",
+      "members": [
+        {
+          "source_name": "TEAM WAKULLA",
+          "source_club_key": "raw:team wakulla",
+          "alias_key": "team wakulla",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Wakulla",
+          "source_club_key": "raw:wakulla",
+          "alias_key": "wakulla",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Wakulla Middle",
+          "source_club_key": "raw:wakulla middle",
+          "alias_key": "wakulla middle",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "titletown-wrestling-academy",
+      "canonical_name": "Titletown Wrestling Academy",
+      "members": [
+        {
+          "source_name": "Titletown Wrestling",
+          "source_club_key": "raw:titletown wrestling",
+          "alias_key": "titletown wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Titletown Wrestling Academy",
+          "source_club_key": "raw:titletown wrestling academy",
+          "alias_key": "titletown wrestling academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "tomahawk-wrestling-club",
+      "canonical_name": "Tomahawk Wrestling Club",
+      "members": [
+        {
+          "source_name": "Tomahawk",
+          "source_club_key": "raw:tomahawk",
+          "alias_key": "tomahawk",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Tomahawk Wrestling Club",
+          "source_club_key": "raw:tomahawk wrestling club",
+          "alias_key": "tomahawk wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Tomohawk",
+          "source_club_key": "raw:tomohawk",
+          "alias_key": "tomohawk",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Tomohawk wrestling club",
+          "source_club_key": "raw:tomohawk wrestling club",
+          "alias_key": "tomohawk wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Tomohawk wrestling team",
+          "source_club_key": "raw:tomohawk wrestling team",
+          "alias_key": "tomohawk wrestling team",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "top-dog",
+      "canonical_name": "Top Dog",
+      "members": [
+        {
+          "source_name": "Top Dog",
+          "source_club_key": "raw:top dog",
+          "alias_key": "top dog",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Top Dog Wrestling",
+          "source_club_key": "raw:top dog wrestling",
+          "alias_key": "top dog wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "treasure-coast-wrestling-club",
+      "canonical_name": "Treasure Coast Wrestling Club",
+      "members": [
+        {
+          "source_name": "Treasure Coast",
+          "source_club_key": "raw:treasure coast",
+          "alias_key": "treasure coast",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Treasure Coast Wrestling Club",
+          "source_club_key": "raw:treasure coast wrestling club",
+          "alias_key": "treasure coast wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "triangle-grapplers",
+      "canonical_name": "Triangle Grapplers",
+      "members": [
+        {
+          "source_name": "Triangle Grapplers",
+          "source_club_key": "raw:triangle grapplers",
+          "alias_key": "triangle grapplers",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Triangle Grapplers Wrestling C",
+          "source_club_key": "raw:triangle grapplers wrestling c",
+          "alias_key": "triangle grapplers wrestling c",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "triangle-wrestling",
+      "canonical_name": "Triangle Wrestling",
+      "members": [
+        {
+          "source_name": "Triangle Wrestling",
+          "source_club_key": "raw:triangle wrestling",
+          "alias_key": "triangle wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Triangle Wrestling Club",
+          "source_club_key": "raw:triangle wrestling club",
+          "alias_key": "triangle wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "triton-wrestling-club",
+      "canonical_name": "Triton Wrestling Club",
+      "members": [
+        {
+          "source_name": "Triton",
+          "source_club_key": "raw:triton",
+          "alias_key": "triton",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Triton Wrestling Club",
+          "source_club_key": "raw:triton wrestling club",
+          "alias_key": "triton wrestling club",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Tritons",
+          "source_club_key": "raw:tritons",
+          "alias_key": "tritons",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Tritons Wrestling Club",
+          "source_club_key": "raw:tritons wrestling club",
+          "alias_key": "tritons wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "true-north",
+      "canonical_name": "True North",
+      "members": [
+        {
+          "source_name": "True North",
+          "source_club_key": "raw:true north",
+          "alias_key": "true north",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "True North Academy",
+          "source_club_key": "raw:true north academy",
+          "alias_key": "true north academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "venice-takedown-club",
+      "canonical_name": "Venice Takedown Club",
+      "members": [
+        {
+          "source_name": "Venice Takedown",
+          "source_club_key": "raw:venice takedown",
+          "alias_key": "venice takedown",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Venice Takedown Club",
+          "source_club_key": "raw:venice takedown club",
+          "alias_key": "venice takedown club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "vice-city-wrestling",
+      "canonical_name": "Vice City Wrestling",
+      "members": [
+        {
+          "source_name": "Vice city",
+          "source_club_key": "raw:vice city",
+          "alias_key": "vice city",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Vice City WC",
+          "source_club_key": "raw:vice city wc",
+          "alias_key": "vice city wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Vice City Wrestling",
+          "source_club_key": "raw:vice city wrestling",
+          "alias_key": "vice city wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Vice City Wrestling Club",
+          "source_club_key": "raw:vice city wrestling club",
+          "alias_key": "vice city wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "volusia-wrestling-club",
+      "canonical_name": "Volusia Wrestling Club",
+      "members": [
+        {
+          "source_name": "Volusia",
+          "source_club_key": "raw:volusia",
+          "alias_key": "volusia",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Volusia Wrestling Club",
+          "source_club_key": "raw:volusia wrestling club",
+          "alias_key": "volusia wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "wellington",
+      "canonical_name": "Wellington",
+      "members": [
+        {
+          "source_name": "Wellington",
+          "source_club_key": "raw:wellington",
+          "alias_key": "wellington",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Wellington Wrestling",
+          "source_club_key": "raw:wellington wrestling",
+          "alias_key": "wellington wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Wellington Wrestling Club",
+          "source_club_key": "raw:wellington wrestling club",
+          "alias_key": "wellington wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "west-coast-flo-wrestling-club",
+      "canonical_name": "West Coast Flo Wrestling Club",
+      "members": [
+        {
+          "source_name": "West Coast FLO",
+          "source_club_key": "raw:west coast flo",
+          "alias_key": "west coast flo",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "West Coast Flo Wrestling Club",
+          "source_club_key": "raw:west coast flo wrestling club",
+          "alias_key": "west coast flo wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "westside-wc",
+      "canonical_name": "Westside WC",
+      "members": [
+        {
+          "source_name": "Westside",
+          "source_club_key": "raw:westside",
+          "alias_key": "westside",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Westside WC",
+          "source_club_key": "raw:westside wc",
+          "alias_key": "westside wc",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Westside Wrestling",
+          "source_club_key": "raw:westside wrestling",
+          "alias_key": "westside wrestling",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Westside Wrestling Club",
+          "source_club_key": "raw:westside wrestling club",
+          "alias_key": "westside wrestling club",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "winter-haven",
+      "canonical_name": "Winter Haven",
+      "members": [
+        {
+          "source_name": "Winter Haven",
+          "source_club_key": "raw:winter haven",
+          "alias_key": "winter haven",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Winter Haven Wrestling",
+          "source_club_key": "raw:winter haven wrestling",
+          "alias_key": "winter haven wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "youth-impact-center",
+      "canonical_name": "Youth Impact Center",
+      "members": [
+        {
+          "source_name": "Youth Impact Center",
+          "source_club_key": "raw:youth impact center",
+          "alias_key": "youth impact center",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Youth Impact Center Wrestling",
+          "source_club_key": "raw:youth impact center wrestling",
+          "alias_key": "youth impact center wrestling",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "club_key": "zephyrhills-christian",
+      "canonical_name": "Zephyrhills Christian",
+      "members": [
+        {
+          "source_name": "Zephyrhills Christian",
+          "source_club_key": "raw:zephyrhills christian",
+          "alias_key": "zephyrhills christian",
+          "relationship": "alias",
+          "existing": false
+        },
+        {
+          "source_name": "Zephyrhills Christian Academy",
+          "source_club_key": "raw:zephyrhills christian academy",
+          "alias_key": "zephyrhills christian academy",
+          "relationship": "alias",
+          "existing": false
+        }
+      ]
+    }
+  ]
+}

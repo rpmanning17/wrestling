@@ -1,5 +1,10 @@
 # Data model
 
+## Reviewed club aliases (2026-11-04)
+
+The finite `config/club-normalization.approved.json` drives source migration `20261104161040_approved_club_normalization.sql`, production version `20261104161409`. It inserts 377 aliases and preserves all 13 original rows. Exact punctuation replacement may leave a trailing space. Original team labels and raw/evidence/model/history records remain unchanged; ordinary club views aggregate canonical organizations. `private.club_normalization_20261104_inserted` captures actual insertions with timestamps, RLS enabled and client/service-role privileges revoked, for guarded administrator rollback. See CLUB_NORMALIZATION.md for measurements and reconstruction differences.
+
+
 Source of truth for tables is `supabase/migrations/`. This document explains meaning and relationships. Row counts are deliberately omitted; query the database.
 
 ## Tables and views
