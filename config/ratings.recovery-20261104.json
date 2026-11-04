@@ -1,0 +1,15 @@
+{
+  "modelVersion": "glicko2-daily-dec08-canonical-recovery-20261104-v1",
+  "period": {
+    "days": 1
+  },
+  "dominance": {
+    "enabled": true,
+    "winnerScore": {
+      "decision": 0.8,
+      "major_decision": 1,
+      "tech_fall": 1,
+      "fall": 1
+    }
+  }
+}

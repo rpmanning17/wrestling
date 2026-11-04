@@ -1,5 +1,13 @@
 # Status
 
+## Current verified production — 2026-11-04 expanded canonical recovery
+
+**This supersedes older live-state and missing-2025 statements below.** Active model `a29c4460-5e56-4d22-902d-ea39c65bfcac` uses the unchanged production formula under a truthful canonical-implementation version. Source **67,736**; rated bouts **64,050**; ratings **11,724**; history **34,809**; wins/losses **64,050 each**. Exact serialized-output equality and independent complete SOS/record audits pass. Old active `d64fd4ba-de14-4d07-bac8-2961e12d506d` is archived intact for rollback; failed `a957ed42-8ee2-4792-944d-5f63a0b4ce72` remains untouched building (500 ratings / no history). Source fingerprints and both uniqueness constraints are preserved; no experimental drift.
+
+Live comparison/rankings/clubs/Longwood roster and phone layouts verified. Expanded-source cohort/club timeouts were fixed with semantics-preserving invoker-view migrations (production **20261104201755**, **20261104202335**) and refreshed planner statistics; full cohort/standing/club-output preservation checks pass. No timeout/RLS/grant weakening. **139 tests**, lint/typecheck and CI production build pass; HTTP 200/no-store/noindex checks pass; post-fix production error/fatal scan is clear in its recorded window. Full provenance, counts, read-fix evidence, interrupted-write procedure, limitations and rollback: [RATING_RECOVERY_RELEASE.md](RATING_RECOVERY_RELEASE.md). Read-only audit: `supabase/audits/rating_recovery_validation.sql`.
+
+Earlier entries below retain historical release evidence.
+
 ## 2026-11-04 — reviewed club normalization
 
 Production migration **20261104161409** (source `20261104161040_approved_club_normalization.sql`) is applied. Clubs: **1,182 → 952**; aliases: 13 → 390 (377 insertions); memberships: 11,007 → 9,943; raw in-house contested matches: 2,009 → 2,076. The finite reconstruction differs from the unavailable earlier SQL's subsidiary projections (375 insertions / 1,066 memberships consolidated); actual values are 377 / 1,064. See [CLUB_NORMALIZATION.md](CLUB_NORMALIZATION.md) for provenance and rollback.
@@ -78,3 +86,7 @@ A repeated comparison request exposed duplicate simultaneous classification read
 
 **Final tier verification:** runtime follow-up `e505526` deployed READY as `dpl_J5mgiQq7biAkwGavKZio5rTv1vr7` on the existing domain. Repeated comparison reads and sort toggles preserve Waylon's 524.34 / #12 of 28 / Tier 5. Aaron Matos shows strength 426.78, #5 of 9, and the minimum-20 unavailable explanation. Longwood's existing roster agrees with Waylon's comparison/ranking; ambiguous evidence retains rank and strength without tier. Live rankings, club list/search and roster loaded after the query fixes. Mobile 10→1 order, Tier-2 second-from-right selection, accessible text and no page-width overflow verified. Latest error/fatal deployment log scan returned no matching entries; Supabase security advisor remains clean. All 729 pre-existing ranking fields still have checksum 74676aea8ca71bfed2b6d48e5ef18f3e; raw/model checksums also remain identical. This supersedes pending UI verification above. No log drain was added and imported-population/same-name limitations remain.
 
+
+
+## 2026-11-04 — canonical recovery implementation
+Owner-approved provenance-only version implemented from main, separately from experimental drift. Shared persisted-field serialization, exact production-output checks and guarded idempotent connector batches have 137 passing tests plus lint/typecheck/build. Production execution is pending; no activation claimed. See [RATING_RECOVERY_RELEASE.md](RATING_RECOVERY_RELEASE.md).

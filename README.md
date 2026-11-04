@@ -101,3 +101,6 @@ Current age/weight estimates use three distinct recent events (50/30/20), shared
 
 
 Cohort Tier shows a population decile (1 strongest, 10 weakest) when at least 20 rated wrestlers and unambiguous current cohort support are available. Equal conservative ratings share a tier. Cohort Strength remains 0–1,000; raw Glicko and opponent ratings have no fixed upper limit. Schedule Difficulty is a reference-1,500 expected win percentage: lower means harder opposition. Matchup Likelihood measures relevance/fit, not ability.
+
+
+Canonical recovery uses `config/ratings.recovery-20261104.json` and the read-only `scripts/ratings/recovery-export.ts`; see [recovery execution](docs/RATING_RECOVERY_RELEASE.md). This is a provenance-only version with the production formula unchanged. Never commit full output or use the legacy CLI activation switch.
