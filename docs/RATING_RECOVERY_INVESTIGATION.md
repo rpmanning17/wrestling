@@ -58,3 +58,10 @@ Implementation is deferred because this target failed the requested exact proven
 - Add a negative test specifically for `chat-20261104/glicko2-engine-1` versus `glicko2-engine-1`. A future equivalence policy, if separately approved, must have explicit tests and immutable audit evidence.
 
 The uniqueness constraint does not need to be changed for the proposed honestly versioned replacement. Neither recovery nor activation has occurred.
+
+
+## 2026-11-04 — APPROVED recovery implemented and activated
+
+The owner approved the documented versioned canonical replacement. **Sole active model is now `a29c4460-5e56-4d22-902d-ea39c65bfcac`**, version `glicko2-daily-dec08-canonical-recovery-20261104-v1`, as of 2026-11-04. Same production formula; only implementation/provenance version differs. Config hash `70c8305bc412d7a5ec618ae1db2f932708482201228b455ad1d9d12c8d489b2d`; source fingerprint unchanged. All 11,724 ratings / 34,809 history / 64,050 wins and losses are stored, exact full-output hashes and independent SOS audit pass. Old active is archived intact; the 500-row chat model remains untouched building. No uniqueness changes or recency adoption.
+
+Expanded-source read timeouts discovered during live verification were corrected by semantics-preserving invoker-view optimizations and refreshed planner statistics. Full classification/standing/club-output preservation checks pass; RLS/grants/activation permissions unchanged. Live comparison/rankings/clubs/Longwood roster and phone layouts match SQL; HTTP 200/no-store/noindex checks pass. 139 tests and full CI checks pass. Implementation, immutable migration/version mapping, recovery procedure, hashes, observed failures/fixes, verification limits and rollback are in [RATING_RECOVERY_RELEASE.md on PR #7](https://github.com/rpmanning17/wrestling/blob/fix/canonical-rating-recovery/docs/RATING_RECOVERY_RELEASE.md). Earlier blocked/pending activation statements in this handoff are historical and superseded by this verified result. PR #6 remains experimental/draft and its drift is NOT adopted.
