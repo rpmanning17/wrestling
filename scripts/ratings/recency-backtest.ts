@@ -191,7 +191,8 @@ async function main() {
     "- Only ~2 years of imported bouts: cannot validate a three- or four-year cutoff or long-term development effects.",
     "- Age division can be ambiguous; do not treat bracket labels as exact age or bodyweight.",
     "- Match/network identity errors and event coverage affect all comparisons.",
-    "- Re-running tuning after seeing confirmation metrics requires a NEW untouched holdout period.",
+    "- The recency confirmation dates are withheld from recency selection, but the deployed production baseline was previously tuned using some overlapping 2026 events. This is retrospective, not a pristine independent research holdout.",
+    "- Re-running tuning after seeing confirmation metrics requires NEW future tournament results for an independent prospective check.",
     "",
   ];
   const out = args.values.get("out") ?? "docs/RECENCY_EXPERIMENT_REPORT.md";
