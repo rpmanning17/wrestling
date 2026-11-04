@@ -287,6 +287,39 @@ td small { display: block; margin-top: 5px; }
 .club-compare-row > div > strong, .club-compare-row small { display: block; }
 .club-compare-row small { margin-top: 4px; font-size: .68rem; }
 .club-compare-row > strong { text-align: center; font-size: 1.03rem; }
+
+/* One scale and tier presentation across comparisons, rankings and existing rosters. */
+.cohort-standing { min-width: 0; width: 100%; margin: 14px 0; padding: 14px; background: #f0f4ee; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); }
+.cohort-strength { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.cohort-strength > span { font-size: .78rem; font-weight: 800; }
+.cohort-strength > strong { font-family: Georgia,serif; font-size: 2rem; }
+.cohort-context, .tier-caption { margin: 6px 0; font-size: .8rem; }
+.tier-segments { display: grid; grid-template-columns: repeat(10,minmax(0,1fr)); gap: 3px; }
+.tier-segment { text-align: center; padding: 7px 0; border: 1px solid #9baa9c; background: #dce4dc; color: #283f32; border-radius: 3px; font: 700 .75rem system-ui; }
+.tier-segment.selected { background: #163e2c; color: white; outline: 2px solid #163e2c; outline-offset: 1px; }
+.tier-endpoints { display: flex; justify-content: space-between; gap: 6px; margin: 7px 0; font-size: .65rem; }
+.metric-help { font-size: .7rem; line-height: 1.45; margin: 6px 0 0; color: #43594b; }
+.matchup-likelihood { font-size: .8rem; }
+.matchup-likelihood span { display: block; font-size: .72rem; }
+.ranking-score > span { display: block; font: 600 .7rem system-ui; }
+.ranking-list .cohort-standing p, .ranking-list .cohort-standing span { white-space: normal; }
+.club-athlete { flex-wrap: wrap; }
+.club-athlete .cohort-standing { flex-basis: 100%; max-width: 520px; }
+.club-athlete .glicko-metrics { flex-basis: 100%; max-width: 520px; }
+.glicko-metrics .facts > div { min-width: 0; }
+.glicko-metrics dt { overflow-wrap: anywhere; }
+.club-athlete-numbers { flex-wrap: wrap; flex-shrink: 1; }
+.club-athlete-numbers span { max-width: 220px; }
+.power-rating { grid-template-columns: repeat(auto-fit,minmax(110px,1fr)); }
+@media (max-width: 600px) {
+  .ranking-list li { grid-template-columns: 26px minmax(0,1fr); }
+  .glicko-metrics .facts { grid-template-columns: minmax(0,1fr); }
+  .glicko-metrics .facts div:nth-child(odd) { margin-right: 0; }
+  .ranking-score { grid-column: 2; }
+  .cohort-standing { padding: 10px; }
+  .tier-segments { gap: 2px; }
+  .tier-endpoints { font-size: .6rem; }
+}
 @media (max-width: 600px) {
   .club-compare-head, .club-compare-row { grid-template-columns: 1.1fr 1fr 1fr; gap: 6px; padding: 12px 9px; font-size: .72rem; }
   .club-compare-row > strong { font-size: .85rem; }

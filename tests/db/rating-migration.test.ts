@@ -314,3 +314,75 @@ describe("authoritative three-event classification", () => {
     assert.equal(await count("select count(*) n from wrestler_strength_current where athlete_key='cohort test'"),0);
   }));
 });
+
+describe("population decile Cohort Tiers", () => {
+  const isolated = async (run: () => Promise<void>) => {
+    await db.exec("begin");
+    try { await run(); } finally { await db.exec("rollback"); }
+  };
+  const seedPopulation = async (size: number, same = false) => {
+    const statements = Array.from({length:size},(_,i) => {
+      const name=`Tier ${i.toString().padStart(5,"0")}`;
+      return [evidenceInsert(name.toLowerCase(),name,150,100000+i),
+        ratingInsert(M2,name.toLowerCase(),name,same ? 1800 : 2500-i,100)];
+    }).flat();
+    await db.exec(statements.join(";\n"));
+  };
+  const tiers = async () => (await db.query<{cohort_tier:number|null;n:number}>(
+    "select cohort_tier,count(*)::int n from wrestler_strength_current where weight_bucket=150 group by cohort_tier order by cohort_tier")).rows;
+
+  it("assigns exactly two wrestlers to each decile at the minimum population of 20", () => isolated(async () => {
+    await seedPopulation(20);
+    assert.deepEqual(await tiers(),Array.from({length:10},(_,i)=>({cohort_tier:i+1,n:2})));
+  }));
+  for(const size of [23,1003]) {
+    it(`keeps all ten groups within one wrestler for an untied population of ${size}`, () => isolated(async () => {
+      await seedPopulation(size);
+      const rows=await tiers();
+      assert.equal(rows.length,10);
+      assert.equal(rows.reduce((sum,r)=>sum+r.n,0),size);
+      assert.ok(Math.max(...rows.map(r=>r.n))-Math.min(...rows.map(r=>r.n))<=1);
+    }));
+  }
+  it("keeps equal conservative ratings together across a decile boundary", () => isolated(async () => {
+    await seedPopulation(20);
+    await db.exec(`update wrestler_model_ratings set rating=2499,conservative_score=2399
+      where model_id='${M2}' and athlete_key in ('tier 00001','tier 00002')`);
+    const rows=(await db.query<{cohort_rank:number;cohort_tier:number}>(
+      "select cohort_rank,cohort_tier from wrestler_strength_current where athlete_key in ('tier 00001','tier 00002') order by athlete_key")).rows;
+    assert.deepEqual(rows,[{cohort_rank:2,cohort_tier:1},{cohort_rank:2,cohort_tier:1}]);
+  }));
+  it("puts an entirely tied population in the same midpoint tier instead of inventing distinctions", () => isolated(async () => {
+    await seedPopulation(20,true);
+    assert.deepEqual(await tiers(),[{cohort_tier:5,n:20}]);
+  }));
+  it("withholds tiers below 20 while preserving rank, population and strength", () => isolated(async () => {
+    await seedPopulation(19);
+    assert.deepEqual(await tiers(),[{cohort_tier:null,n:19}]);
+    const rows=(await db.query<{cohort_rank:number;cohort_size:number;strength_score:string;tier_unavailable_reason:string}>(
+      "select * from wrestler_strength_current where athlete_key='tier 00000'")).rows;
+    assert.equal(rows[0].cohort_rank,1);
+    assert.equal(rows[0].cohort_size,19);
+    assert.equal(Number(rows[0].strength_score),1000);
+    assert.match(rows[0].tier_unavailable_reason,/20 rated/);
+  }));
+  it("retains deterministic inferred placement but withholds tier for tied age or weight support", () => isolated(async () => {
+    await seedPopulation(20);
+    await db.exec(evidenceInsert('tier 00000','Tier 00000',160,999999));
+    const row=(await db.query<{cohort_tier:number|null;tier_unavailable_reason:string;bracket_weight_lbs:string}>(
+      "select * from wrestler_strength_current where athlete_key='tier 00000'")).rows[0];
+    assert.equal(Number(row.bracket_weight_lbs),150);
+    assert.equal(row.cohort_tier,null);
+    assert.match(row.tier_unavailable_reason,/tied support/);
+  }));
+  it("recomputes populations and tiers when current weight changes while preserving the global rating", () => isolated(async () => {
+    await seedPopulation(20);
+    await db.exec(evidenceInsert('tier 00000','Tier 00000',160,999999).replace("'2026-10-24'","'2026-11-01'").replace("'Fall Open'","'New Open'"));
+    const rows=(await db.query<{athlete_key:string;cohort_size:number;cohort_tier:number|null;rating:string}>(
+      "select athlete_key,cohort_size,cohort_tier,rating from wrestler_strength_current where athlete_key like 'tier %'")).rows;
+    assert.equal(rows.length,20);
+    assert.ok(rows.every(r=>r.cohort_tier===null));
+    assert.equal(rows.find(r=>r.athlete_key==='tier 00000')?.cohort_size,1);
+    assert.equal(Number(rows.find(r=>r.athlete_key==='tier 00000')?.rating),2500);
+  }));
+});

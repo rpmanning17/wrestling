@@ -95,3 +95,6 @@ Result data comes from publicly available wrestling sites. The repository contai
 
 
 Current age/weight estimates use three distinct recent events (50/30/20), shared across search, comparisons and active rankings. Bracket labels are estimates, not bodyweight; optional verified entry weigh-ins take priority. Named duals have half classification influence. See docs/DECISIONS.md D25 and docs/DATA_MODEL.md for exact rules.
+
+
+Cohort Tier shows a population decile (1 strongest, 10 weakest) when at least 20 rated wrestlers and unambiguous current cohort support are available. Equal conservative ratings share a tier. Cohort Strength remains 0–1,000; raw Glicko and opponent ratings have no fixed upper limit. Schedule Difficulty is a reference-1,500 expected win percentage: lower means harder opposition. Matchup Likelihood measures relevance/fit, not ability.

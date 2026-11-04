@@ -1,4 +1,5 @@
 import "server-only";
+import { toCohortStanding, type CohortStanding, type CohortStandingRow } from "@/lib/cohort-standing";
 import { supabase } from "@/lib/supabase";
 
 /** A club's recorded matches are credited to the team represented AT THE EVENT.
@@ -19,9 +20,11 @@ export type ClubSummary = {
   top_five_conservative: number | null;
   avg_rating_deviation: number | null;
   avg_opponent_rating: number | null;
+  schedule_expected_win_pct: number | null;
 };
 
 export type ClubWrestler = {
+  cohort: CohortStanding;
   athlete_key: string;
   athlete_name: string;
   bouts: number;
@@ -41,10 +44,10 @@ export type ClubSeason = typeof CLUB_SEASONS[number];
 export const CLUB_SORTS = {
   wrestlers: "Observed roster",
   bouts: "Recorded bouts",
-  median_conservative: "Typical wrestler strength",
-  top_five_conservative: "Top five strength",
-  avg_conservative: "Average strength",
-  avg_opponent_rating: "Opponent strength (SOS)",
+  median_conservative: "Median Conservative Glicko Rating",
+  top_five_conservative: "Top-five Conservative Glicko Rating",
+  avg_conservative: "Average Conservative Glicko Rating",
+  avg_opponent_rating: "Average Opponent Glicko Rating",
 } as const;
 export type ClubSort = keyof typeof CLUB_SORTS;
 
@@ -70,6 +73,7 @@ function parseClub(row: Record<string, unknown>): ClubSummary {
     top_five_conservative: opt("top_five_conservative"),
     avg_rating_deviation: opt("avg_rating_deviation"),
     avg_opponent_rating: opt("avg_opponent_rating"),
+    schedule_expected_win_pct: opt("schedule_expected_win_pct"),
   };
 }
 
@@ -104,7 +108,14 @@ export async function getClub(
     client().from("club_aliases").select("alias_key").eq("club_key", key).order("alias_key"),
   ]);
   if (clubQuery.error || rosterQuery.error) return { club: null, wrestlers: [], aliases: [], error: "Club analytics are not ready." };
+  const keys = (rosterQuery.data ?? []).map((row) => row.athlete_key);
+  const cohortQuery = keys.length ? await client().from("wrestler_strength_current")
+    .select("athlete_key,age_group,weight_band,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason")
+    .in("athlete_key", keys) : { data: [], error: null };
+  if (cohortQuery.error) return { club: null, wrestlers: [], aliases: [], error: "Current cohort standings are unavailable. Try again." };
+  const cohorts = new Map((cohortQuery.data ?? []).map((row) => [row.athlete_key, row as CohortStandingRow]));
   const wrestlers = (rosterQuery.data ?? []).map((row) => ({
+    cohort: toCohortStanding(cohorts.get(row.athlete_key)),
     athlete_key: String(row.athlete_key),
     athlete_name: String(row.athlete_name),
     bouts: Number(row.bouts),

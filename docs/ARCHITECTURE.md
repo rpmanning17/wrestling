@@ -59,3 +59,7 @@ As of 2026-11-03 the live application reads `glicko2-daily-dec08-v1`. Production
 
 ## Shared cohort read path (2026-11-04)
 `wrestler_cohort_current` is the sole current age/weight classifier; `wrestler_strength_current` joins it to unchanged active ratings. Search discovers candidate names then reads their authoritative classification; profile classification is not derived from limited match batches or user filters. Missing classification view raises an error instead of silently supplying historical labels. The old pure TypeScript classifier was removed; migration tests exercise the actual SQL. No credentials or caching were added.
+
+
+## Shared rating display (2026-11-04)
+The database appends tier metadata to its existing strength view. `cohort-standing.ts` maps that metadata, without ranking math, for profiles and existing club rosters. `components/cohort-standing.tsx` renders 10→1 left-to-right and explanatory unavailable states; `components/glicko-metrics.tsx` consistently labels raw ratings, uncertainty and schedule. Ranking lists reuse profile data. The roster fetch reads current standing once for its existing athlete set; historical team attribution is unchanged. No club browsing, filters, navigation or sorting capability was added.

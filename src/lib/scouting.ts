@@ -1,4 +1,5 @@
 import "server-only";
+import { toCohortStanding } from "@/lib/cohort-standing";
 
 import { supabase } from "@/lib/supabase";
 import {
@@ -146,6 +147,8 @@ type CohortStrengthRow = {
   strength_score: number | string;
   cohort_rank: number;
   cohort_size: number;
+  cohort_tier: number | null;
+  tier_unavailable_reason: string | null;
   division_birth_year_start: number;
   division_birth_year_end: number;
 };
@@ -419,7 +422,7 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
       ? db.from("wrestler_rating_current").select("athlete_key,model_version,as_of_date,rating,rating_deviation,conservative_score,rating_status,match_count,avg_opponent_rating,sos_expected_win_pct,quality_wins,quality_losses,pin_pct,bonus_pct,win_methods,loss_methods,avg_win_margin,avg_loss_margin,rating_trend").in("athlete_key", ratingKeys)
       : empty,
     names.length
-      ? db.from("wrestler_strength_current").select("athlete_name,age_group,weight_bucket,weight_band,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,division_birth_year_start,division_birth_year_end").in("athlete_name", names).limit(1000)
+      ? db.from("wrestler_strength_current").select("athlete_name,age_group,weight_bucket,weight_band,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason,division_birth_year_start,division_birth_year_end").in("athlete_name", names).limit(1000)
       : empty,
     knownCohorts ? { data: knownCohorts } : ratingKeys.length
       ? db.from("wrestler_cohort_current").select("athlete_key,age_group,bracket_weight_lbs").in("athlete_key", ratingKeys)
@@ -591,6 +594,8 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
       birthYearEnd: null,
       cohortRank: rating?.cohort_rank ?? null,
       cohortSize: rating?.cohort_size ?? null,
+      cohortTier: toCohortStanding(cohortRow).cohortTier,
+      tierUnavailableReason: toCohortStanding(cohortRow).tierUnavailableReason,
       weightBand: rating?.weight_band ?? null,
       evidenceConfidence,
       latestDate,
