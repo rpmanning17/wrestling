@@ -370,7 +370,7 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
 }
 
 const newest = (dates: Array<string | null>) => dates.filter(Boolean).sort().at(-1) ?? null;
-export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfile[]> {
+export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentCohortRow[]): Promise<WrestlerProfile[]> {
   const cleanRefs = refs
     .map((ref) => ({ ...ref, name: validName(ref.name) }))
     .filter((ref) => ref.name)
@@ -421,7 +421,7 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
     names.length
       ? db.from("wrestler_strength_current").select("athlete_name,age_group,weight_bucket,weight_band,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,division_birth_year_start,division_birth_year_end").in("athlete_name", names).limit(1000)
       : empty,
-    ratingKeys.length
+    knownCohorts ? { data: knownCohorts } : ratingKeys.length
       ? db.from("wrestler_cohort_current").select("athlete_key,age_group,bracket_weight_lbs").in("athlete_key", ratingKeys)
       : empty,
   ]);
@@ -651,4 +651,20 @@ export async function likelyNolanPool() {
     .limit(800);
   const refs = [...new Map(((data ?? []) as Array<{ athlete_name: string; team: string; age_group: string; bracket_weight_lbs: number | string }>).map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team, ageGroup: row.age_group, weight: Number(row.bracket_weight_lbs) }])).values()];
   return (await buildProfiles(refs)).filter((p) => p.latestAgeGroup === "12U" && p.latestWeight != null && p.latestWeight >= 65 && p.latestWeight <= 80).sort((a, b) => b.likelihood - a.likelihood).slice(0, 6);
+}
+
+/** Both ranking lists share their candidate and classification snapshot. */
+export async function rankingPools() {
+  const { data, error } = await supabase().from("wrestler_cohort_current")
+    .select("athlete_key,athlete_name,team,age_group,bracket_weight_lbs")
+    .eq("age_group", "12U").gte("bracket_weight_lbs", 65).lte("bracket_weight_lbs", 80)
+    .order("evidence_date", { ascending: false }).limit(120);
+  if (error) throw new Error("Current ranking classification unavailable");
+  const rows = (data ?? []) as Array<CurrentCohortRow & { athlete_name: string; team: string }>;
+  const profiles = await buildProfiles(rows.map((row) => ({ name: row.athlete_name, team: row.team })), rows);
+  return {
+    likelyProfiles: [...profiles].sort((a,b) => b.likelihood-a.likelihood).slice(0,6),
+    strongestProfiles: profiles.filter((p) => p.latestWeight != null && Math.floor(p.latestWeight/10) === 7)
+      .sort((a,b) => (b.strength ?? -1)-(a.strength ?? -1)),
+  };
 }

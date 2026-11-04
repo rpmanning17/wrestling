@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { likelyNolanPool, strongestPool } from "@/lib/scouting";
+import { rankingPools } from "@/lib/scouting";
 
 export const dynamic = "force-dynamic";
 
 export default async function RankingsPage() {
-  const [likelyProfiles, strongestProfiles] = await Promise.all([likelyNolanPool(), strongestPool()]);
+  const { likelyProfiles, strongestProfiles } = await rankingPools();
   const adjusted = [...likelyProfiles, ...strongestProfiles].some((profile) => profile.ratingSource === "opponent_adjusted");
   return (
     <main className="page-shell rankings-page">
