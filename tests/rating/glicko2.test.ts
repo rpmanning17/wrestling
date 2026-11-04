@@ -104,6 +104,30 @@ describe("Glicko-2 behaviour required by the product", () => {
     assert.ok(phiToRd(veteran.phi) < rd - 40, `veteran rd ${phiToRd(veteran.phi)} vs newcomer ${rd}`);
   });
 
+  it("zero additional skill drift exactly preserves published Glicko calculations", () => {
+    const start = player(1600, 70);
+    const games = [game(1700, 50, 1), game(1450, 60, 0)];
+    assert.deepEqual(updatePlayer(start, games, params),
+      updatePlayer(start, games, { ...params, extraVariancePerPeriod: 0 }));
+    assert.equal(inflatePhi(start.phi, start.sigma, 30, rdToPhi(350)),
+      inflatePhi(start.phi, start.sigma, 30, rdToPhi(350), 0));
+  });
+
+  it("optional skill drift increases uncertainty and responsiveness without moving idle ability", () => {
+    const start = player(1600, 60);
+    const drift = (rdToPhi(120) ** 2) / 365.25;
+    const idle = updatePlayer(start, [], { ...params, extraVariancePerPeriod: drift });
+    assert.equal(idle.mu, start.mu);
+    assert.ok(idle.phi > updatePlayer(start, [], params).phi);
+    const longIdle = inflatePhi(start.phi, start.sigma, 365, rdToPhi(350), drift);
+    assert.ok(longIdle > inflatePhi(start.phi, start.sigma, 365, rdToPhi(350)));
+    assert.ok(longIdle <= rdToPhi(350));
+    const standard = updatePlayer(start, [game(1700, 80, 1)], params);
+    const adaptive = updatePlayer(start, [game(1700, 80, 1)], { ...params, extraVariancePerPeriod: drift });
+    assert.ok(adaptive.mu > standard.mu);
+    assert.ok(adaptive.phi > standard.phi);
+  });
+
   it("fractional scores land between a loss and a win", () => {
     const win = updatePlayer(player(1500, 100), [game(1500, 60, 1)], params).mu;
     const mid = updatePlayer(player(1500, 100), [game(1500, 60, 0.7)], params).mu;
