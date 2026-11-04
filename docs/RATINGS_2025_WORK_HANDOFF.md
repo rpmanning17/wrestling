@@ -109,3 +109,16 @@ The exact reproducible SQL for these and for post-model checks is committed at *
 ## If a tool or execution method fails
 
 Do not repeatedly attempt forbidden bulk writes in the connected SQL tool, download or expose privileged credentials, add privileged public RPCs, or mark partial results as complete. Stop safely with the old model active. The exact remaining work and validation evidence are in this handoff and the read-only audit.
+
+
+## 2026-11-04 — Codex Phase A preflight; execution blocked before writes
+
+Checked GitHub main `d99f0428a102202027876fafe207cf0b8fc2a6fb` and draft PR #6 head `4b1439f6b1fae8621f14fff53c87d64d86ea92be` in a separate checkout. Related Codex chats were idle in the app inventory; no concurrent repository/model writer was observed. No production writes were performed.
+
+Re-executed all eight sections of `supabase/audits/rating_2025_readiness.sql` separately through the authorized Supabase connector: **67,736** raw rows / **199** source files / **35,861** calendar-2025 rows, date range 2024-10-05–2026-10-31; no missing essentials/provenance, repeated source-file/row pairs or strict duplicate groups. Import breakdown confirms the additional 30 calendar-2026 rows. Six OTHER1 outcomes remain unchanged. Both raw MD5s match the handoff: `6d0c35fc56e3f9acecc54bca603bc771` and `055ef1cf665dc4a1d8cdee5cd76bcae6`. Independently reconstructed the existing CLI input-fingerprint algorithm in read-only SQL (C-collated ordered lines and reviewed aliases): **`7a19ca2f486aac6f1889e9f8e28a700115adb7ddb83a213c6e4be17b449101a9`**, exact match.
+
+Exactly one active model remains `d64fd4ba-de14-4d07-bac8-2961e12d506d`: 7,788 ratings / 16,951 history points; 30,133 wins and losses; zero audited invalid record/rating/conservative/SOS/history states. Building `a957ed42-8ee2-4792-944d-5f63a0b4ce72` remains **500 ratings / zero history**, with unbalanced totals; **NEVER activate it**. Inspected the existing atomic activation function: building status is rejected; anon/authenticated EXECUTE privileges are false. No function/grant changes.
+
+Installed locked dependencies and attempted the exact main baseline command with production config, `--as-of 2026-11-04 --force`. It exited before database reads/writes because this fresh environment has no `.env.local` or applicable credential variables. Owner must securely configure the existing local execution credentials (never paste into chat) or identify an already configured environment. No candidate was created; 64,050 / 11,724 / 34,809 remain expected targets, **not freshly calculated or persisted results**. No activation or post-activation live verification has occurred. Phase B full-data backtest remains pending Phase A; no drift adoption.
+
+Main validation: lint, typecheck, **132/132 tests**, optimized build passed (dummy build-only values). Initial Windows checkout CRLF conversion caused the existing generated-SQL byte-equality test to fail; restoring those files directly from committed Git bytes made the suite pass without source changes. PR #6 runtime changes were inspected only, not executed on production data. Resume with Phase A candidate persistence, all audit gates, guarded atomic activation and live/log/privacy checks, then Phase B as specified above.
