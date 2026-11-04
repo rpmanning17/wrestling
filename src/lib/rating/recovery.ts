@@ -34,10 +34,17 @@ export function guardedBatchSql(
   const relation = `public.${table}`;
   const payload = `jsonb_populate_recordset(null::${relation}, payload)`;
   const join = keys.map(k => `s.${k} = e.${k}`).join(" and ");
-  const body = `declare payload jsonb := ${sqlLiteral(JSON.stringify(rows))}::jsonb;
+  // Transmit column names once, retaining JSON types. This bounds connector requests
+  // without hiding data in compressed/encoded blobs or repeating every field name.
+  const matrix = rows.map(row => columns.map(column => row[column]));
+  const body = `declare payload jsonb := (
+    select jsonb_agg((select jsonb_object_agg(field, cell.value -> (ordinality::int - 1))
+      from unnest(array[${columns.map(sqlLiteral).join(",")}]) with ordinality fields(field, ordinality)))
+    from jsonb_array_elements(${sqlLiteral(JSON.stringify(matrix))}::jsonb) cell);
 begin
   perform 1 from public.rating_models m where m.id = ${sqlLiteral(model.id)}::uuid
-    and to_jsonb(m) @> ${sqlLiteral(JSON.stringify(model))}::jsonb for update;
+    and not exists (select 1 from jsonb_each(${sqlLiteral(JSON.stringify(model))}::jsonb) expected
+      where to_jsonb(m) -> expected.key is distinct from expected.value) for update;
   if not found then raise exception 'Recovery model status or provenance mismatch'; end if;
   if exists (select 1 from ${payload} e join ${relation} s on ${join}
       where to_jsonb(s) is distinct from to_jsonb(e)) then

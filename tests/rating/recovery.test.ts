@@ -66,6 +66,10 @@ describe("canonical provenance-only recovery", () => {
       assert.equal((await db.query("select * from public.wrestler_rating_history")).rows.length, history.length);
       await assert.rejects(db.exec(guardedBatchSql({ ...model, code_version: "chat-20261104/glicko2-engine-1" },
         "wrestler_model_ratings", ratings)), /provenance mismatch/);
+      // Nested metadata must be exactly equal, not merely JSON containment.
+      await db.exec(`update public.rating_models set config='{"unexpected":true}' where id='${modelId}'`);
+      await assert.rejects(db.exec(guardedBatchSql({ ...model, config: {} }, "wrestler_model_ratings", ratings)), /provenance mismatch/);
+      await db.exec(`update public.rating_models set config='{}' where id='${modelId}'`);
       for (const field of ["rating", "rating_deviation", "volatility", "wins", "avg_opponent_rating", "sos_expected_win_pct"]) {
         const changed = ratings.map(r => ({ ...r, [field]: Number(r[field as keyof typeof r]) + 1 }));
         await assert.rejects(db.exec(guardedBatchSql(model, "wrestler_model_ratings", changed)), /existing-row mismatch/);
