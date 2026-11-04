@@ -138,6 +138,8 @@ type CurrentCohortRow = {
 };
 
 type CohortStrengthRow = {
+  athlete_key: string;
+  bracket_weight_lbs: number | string;
   athlete_name: string;
   age_group: string;
   weight_bucket: number;
@@ -396,7 +398,7 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
   const empty = { data: [] as unknown[] };
 
   const ratingKeys = [...new Set(names.map(identity))];
-  const [winsResult, lossesResult, entriesResult, observationsResult, evidenceResult, ratingsResult, notesResult, activeModelResult, powerResult, cohortResult, currentCohortResult] = await Promise.all([
+  const [winsResult, lossesResult, entriesResult, observationsResult, evidenceResult, ratingsResult, notesResult, activeModelResult, powerResult, cohortResult] = await Promise.all([
     names.length
       ? db.from("matches").select("id,event_date,event_name,city,weight_class,winner_name,winner_team,loser_name,loser_team,result,win_type").in("winner_name", names).order("event_date", { ascending: false }).limit(1000)
       : empty,
@@ -422,14 +424,19 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
       ? db.from("wrestler_rating_current").select("athlete_key,model_version,as_of_date,rating,rating_deviation,conservative_score,rating_status,match_count,avg_opponent_rating,sos_expected_win_pct,quality_wins,quality_losses,pin_pct,bonus_pct,win_methods,loss_methods,avg_win_margin,avg_loss_margin,rating_trend").in("athlete_key", ratingKeys)
       : empty,
     names.length
-      ? db.from("wrestler_strength_current").select("athlete_name,age_group,weight_bucket,weight_band,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason,division_birth_year_start,division_birth_year_end").in("athlete_name", names).limit(1000)
-      : empty,
-    knownCohorts ? { data: knownCohorts } : ratingKeys.length
-      ? db.from("wrestler_cohort_current").select("athlete_key,age_group,bracket_weight_lbs").in("athlete_key", ratingKeys)
+      ? db.from("wrestler_strength_current").select("athlete_key,athlete_name,bracket_weight_lbs,age_group,weight_bucket,weight_band,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason,division_birth_year_start,division_birth_year_end").in("athlete_key", ratingKeys).limit(1000)
       : empty,
   ]);
-  if ("error" in currentCohortResult && currentCohortResult.error) throw new Error("Current cohort classification unavailable");
-  const currentCohorts = (currentCohortResult.data ?? []) as CurrentCohortRow[];
+  if ("error" in cohortResult && cohortResult.error) throw new Error("Current cohort standing unavailable. Try again.");
+  const currentCohorts: CurrentCohortRow[] = knownCohorts ?? ((cohortResult.data ?? []) as CohortStrengthRow[]).map((row) => ({
+    athlete_key: row.athlete_key, age_group: row.age_group, bracket_weight_lbs: row.bracket_weight_lbs,
+  }));
+  const missingCohortKeys = ratingKeys.filter((key) => !currentCohorts.some((row) => row.athlete_key === key));
+  if (missingCohortKeys.length) {
+    const missing = await db.from("wrestler_cohort_current").select("athlete_key,age_group,bracket_weight_lbs").in("athlete_key", missingCohortKeys);
+    if (missing.error) throw new Error("Current cohort classification unavailable. Try again.");
+    currentCohorts.push(...(missing.data ?? []) as CurrentCohortRow[]);
+  }
   // A model counts as active only if the view answered without error and returned a row.
   const modelActive = !("error" in activeModelResult && activeModelResult.error) && ((activeModelResult.data as unknown[] | null) ?? []).length > 0;
   const powerRows = modelActive ? ((powerResult.data ?? []) as PowerRow[]) : [];

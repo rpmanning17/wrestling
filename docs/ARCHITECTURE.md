@@ -63,3 +63,6 @@ As of 2026-11-03 the live application reads `glicko2-daily-dec08-v1`. Production
 
 ## Shared rating display (2026-11-04)
 The database appends tier metadata to its existing strength view. `cohort-standing.ts` maps that metadata, without ranking math, for profiles and existing club rosters. `components/cohort-standing.tsx` renders 10→1 left-to-right and explanatory unavailable states; `components/glicko-metrics.tsx` consistently labels raw ratings, uncertainty and schedule. Ranking lists reuse profile data. The roster fetch reads current standing once for its existing athlete set; historical team attribution is unchanged. No club browsing, filters, navigation or sorting capability was added.
+
+
+Production read optimization: profile construction uses current age/weight fields from the same strength-view row as rank/tier; missing/unrated athletes fetch classification separately. Club schedule calculations materialize their rating join once, including for filtered club pages. Neither path uses a data cache or widens permissions.

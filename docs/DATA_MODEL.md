@@ -67,3 +67,6 @@ Migration `202611030009` was **applied to production on 2026-11-03** (production
 
 ## Tier metadata (2026-11-04)
 Migration `20261104143500_cohort_tiers_and_rating_clarity.sql` appends `tier_eligible` to `wrestler_cohort_current` and `cohort_tier` / `tier_unavailable_reason` to `wrestler_strength_current`. Eligibility reports unique top vote support in both dimensions; it does not change inferred labels or grant stronger evidence confidence. The strength view is the sole tier authority. `club_rankings_current.schedule_expected_win_pct` averages 1/(1+10^((opponent_rating−1500)/400)) across the same opponent appearances already used for the club's opponent average. All views retain security_invoker and existing grants. No tables or raw/model rows are changed. The CLI's local telemetry write was prohibited in this session; the reviewed SQL was saved locally and applied through the authorized administrator connector, preserving the existing migration-history caveat.
+
+
+Two immutable query-plan follow-ups for the same club calculation are applied: `20261104145000_bound_club_schedule_read.sql` and `20261104145400_bound_filtered_club_schedule.sql`. They preserve existing club metrics/affiliations and the reference-1500 formula, while avoiding per-bout repeated scans and arbitrary-precision exponentiation. All raw and model tables remain untouched.

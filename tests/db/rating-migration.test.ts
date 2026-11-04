@@ -385,4 +385,27 @@ describe("population decile Cohort Tiers", () => {
     assert.equal(rows.find(r=>r.athlete_key==='tier 00000')?.cohort_size,1);
     assert.equal(Number(rows.find(r=>r.athlete_key==='tier 00000')?.rating),2500);
   }));
+  it("recomputes current age cohort tiers without changing global ratings", () => isolated(async () => {
+    await seedPopulation(20);
+    await db.exec(evidenceInsert('tier 00000','Tier 00000',150,999999).replace("'2026-10-24'","'2026-11-01'").replace("'Fall Open'","'New Open'").replace("'12U'","'14U'"));
+    const row=(await db.query<{age_group:string;cohort_size:number;cohort_tier:number|null;rating:string}>(
+      "select * from wrestler_strength_current where athlete_key='tier 00000'")).rows[0];
+    assert.equal(row.age_group,'14U');
+    assert.equal(row.cohort_size,1);
+    assert.equal(row.cohort_tier,null);
+    assert.equal(Number(row.rating),2500);
+  }));
+  it("uses the existing reference-1500 expectation in both all-club and filtered reads", () => isolated(async () => {
+    await db.exec(`insert into matches(event_date,season,event_name,weight_class,winner_name,winner_team,loser_name,loser_team,win_type)
+      values ('2026-10-24','2026','Tier Club Open','75','A One','Tier Club A','Opponent','Tier Club B','DEC')`);
+    const all=(await db.query<{club_key:string;schedule_expected_win_pct:string;avg_opponent_rating:string}>(
+      "select club_key,schedule_expected_win_pct,avg_opponent_rating from club_rankings_current where season='ALL'")).rows;
+    const filtered=(await db.query<{schedule_expected_win_pct:string}>(
+      "select schedule_expected_win_pct from club_rankings_current where season='ALL' and club_key='raw:tier club b'")).rows;
+    const row=all.find(r=>r.club_key==='raw:tier club b')!;
+    assert.ok(row);
+    assert.equal(Number(row.avg_opponent_rating),1400);
+    assert.ok(Math.abs(Number(row.schedule_expected_win_pct)-1/(1+10**((1400-1500)/400)))<1e-12);
+    assert.equal(filtered[0].schedule_expected_win_pct,row.schedule_expected_win_pct);
+  }));
 });
