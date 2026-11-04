@@ -15,7 +15,7 @@ import { resolveConfig, type RatingConfig } from "../../src/lib/rating/config";
 import { chooseWindows } from "../../src/lib/rating/grid";
 import { Glicko2Model } from "../../src/lib/rating/models";
 import { prepareMatches } from "../../src/lib/rating/prepare";
-import { loadConfig, loadInputs, parseArgs, todayIso } from "./common";
+import { configHash, inputFingerprint, loadConfig, loadInputs, parseArgs, todayIso } from "./common";
 
 const MIN_LOG_LOSS_GAIN = 0.002;
 const MAX_ECE_INCREASE = 0.005;
@@ -47,6 +47,42 @@ function runWindow(
   return runBacktest(matches, models as never, { periodDays: baseline.period.days, evaluateFrom: from, evaluateUntil: until ?? null });
 }
 
+/** Event-balanced diagnostics are separate from the match-weighted adoption rule.
+ *  A single giant tournament should be visible to reviewers, not silently hidden in a mean.
+ */
+function eventDiagnostics(model: ModelReport) {
+  const sizes = [...model.eventLoss.entries()]
+    .map(([eventId, x]) => ({ eventId, n: x.n, logLoss: x.n ? x.ll / x.n : null }))
+    .sort((a, b) => b.n - a.n || a.eventId.localeCompare(b.eventId));
+  const total = sizes.reduce((n, e) => n + e.n, 0);
+  return {
+    events: sizes.length,
+    largest: sizes.slice(0, 5),
+    largestMatchShare: total ? sizes[0].n / total : 0,
+    eventBalancedLogLoss: sizes.length ? sizes.reduce((n, e) => n + (e.logLoss ?? 0), 0) / sizes.length : null,
+  };
+}
+
+function segmentDiagnostics(baseline: ModelReport, candidate: ModelReport | null) {
+  const keys = [
+    "experience:newcomer_involved", "experience:developing", "experience:both_established",
+    "activity:recently_active", "activity:returning_after_gap",
+    "weight:same_weight_band", "weight:cross_weight_band", "weight:weight_unknown",
+    "age:same_age_group", "age:cross_age_group", "age:age_unknown",
+  ];
+  return keys.map((key) => {
+    const b = baseline.segments[key];
+    const c = candidate?.segments[key];
+    return {
+      segment: key, n: b?.n ?? 0,
+      baselineLogLoss: b?.logLoss ?? null,
+      candidateLogLoss: c?.logLoss ?? null,
+      deltaLogLoss: b?.logLoss != null && c?.logLoss != null ? c.logLoss - b.logLoss : null,
+      baselineEce: b?.ece ?? null, candidateEce: c?.ece ?? null,
+    };
+  });
+}
+
 function metric(model: ModelReport) {
   const m = model.overall;
   return `${m.n.toLocaleString()} | ${m.accuracy?.toFixed(4) ?? "n/a"} | ${m.logLoss?.toFixed(5) ?? "n/a"} | ${m.brier?.toFixed(5) ?? "n/a"} | ${m.ece?.toFixed(5) ?? "n/a"}`;
@@ -68,6 +104,8 @@ async function main() {
   }
 
   const inputs = await loadInputs(args);
+  const sourceFingerprint = inputFingerprint(inputs);
+  const baselineConfigHash = configHash(baseline);
   const { matches, report: prep } = prepareMatches(inputs.matches, inputs.aliases, baseline);
   if (!matches.length) throw new Error("Cannot backtest an empty contested-match dataset.");
   const windows = chooseWindows(matches);
@@ -89,11 +127,16 @@ async function main() {
   const confirmationComparison = selected ? compareModels(confirm.models[1], confirm.models[0], iterations) : null;
   const confirmationPasses = selected != null && confirmationComparison != null &&
     explain(confirm.models[1], confirm.models[0], confirmationComparison).acceptable;
+  const tuningConcentration = eventDiagnostics(reference);
+  const heldoutConcentration = eventDiagnostics(confirm.models[0]);
+  const heldoutSegments = segmentDiagnostics(confirm.models[0], selected ? confirm.models[1] : null);
+  const fmt = (x: number | null) => x == null ? "n/a" : x.toFixed(5);
   const lines = [
     "# Youth-rating recency experiment — NOT a production adoption",
     "",
     `Generated ${todayIso()} from ${inputs.source}; reference \`${file}\`.`,
     `Input matches: ${prep.total.toLocaleString()}; rated matches: ${prep.rated.toLocaleString()}.`,
+    `Input fingerprint: \`${sourceFingerprint}\`. Reference configuration SHA-256: \`${baselineConfigHash}\`.`,
     `Walk-forward event tuning: [${windows.evaluateFrom}, ${windows.splitDate}); untouched confirmation: from ${windows.splitDate}.`,
     "",
     "Experimental parameter: additional annual random-walk RD (points per sqrt(year)).",
@@ -126,6 +169,23 @@ async function main() {
     "",
     `**Decision: ${confirmationPasses ? "candidate merits a separate review" : "keep production unchanged"}**. No data or live model was altered.`,
     "",
+    "## Holdout segment diagnostics (not individually powered adoption tests)",
+    "",
+    "The following rows are descriptive; small populations and ambiguous age/weight evidence are not strong proof.",
+    "",
+    "| Segment | Bouts | Production log loss | Candidate log loss | Candidate − production | Production ECE | Candidate ECE |",
+    "|---|---:|---:|---:|---:|---:|---:|",
+    ...heldoutSegments.map((x) => `| ${x.segment} | ${x.n} | ${fmt(x.baselineLogLoss)} | ${fmt(x.candidateLogLoss)} | ${fmt(x.deltaLogLoss)} | ${fmt(x.baselineEce)} | ${fmt(x.candidateEce)} |`),
+    "",
+    "## Event concentration (check for outsized tournament effects)",
+    "",
+    `Tuning: ${tuningConcentration.events} events; largest event ${(100 * tuningConcentration.largestMatchShare).toFixed(1)}% of scored bouts; event-balanced log loss ${fmt(tuningConcentration.eventBalancedLogLoss)}.`,
+    `Holdout: ${heldoutConcentration.events} events; largest event ${(100 * heldoutConcentration.largestMatchShare).toFixed(1)}% of scored bouts; event-balanced log loss ${fmt(heldoutConcentration.eventBalancedLogLoss)}.`,
+    "",
+    "| Holdout event identifier | Bouts | Event log loss |",
+    "|---|---:|---:|",
+    ...heldoutConcentration.largest.map((e) => `| ${e.eventId.replaceAll("|", "/")} | ${e.n} | ${fmt(e.logLoss)} |`),
+    "",
     "## Limitations",
     "",
     "- Only ~2 years of imported bouts: cannot validate a three- or four-year cutoff or long-term development effects.",
@@ -137,10 +197,12 @@ async function main() {
   const out = args.values.get("out") ?? "docs/RECENCY_EXPERIMENT_REPORT.md";
   writeFileSync(out, lines.join("\n"));
   if (args.values.get("json")) writeFileSync(args.values.get("json")!, JSON.stringify({
-    inputs: { total: prep.total, rated: prep.rated },
+    inputs: { total: prep.total, rated: prep.rated, sourceFingerprint, baselineConfigHash },
     windows, selectedDrift: selected?.drift ?? null,
     tuning: evaluations.map(({ drift, model, comparison, acceptable }) => ({ drift, metrics: model.overall, comparison, acceptable })),
-    confirmation: { baseline: confirm.models[0].overall, candidate: selected ? confirm.models[1].overall : null, comparison: confirmationComparison, passes: !!confirmationPasses },
+    confirmation: { baseline: confirm.models[0].overall, candidate: selected ? confirm.models[1].overall : null, comparison: confirmationComparison, passes: !!confirmationPasses,
+      segments: heldoutSegments, concentration: heldoutConcentration },
+    tuningConcentration,
   }, null, 2));
   console.log(`Report: ${out}; held-out decision: ${confirmationPasses ? "review candidate, do not auto-activate" : "keep production unchanged"}`);
 }
