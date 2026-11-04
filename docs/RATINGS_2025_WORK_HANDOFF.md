@@ -44,7 +44,7 @@ Read-only SQL checks found:
 - Zero missing event dates, participant names, source filenames or source-row identifiers.
 - `count(distinct (source_file,source_row))=67,736`; zero repeated source-file/row pairs.
 - Zero strictly identical same-direction date/event/weight/round/result/win-type groups under the literal normalized SQL audit; the preparation pipeline also reported zero excluded exact-duplicate signatures.
-- **921** normalized wrestler names appear in all three years; this is useful developmental coverage, *not proof* of 921 unique verified persons.
+- **921** normalized wrestler names appear in all three years; **2,462** appear in both 2025 and 2026; **676** recorded at least 10 bouts in each of 2025 and 2026. This is useful developmental coverage, *not proof* of unique verified persons.
 - Year 2025 has **1,095** same-date/event/bracket/unordered-pair multiple-contested-bout groups, with **164** opposite-winner groups, under a **broader grouping that ignores round**. This is not evidence of duplication; D19 forbids automatic suppression. These counts are NOT directly comparable to earlier narrower audits.
 - Six `OTHER1` records remain excluded from rating: two 0-0 scores, four nonzero scores in 2025. The four scored rows are `SomersetSpringBash#1 (1).csv` source_row 316 (2025-04-19, 1-6); `VieraHammersJuggernautQualifier.csv` rows 166 (13-1) and 180 (20-7) (2025-10-18); `LAInvitational2025.csv` row 210 (2025-12-13, 16-2). Review original Flo context before assigning a contested method; **do not guess from numeric scores**.
 - Season labels include an existing 668-row `2026-2027` hyphen variant alongside `2026–2027`; rating calculation uses event dates, not season labels.
