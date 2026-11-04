@@ -44,7 +44,7 @@ function runWindow(
       `drift-${drift}`,
     )),
   ];
-  return runBacktest(matches, models, { periodDays: baseline.period.days, evaluateFrom: from, evaluateUntil: until ?? null });
+  return runBacktest(matches, models as never, { periodDays: baseline.period.days, evaluateFrom: from, evaluateUntil: until ?? null });
 }
 
 function metric(model: ModelReport) {
