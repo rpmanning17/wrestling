@@ -38,3 +38,7 @@ Owner context used for the "likely opponents" feature (kept as configuration in 
 - The 0 to 1000 cohort strength display stays; when a model is active it is the min-max of the conservative score within the (age group, 10 lb band) cohort.
 - Secrets never enter the repository or chat.
 - Mobile first: no horizontal scroll, large tap targets, details collapsed by default.
+
+
+## Cohort tiers and rating clarity (2026-11-04)
+F16: population decile tiers (1 strongest to 10 weakest), minimum 20 rated cohort members, ties kept together and no tier for missing/tied cohort support. Implemented in SQL and shared UI; production verification is recorded in STATUS. Strength, tier, uncertainty and Matchup Likelihood remain separate. Existing club views use precise raw-Glicko labels and current wrestler cohort metadata without new browsing capabilities.

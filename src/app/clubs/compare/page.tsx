@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { schedulePercent } from "@/lib/cohort-standing";
 import { CLUB_SEASONS, clubHref, fmt, getClub, getClubs, matchPct, type ClubSeason, type ClubSummary } from "@/lib/clubs";
 
 export const dynamic = "force-dynamic";
@@ -16,13 +17,14 @@ export default async function CompareClubsPage({ searchParams }: {
   const [a, b] = await Promise.all([selected(aKey), selected(bKey)]);
 
   const metrics: Array<{ label: string; describe: string; value: (club: ClubSummary) => string }> = [
+    { label: "Schedule Difficulty", describe: "Reference 1,500 expected win %; lower means harder opposition", value: (club) => schedulePercent(club.schedule_expected_win_pct) },
     { label: "Observed wrestlers", describe: "Unique athletes representing the club", value: (club) => String(club.wrestlers) },
     { label: "Contested bouts", describe: "Appearances in imported matches", value: (club) => String(club.bouts) },
     { label: "Win percentage", describe: "Recorded bouts, not strength-adjusted", value: (club) => matchPct(club.wins, club.bouts) },
-    { label: "Typical strength", describe: "Median current conservative rating", value: (club) => fmt(club.median_conservative, 1) },
-    { label: "Top-five strength", describe: "Top five current conservative ratings", value: (club) => fmt(club.top_five_conservative, 1) },
-    { label: "Average strength", describe: "Mean current conservative rating", value: (club) => fmt(club.avg_conservative, 1) },
-    { label: "Opponents (SOS)", describe: "Mean current rating of actual opponents", value: (club) => fmt(club.avg_opponent_rating, 1) },
+    { label: "Median Conservative Glicko Rating", describe: "Median current conservative rating", value: (club) => fmt(club.median_conservative, 1) },
+    { label: "Top-five Conservative Glicko Rating", describe: "Top five current conservative ratings", value: (club) => fmt(club.top_five_conservative, 1) },
+    { label: "Average Conservative Glicko Rating", describe: "Mean current conservative rating", value: (club) => fmt(club.avg_conservative, 1) },
+    { label: "Average Opponent Glicko Rating", describe: "Mean current rating of actual opponents", value: (club) => fmt(club.avg_opponent_rating, 1) },
     { label: "Rated wrestlers", describe: "Matches linked to active rating model", value: (club) => String(club.rated_wrestlers) },
   ];
   return <main className="page-shell clubs-page">
@@ -36,7 +38,7 @@ export default async function CompareClubsPage({ searchParams }: {
     </form>
     {error && <p className="club-notice">{error}</p>}
     {a && b ? <>
-      {(!a.rated_wrestlers || !b.rated_wrestlers) && <p className="club-notice">Power and SOS metrics require an active opponent-adjusted rating model. Missing values are shown as dashes.</p>}
+      {(!a.rated_wrestlers || !b.rated_wrestlers) && <p className="club-notice">Glicko and schedule metrics metrics require an active opponent-adjusted rating model. Missing values are shown as dashes.</p>}
       <div className="club-compare-head"><span>Metric</span><strong><Link href={clubHref(a.club_key,season)}>{a.club_name}</Link></strong><strong><Link href={clubHref(b.club_key,season)}>{b.club_name}</Link></strong></div>
       {metrics.map((metric) => <div className="club-compare-row" key={metric.label}>
         <div><strong>{metric.label}</strong><small>{metric.describe}</small></div>

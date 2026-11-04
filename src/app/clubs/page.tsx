@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { schedulePercent } from "@/lib/cohort-standing";
 import { CLUB_SEASONS, CLUB_SORTS, clubHref, fmt, getClubs, matchPct, type ClubSeason, type ClubSort } from "@/lib/clubs";
 
 export const dynamic = "force-dynamic";
@@ -51,13 +52,13 @@ export default async function ClubsPage({ searchParams }: { searchParams: Promis
             </div>
             <div className="club-result-stats">
               <div><span>Record</span><strong>{club.wins}–{club.losses}</strong><small>{matchPct(club.wins, club.bouts)}</small></div>
-              <div><span>Typical strength</span><strong>{fmt(club.median_conservative, 1)}</strong><small>Conservative score</small></div>
-              <div><span>Top 5 strength</span><strong>{fmt(club.top_five_conservative, 1)}</strong><small>{club.rated_wrestlers ? `${Math.min(5, club.rated_wrestlers)} rated` : "Not rated"}</small></div>
-              <div><span>Schedule</span><strong>{fmt(club.avg_opponent_rating, 1)}</strong><small>Avg opponent rating</small></div>
+              <div><span>Median Conservative Glicko Rating</span><strong>{fmt(club.median_conservative, 1)}</strong><small>Raw Glicko scale</small></div>
+              <div><span>Top-five Conservative Glicko Rating</span><strong>{fmt(club.top_five_conservative, 1)}</strong><small>{club.rated_wrestlers ? `${Math.min(5, club.rated_wrestlers)} rated` : "Not rated"}</small></div>
+              <div><span>Schedule Difficulty</span><strong>{schedulePercent(club.schedule_expected_win_pct)}</strong><small>Reference 1,500 expected win %; lower means harder. Average Opponent Glicko Rating: {fmt(club.avg_opponent_rating, 1)}</small></div>
             </div>
           </article>)}
         </div> : <section className="empty-state"><h2>No clubs found</h2><p>Try another spelling or remove a filter.</p></section>}
-        <p className="club-footnote">Based on imported matches, not a complete statewide census. A wrestler may represent different clubs across events. Match records include possible genuine rematches; no pair of results is discarded merely because opponents met at the same event. Historical seasons show their contemporary rosters but the power ratings, when available, are <strong>current estimates</strong>, not historical values.</p>
+        <p className="club-footnote">Based on imported matches, not a complete statewide census. A wrestler may represent different clubs across events. Match records include possible genuine rematches; no pair of results is discarded merely because opponents met at the same event. Historical seasons show their contemporary rosters but the Glicko ratings, when available, are <strong>current estimates</strong>, not historical values.</p>
       </>}
     </main>
   );

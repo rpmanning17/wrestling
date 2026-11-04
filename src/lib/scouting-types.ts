@@ -96,6 +96,8 @@ export type WrestlerProfile = WrestlerRef & {
   birthYearEnd: number | null;
   cohortRank: number | null;
   cohortSize: number | null;
+  cohortTier: number | null;
+  tierUnavailableReason: string | null;
   weightBand: string | null;
   evidenceConfidence: "confirmed" | "strong" | "moderate" | "limited";
   latestDate: string | null;
