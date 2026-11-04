@@ -84,7 +84,7 @@ The exact reproducible SQL for these and for post-model checks is committed at *
 
 ## Phase B — evaluate experimental youth recency (separate from Phase A)
 
-- Draft PR **#6** provides optional Glicko process drift; absence of `recency.skillDriftRdPerYear` preserves **exact** production config hash and calculation behavior. The option adds `(d / 173.7178)^2 × periodDays / 365.25` to internal rating variance per period; it is **NOT** a literal 12-month half-life and does not expire historical matches.
+- Draft PR **#6** provides optional Glicko process drift; absence of `recency.skillDriftRdPerYear` preserves **exact** production config hash and calculation behavior. The option adds `(d / 173.7178)^2 × periodDays / 365.25` to internal rating variance per period; enabled candidates store `recency.policy=glicko2_continuous_skill_drift` and the existing model keeps its original policy/config hash. This is **additional** to Glicko-2's normal volatility (roughly 199 RD/√year when sigma stays 0.06 with daily periods), **NOT** a literal 12-month half-life; no historical match expires.
 - GitHub CI has already passed **136/136 tests**, lint, typecheck and build on initial PR commit; rerun checks after the subsequent diagnostic/audit/handoff commits.
 - On `experiment/youth-rating-recency-drift`, run the **read-only** experiment with the exact production config:
   ```bash
