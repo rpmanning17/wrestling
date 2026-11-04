@@ -1,0 +1,644 @@
+{
+  "inputs": {
+    "total": 67736,
+    "rated": 64050,
+    "sourceFingerprint": "7a19ca2f486aac6f1889e9f8e28a700115adb7ddb83a213c6e4be17b449101a9",
+    "baselineConfigHash": "1eb854346d016d2c1276d8cc5209f73acac90c433fcc23636743e6a5e1881a67"
+  },
+  "windows": {
+    "evaluateFrom": "2024-12-04",
+    "splitDate": "2026-01-17"
+  },
+  "selectedDrift": null,
+  "tuning": [
+    {
+      "drift": 50,
+      "metrics": {
+        "n": 40916,
+        "accuracy": 0.683754521458598,
+        "logLoss": 0.570137983009638,
+        "brier": 0.19572606341084245,
+        "ece": 0.007249565328771584,
+        "calibration": [
+          {
+            "lo": 0,
+            "hi": 0.1,
+            "n": 3050,
+            "meanPredicted": 0.061364874026764694,
+            "observedRate": 0.03475409836065574
+          },
+          {
+            "lo": 0.1,
+            "hi": 0.2,
+            "n": 6009,
+            "meanPredicted": 0.15284548846249765,
+            "observedRate": 0.1329672158429023
+          },
+          {
+            "lo": 0.2,
+            "hi": 0.3,
+            "n": 8326,
+            "meanPredicted": 0.25156813398837163,
+            "observedRate": 0.2561854431900072
+          },
+          {
+            "lo": 0.3,
+            "hi": 0.4,
+            "n": 9245,
+            "meanPredicted": 0.3494500374750473,
+            "observedRate": 0.3517577068685776
+          },
+          {
+            "lo": 0.4,
+            "hi": 0.5,
+            "n": 9021,
+            "meanPredicted": 0.44931090667146095,
+            "observedRate": 0.4452943132690389
+          },
+          {
+            "lo": 0.5,
+            "hi": 0.6,
+            "n": 19551,
+            "meanPredicted": 0.5233883847842452,
+            "observedRate": 0.5252416756176155
+          },
+          {
+            "lo": 0.6,
+            "hi": 0.7,
+            "n": 9245,
+            "meanPredicted": 0.6505499625249548,
+            "observedRate": 0.6482422931314223
+          },
+          {
+            "lo": 0.7,
+            "hi": 0.8,
+            "n": 8326,
+            "meanPredicted": 0.7484318660116267,
+            "observedRate": 0.7438145568099928
+          },
+          {
+            "lo": 0.8,
+            "hi": 0.9,
+            "n": 6009,
+            "meanPredicted": 0.8471545115375054,
+            "observedRate": 0.8670327841570977
+          },
+          {
+            "lo": 0.9,
+            "hi": 1,
+            "n": 3050,
+            "meanPredicted": 0.9386351259732337,
+            "observedRate": 0.9652459016393443
+          }
+        ]
+      },
+      "comparison": {
+        "candidate": "drift-50",
+        "baseline": "production",
+        "events": 129,
+        "matches": 40916,
+        "deltaLogLoss": -0.00006885831683292449,
+        "ci95": [
+          -0.00011069723161361166,
+          -0.000028050675766451132
+        ],
+        "significantlyBetter": true
+      },
+      "acceptable": false
+    },
+    {
+      "drift": 100,
+      "metrics": {
+        "n": 40916,
+        "accuracy": 0.6833879167074005,
+        "logLoss": 0.569977311969202,
+        "brier": 0.19565460605366186,
+        "ece": 0.006641436790921897,
+        "calibration": [
+          {
+            "lo": 0,
+            "hi": 0.1,
+            "n": 3048,
+            "meanPredicted": 0.06141691550679326,
+            "observedRate": 0.03412073490813648
+          },
+          {
+            "lo": 0.1,
+            "hi": 0.2,
+            "n": 6021,
+            "meanPredicted": 0.15295271570360766,
+            "observedRate": 0.1338648065105464
+          },
+          {
+            "lo": 0.2,
+            "hi": 0.3,
+            "n": 8301,
+            "meanPredicted": 0.2515987665373769,
+            "observedRate": 0.25539091675701725
+          },
+          {
+            "lo": 0.3,
+            "hi": 0.4,
+            "n": 9252,
+            "meanPredicted": 0.3493221066821539,
+            "observedRate": 0.3518158236057069
+          },
+          {
+            "lo": 0.4,
+            "hi": 0.5,
+            "n": 9029,
+            "meanPredicted": 0.4492262111054653,
+            "observedRate": 0.4471148521430945
+          },
+          {
+            "lo": 0.5,
+            "hi": 0.6,
+            "n": 19559,
+            "meanPredicted": 0.5234386492115514,
+            "observedRate": 0.5244133135640882
+          },
+          {
+            "lo": 0.6,
+            "hi": 0.7,
+            "n": 9252,
+            "meanPredicted": 0.6506778933178499,
+            "observedRate": 0.6481841763942932
+          },
+          {
+            "lo": 0.7,
+            "hi": 0.8,
+            "n": 8301,
+            "meanPredicted": 0.748401233462626,
+            "observedRate": 0.7446090832429828
+          },
+          {
+            "lo": 0.8,
+            "hi": 0.9,
+            "n": 6021,
+            "meanPredicted": 0.8470472842963922,
+            "observedRate": 0.8661351934894536
+          },
+          {
+            "lo": 0.9,
+            "hi": 1,
+            "n": 3048,
+            "meanPredicted": 0.9385830844932067,
+            "observedRate": 0.9658792650918635
+          }
+        ]
+      },
+      "comparison": {
+        "candidate": "drift-100",
+        "baseline": "production",
+        "events": 129,
+        "matches": 40916,
+        "deltaLogLoss": -0.00022952935727810659,
+        "ci95": [
+          -0.00038906966310716957,
+          -0.0000749159943341928
+        ],
+        "significantlyBetter": true
+      },
+      "acceptable": false
+    },
+    {
+      "drift": 150,
+      "metrics": {
+        "n": 40916,
+        "accuracy": 0.6835345586078796,
+        "logLoss": 0.5698324419619184,
+        "brier": 0.19558639951054219,
+        "ece": 0.0057954489180897335,
+        "calibration": [
+          {
+            "lo": 0,
+            "hi": 0.1,
+            "n": 3055,
+            "meanPredicted": 0.06161353976901335,
+            "observedRate": 0.033715220949263505
+          },
+          {
+            "lo": 0.1,
+            "hi": 0.2,
+            "n": 6022,
+            "meanPredicted": 0.15311185908253927,
+            "observedRate": 0.1355031550979741
+          },
+          {
+            "lo": 0.2,
+            "hi": 0.3,
+            "n": 8274,
+            "meanPredicted": 0.25163857500497894,
+            "observedRate": 0.2515107565868987
+          },
+          {
+            "lo": 0.3,
+            "hi": 0.4,
+            "n": 9285,
+            "meanPredicted": 0.34932684444969,
+            "observedRate": 0.35293484114162627
+          },
+          {
+            "lo": 0.4,
+            "hi": 0.5,
+            "n": 9015,
+            "meanPredicted": 0.4492845024589357,
+            "observedRate": 0.4480310593455352
+          },
+          {
+            "lo": 0.5,
+            "hi": 0.6,
+            "n": 19545,
+            "meanPredicted": 0.523392182672432,
+            "observedRate": 0.5239703248912766
+          },
+          {
+            "lo": 0.6,
+            "hi": 0.7,
+            "n": 9285,
+            "meanPredicted": 0.6506731555503138,
+            "observedRate": 0.6470651588583737
+          },
+          {
+            "lo": 0.7,
+            "hi": 0.8,
+            "n": 8274,
+            "meanPredicted": 0.748361424995018,
+            "observedRate": 0.7484892434131013
+          },
+          {
+            "lo": 0.8,
+            "hi": 0.9,
+            "n": 6022,
+            "meanPredicted": 0.8468881409174587,
+            "observedRate": 0.8644968449020259
+          },
+          {
+            "lo": 0.9,
+            "hi": 1,
+            "n": 3055,
+            "meanPredicted": 0.9383864602309866,
+            "observedRate": 0.9662847790507365
+          }
+        ]
+      },
+      "comparison": {
+        "candidate": "drift-150",
+        "baseline": "production",
+        "events": 129,
+        "matches": 40916,
+        "deltaLogLoss": -0.0003743993645517316,
+        "ci95": [
+          -0.0006991815080210057,
+          -0.000051493351410430604
+        ],
+        "significantlyBetter": true
+      },
+      "acceptable": false
+    },
+    {
+      "drift": 200,
+      "metrics": {
+        "n": 40916,
+        "accuracy": 0.6844877309609932,
+        "logLoss": 0.5698017890624886,
+        "brier": 0.19556302396197467,
+        "ece": 0.007484118364720796,
+        "calibration": [
+          {
+            "lo": 0,
+            "hi": 0.1,
+            "n": 3058,
+            "meanPredicted": 0.06174015835145647,
+            "observedRate": 0.030739045127534337
+          },
+          {
+            "lo": 0.1,
+            "hi": 0.2,
+            "n": 6016,
+            "meanPredicted": 0.15314201705729755,
+            "observedRate": 0.13646941489361702
+          },
+          {
+            "lo": 0.2,
+            "hi": 0.3,
+            "n": 8229,
+            "meanPredicted": 0.2514762811519883,
+            "observedRate": 0.2509417912261514
+          },
+          {
+            "lo": 0.3,
+            "hi": 0.4,
+            "n": 9338,
+            "meanPredicted": 0.34918028848574667,
+            "observedRate": 0.3542514457057186
+          },
+          {
+            "lo": 0.4,
+            "hi": 0.5,
+            "n": 9010,
+            "meanPredicted": 0.4493189372292615,
+            "observedRate": 0.44273029966703664
+          },
+          {
+            "lo": 0.5,
+            "hi": 0.6,
+            "n": 19540,
+            "meanPredicted": 0.5233693129766827,
+            "observedRate": 0.5264073694984647
+          },
+          {
+            "lo": 0.6,
+            "hi": 0.7,
+            "n": 9338,
+            "meanPredicted": 0.6508197115142541,
+            "observedRate": 0.6457485542942815
+          },
+          {
+            "lo": 0.7,
+            "hi": 0.8,
+            "n": 8229,
+            "meanPredicted": 0.7485237188480114,
+            "observedRate": 0.7490582087738485
+          },
+          {
+            "lo": 0.8,
+            "hi": 0.9,
+            "n": 6016,
+            "meanPredicted": 0.8468579829426987,
+            "observedRate": 0.863530585106383
+          },
+          {
+            "lo": 0.9,
+            "hi": 1,
+            "n": 3058,
+            "meanPredicted": 0.9382598416485426,
+            "observedRate": 0.9692609548724657
+          }
+        ]
+      },
+      "comparison": {
+        "candidate": "drift-200",
+        "baseline": "production",
+        "events": 129,
+        "matches": 40916,
+        "deltaLogLoss": -0.0004050522639814558,
+        "ci95": [
+          -0.0009181854060466211,
+          0.00011324461315471023
+        ],
+        "significantlyBetter": false
+      },
+      "acceptable": false
+    }
+  ],
+  "confirmation": {
+    "baseline": {
+      "n": 16819,
+      "accuracy": 0.6942446043165468,
+      "logLoss": 0.5593182940998996,
+      "brier": 0.19171369213466985,
+      "ece": 0.015520331303343167,
+      "calibration": [
+        {
+          "lo": 0,
+          "hi": 0.1,
+          "n": 1726,
+          "meanPredicted": 0.058098692334808924,
+          "observedRate": 0.03360370799536501
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 2805,
+          "meanPredicted": 0.15238042745636704,
+          "observedRate": 0.15080213903743314
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.3,
+          "n": 3549,
+          "meanPredicted": 0.25069241377710016,
+          "observedRate": 0.27106227106227104
+        },
+        {
+          "lo": 0.3,
+          "hi": 0.4,
+          "n": 3851,
+          "meanPredicted": 0.35041538851098464,
+          "observedRate": 0.3801609971435991
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.5,
+          "n": 3705,
+          "meanPredicted": 0.45114387256590416,
+          "observedRate": 0.4437246963562753
+        },
+        {
+          "lo": 0.5,
+          "hi": 0.6,
+          "n": 6071,
+          "meanPredicted": 0.5298158379415809,
+          "observedRate": 0.5343436007247571
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.7,
+          "n": 3851,
+          "meanPredicted": 0.6495846114890164,
+          "observedRate": 0.6198390028564009
+        },
+        {
+          "lo": 0.7,
+          "hi": 0.8,
+          "n": 3549,
+          "meanPredicted": 0.7493075862228986,
+          "observedRate": 0.7289377289377289
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "n": 2805,
+          "meanPredicted": 0.8476195725436328,
+          "observedRate": 0.8491978609625669
+        },
+        {
+          "lo": 0.9,
+          "hi": 1,
+          "n": 1726,
+          "meanPredicted": 0.9419013076651902,
+          "observedRate": 0.966396292004635
+        }
+      ]
+    },
+    "candidate": null,
+    "comparison": null,
+    "passes": false,
+    "segments": [
+      {
+        "segment": "experience:newcomer_involved",
+        "n": 7629,
+        "baselineLogLoss": 0.6393357691147715,
+        "candidateLogLoss": null,
+        "deltaLogLoss": null,
+        "baselineEce": 0.05093511317836441,
+        "candidateEce": null
+      },
+      {
+        "segment": "experience:developing",
+        "n": 4031,
+        "baselineLogLoss": 0.4708131015320303,
+        "candidateLogLoss": null,
+        "deltaLogLoss": null,
+        "baselineEce": 0.02399595666294083,
+        "candidateEce": null
+      },
+      {
+        "segment": "experience:both_established",
+        "n": 3988,
+        "baselineLogLoss": 0.4564089381088717,
+        "candidateLogLoss": null,
+        "deltaLogLoss": null,
+        "baselineEce": 0.03251241213941459,
+        "candidateEce": null
+      },
+      {
+        "segment": "activity:recently_active",
+        "n": 12590,
+        "baselineLogLoss": 0.5498088283359764,
+        "candidateLogLoss": null,
+        "deltaLogLoss": null,
+        "baselineEce": 0.016074045184281776,
+        "candidateEce": null
+      },
+      {
+        "segment": "activity:returning_after_gap",
+        "n": 4229,
+        "baselineLogLoss": 0.5876285740639209,
+        "candidateLogLoss": null,
+        "deltaLogLoss": null,
+        "baselineEce": 0.028119121997709166,
+        "candidateEce": null
+      },
+      {
+        "segment": "weight:same_weight_band",
+        "n": 4259,
+        "baselineLogLoss": 0.4627194447330939,
+        "candidateLogLoss": null,
+        "deltaLogLoss": null,
+        "baselineEce": 0.033696685280962674,
+        "candidateEce": null
+      },
+      {
+        "segment": "weight:cross_weight_band",
+        "n": 6376,
+        "baselineLogLoss": 0.497176008746785,
+        "candidateLogLoss": null,
+        "deltaLogLoss": null,
+        "baselineEce": 0.014250118090643983,
+        "candidateEce": null
+      },
+      {
+        "segment": "weight:weight_unknown",
+        "n": 6184,
+        "baselineLogLoss": 0.6899188294919794,
+        "candidateLogLoss": null,
+        "deltaLogLoss": null,
+        "baselineEce": 0.06092077194441665,
+        "candidateEce": null
+      },
+      {
+        "segment": "age:same_age_group",
+        "n": 82,
+        "baselineLogLoss": 0.5414982792403723,
+        "candidateLogLoss": null,
+        "deltaLogLoss": null,
+        "baselineEce": 0.05522703328047011,
+        "candidateEce": null
+      },
+      {
+        "segment": "age:cross_age_group",
+        "n": 103,
+        "baselineLogLoss": 0.4566449017393513,
+        "candidateLogLoss": null,
+        "deltaLogLoss": null,
+        "baselineEce": 0.05940654218013262,
+        "candidateEce": null
+      },
+      {
+        "segment": "age:age_unknown",
+        "n": 16634,
+        "baselineLogLoss": 0.5600419084218677,
+        "candidateLogLoss": null,
+        "deltaLogLoss": null,
+        "baselineEce": 0.015778239117764457,
+        "candidateEce": null
+      }
+    ],
+    "concentration": {
+      "events": 56,
+      "largest": [
+        {
+          "eventId": "i own florida championships 2026@2026-02-15",
+          "n": 1053,
+          "logLoss": 0.5392827878043513
+        },
+        {
+          "eventId": "juggernaut fall championships@2026-10-31",
+          "n": 617,
+          "logLoss": 0.5424513059450276
+        },
+        {
+          "eventId": "venice iof@2026-02-01",
+          "n": 590,
+          "logLoss": 0.4415274251955877
+        },
+        {
+          "eventId": "palm bay juggernaut@2026-09-26",
+          "n": 552,
+          "logLoss": 0.5668754773085172
+        },
+        {
+          "eventId": "juggernaut orlando qualifier@2026-10-10",
+          "n": 530,
+          "logLoss": 0.5961101450656429
+        }
+      ],
+      "largestMatchShare": 0.0626077650276473,
+      "eventBalancedLogLoss": 0.564598222896487
+    }
+  },
+  "tuningConcentration": {
+    "events": 129,
+    "largest": [
+      {
+        "eventId": "tyrant poseidon duals high school@2025-04-26",
+        "n": 1308,
+        "logLoss": 0.6741851407231214
+      },
+      {
+        "eventId": "tyrant poseidon open@2025-04-26",
+        "n": 1264,
+        "logLoss": 0.6290927153214608
+      },
+      {
+        "eventId": "i own florida championships 2025@2025-02-16",
+        "n": 1002,
+        "logLoss": 0.5431789153488432
+      },
+      {
+        "eventId": "juggernaut fall championships@2025-10-25",
+        "n": 911,
+        "logLoss": 0.5046755954262063
+      },
+      {
+        "eventId": "2025 fawa folkstyle state championships@2025-03-15",
+        "n": 910,
+        "logLoss": 0.60174648764261
+      }
+    ],
+    "largestMatchShare": 0.03196793430442858,
+    "eventBalancedLogLoss": 0.5738207553268894
+  }
+}
