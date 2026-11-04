@@ -47,10 +47,15 @@ export class Glicko2Model implements WalkModel<GlickoSnapshot> {
   readonly players = new Map<string, GlickoPlayer>();
   readonly history: HistoryPoint[] = [];
   private readonly maxPhi: number;
+  private readonly extraVariancePerPeriod: number;
 
   constructor(readonly config: RatingConfig, name = "glicko2", private readonly recordHistory = false) {
     this.name = name;
     this.maxPhi = rdToPhi(config.glicko.maxRd);
+    // Annual RD random walk converted to Glicko-2 variance per rating period.
+    // Absent from production config, so the original engine and fingerprints are unchanged.
+    const annualDrift = config.recency.skillDriftRdPerYear ?? 0;
+    this.extraVariancePerPeriod = (rdToPhi(annualDrift) ** 2 * config.period.days) / 365.25;
   }
 
   /** State of a player at the START of `period`, with inactivity applied for every empty period before it. */
@@ -59,7 +64,7 @@ export class Glicko2Model implements WalkModel<GlickoSnapshot> {
     if (!player) return initialState(this.config.glicko);
     const empty = period - 1 - player.lastPeriod;
     if (empty <= 0) return player.state;
-    return { ...player.state, phi: inflatePhi(player.state.phi, player.state.sigma, empty, this.maxPhi) };
+    return { ...player.state, phi: inflatePhi(player.state.phi, player.state.sigma, empty, this.maxPhi, this.extraVariancePerPeriod) };
   }
 
   /** State at the END of `period`: all periods through `period` have elapsed (used for "as of" displays). */
@@ -111,7 +116,10 @@ export class Glicko2Model implements WalkModel<GlickoSnapshot> {
 
     const endDay = periodEndDay(period, this.config.period.days);
     for (const [key, games] of gamesByPlayer) {
-      const next = updatePlayer(pre_(key), games, this.config.glicko);
+      const params = this.extraVariancePerPeriod > 0
+        ? { ...this.config.glicko, extraVariancePerPeriod: this.extraVariancePerPeriod }
+        : this.config.glicko;
+      const next = updatePlayer(pre_(key), games, params);
       const previous = this.players.get(key);
       const delta = stats.get(key)!;
       const record: GlickoPlayer = {
