@@ -85,6 +85,36 @@ before(async () => {
 
 after(async () => { await db.close(); });
 
+describe("expanded-source cohort read optimization", () => {
+  it("preserves every classification and standing field with repeated/unparseable labels and raw bouts", async () => {
+    await db.exec("begin");
+    try {
+      await db.exec(`insert into public.matches(event_date,season,event_name,weight_class,winner_name,loser_name,win_type)
+        select date '2026-10-24'+(n%2),'2026','Repeated  Duals',
+          case n%4 when 0 then 'Unknown' when 1 then 'HWT' when 2 then '12U 75' else '14U 80' end,
+          'Repeated Athlete','Repeated Opponent','DEC' from generate_series(1,120) n`);
+      const snapshot = async () => ({
+        cohorts: (await db.query("select * from public.wrestler_cohort_current order by athlete_key")).rows,
+        standings: (await db.query("select * from public.wrestler_strength_current order by athlete_key")).rows,
+      });
+      const optimized = await snapshot();
+      const previous = readFileSync(path.join(MIGRATIONS, "20261104143500_cohort_tiers_and_rating_clarity.sql"), "utf8");
+      await db.exec(previous.slice(previous.indexOf("create or replace view public.wrestler_cohort_current"), previous.indexOf("-- Midpoint")));
+      assert.deepEqual(await snapshot(), optimized);
+      await db.exec(readFileSync(path.join(MIGRATIONS, "20261104201302_bound_expanded_cohort_reads.sql"), "utf8")
+        .replace(/^begin;\s*/, "").replace(/commit;\s*$/, ""));
+      assert.deepEqual(await snapshot(), optimized);
+      const options = (await db.query<{ reloptions: string[] }>(
+        "select reloptions from pg_class where oid='public.wrestler_cohort_current'::regclass")).rows[0].reloptions;
+      assert.ok(options.includes("security_invoker=true"));
+      await db.query(HEADERS_OFF);
+      await db.exec("set local role anon");
+      assert.equal(await count("select count(*) n from public.wrestler_cohort_current"), 0);
+      await db.exec("reset role");
+    } finally { await db.exec("rollback"); }
+  });
+});
+
 describe("migrations apply cleanly in order", () => {
   it("creates the new tables, views and activation function and leaves the legacy view in place", async () => {
     const tables = (await db.query<{ table_name: string }>(`select table_name from information_schema.tables where table_schema='public'`)).rows.map((r) => r.table_name);
