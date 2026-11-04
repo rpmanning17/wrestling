@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { resolveConfig, stableStringify } from "../../src/lib/rating/config";
 import { describe, it } from "node:test";
 import { calculateRatings } from "../../src/lib/rating/engine";
 import { Glicko2Model } from "../../src/lib/rating/models";
@@ -194,6 +196,47 @@ describe("uncertainty and provisional status", () => {
       assert.ok(Math.abs(player.conservative - player.rating) < 1e-9);
       assert.ok(Math.abs(b.get(key)!.conservative - (player.rating - 2 * player.rd)) < 1e-9);
     }
+  });
+});
+
+describe("opt-in rating recency drift", () => {
+  it("keeps the production configuration fingerprint identical unless explicitly enabled", () => {
+    const production = resolveConfig({
+      modelVersion: "glicko2-daily-dec08-v1",
+      period: { days: 1 },
+      dominance: { enabled: true, winnerScore: { decision: 0.8, major_decision: 1, tech_fall: 1, fall: 1 } },
+    });
+    const hash = createHash("sha256").update(stableStringify(production)).digest("hex");
+    assert.equal(hash, "1eb854346d016d2c1276d8cc5209f73acac90c433fcc23636743e6a5e1881a67");
+    assert.equal(production.recency.skillDriftRdPerYear, undefined);
+    assert.throws(() => resolveConfig({ recency: { skillDriftRdPerYear: -1 } }), /skillDriftRdPerYear/);
+    assert.throws(() => resolveConfig({ recency: { skillDriftRdPerYear: Infinity } }), /skillDriftRdPerYear/);
+  });
+
+  it("drift adapts to recent wins without changing contested match counts", () => {
+    const rows = [
+      ...Array.from({ length: 20 }, (_, n) => raw({
+        event_date: isoDay("2026-01-01", n * 7),
+        event_name: `Week ${n}`, round: "R1",
+        winner_name: "B", loser_name: "A",
+      })),
+      ...Array.from({ length: 4 }, (_, n) => raw({
+        event_date: isoDay("2026-01-01", (20 + n) * 7),
+        event_name: `Week ${20 + n}`, round: "R1",
+        winner_name: "A", loser_name: "B",
+      })),
+    ];
+    const baseline = prepared(rows, { period: { days: 1 } });
+    const adaptive = prepared(rows, { period: { days: 1 }, recency: { skillDriftRdPerYear: 200 } });
+    const first = byKey(calculateRatings(baseline.matches, baseline.config, { asOfDate: "2026-07-01" }));
+    const second = byKey(calculateRatings(adaptive.matches, adaptive.config, { asOfDate: "2026-07-01" }));
+    const a = first.get("a")!;
+    const b = second.get("a")!;
+    assert.equal(a.games, 24);
+    assert.equal(b.games, 24);
+    assert.equal(a.wins, 4);
+    assert.equal(b.wins, 4);
+    assert.ok(b.rating > a.rating, `drift should adapt more to the four recent wins: ${b.rating} vs ${a.rating}`);
   });
 });
 
