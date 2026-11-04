@@ -75,3 +75,8 @@ Migration `20261104143500_cohort_tiers_and_rating_clarity.sql` appends `tier_eli
 
 
 Two immutable query-plan follow-ups for the same club calculation are applied: `20261104145000_bound_club_schedule_read.sql` and `20261104145400_bound_filtered_club_schedule.sql`. They preserve existing club metrics/affiliations and the reference-1500 formula, while avoiding per-bout repeated scans and arbitrary-precision exponentiation. All raw and model tables remain untouched.
+
+
+## 2026-11-04 source snapshot correction (PR #6, pending release)
+
+The historical table above claiming no calendar-2025 bouts describes the **2026-11-03 pre-backfill audit** and is no longer true for the database. As of 2026-11-04, `public.matches` has **67,736** rows dated 2024-10-05 through 2026-10-31, including **35,861** dated calendar 2025, plus **30** 2026-01-02 Titan Holiday Tapout bouts found in the 2025 source archive. The source-file/row composite is unique for all 67,736 rows. These changes were inserted as source matches, not derived ratings; the new ratings are awaiting complete candidate persistence and activation. Consult `RATINGS_2025_WORK_HANDOFF.md` and the immutable read-only audit for current model/source counts. Do not edit historical applied-migration or release descriptions to obscure prior snapshots.
