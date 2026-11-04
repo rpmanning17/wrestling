@@ -1,4 +1,5 @@
 import "server-only";
+import { inferCurrentCohort } from "@/lib/current-cohort";
 
 import { supabase } from "@/lib/supabase";
 import {
@@ -494,9 +495,16 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
       && (requestedBucket == null || Math.floor(Number(item.bracket_weight_lbs) / 10) * 10 === requestedBucket));
     const latestEvidence = cohortEvidence[0] ?? wrestlerEvidence[0];
     const latestMatchWeight = wrestlerMatches.map((match) => parseWeight(match.weight_class)).find((weight) => weight != null) ?? null;
+    const currentCohort = inferCurrentCohort([
+      ...wrestlerEntries.map((item) => ({ date: item.event_date, event: item.event_name, ageGroup: item.age_group, bracketWeight: Number(item.bracket_weight_lbs), source: "entry" as const })),
+      ...wrestlerObservations.map((item) => ({ date: item.event_date, event: item.event_name, ageGroup: item.age_group, bracketWeight: item.bracket_weight_lbs == null ? parseBracketWeight(item.bracket_weight_label) : Number(item.bracket_weight_lbs), source: "observation" as const })),
+      ...wrestlerEvidence.map((item) => ({ date: item.event_date, event: item.event_name, ageGroup: item.age_group, bracketWeight: Number(item.bracket_weight_lbs), source: "evidence" as const })),
+      ...wrestlerMatches.map((item) => ({ date: item.event_date, event: item.event_name, ageGroup: parseAgeGroup(item.weight_class), bracketWeight: parseBracketWeight(item.weight_class), source: "match" as const })),
+    ]);
     const isNolan = key === "nolan";
-    const latestAgeGroup = ref.ageGroup || latestEvidence?.age_group || latestEntry?.age_group || (isNolan ? "12U" : null);
-    const latestWeight = ref.weight ?? (latestEvidence ? Number(latestEvidence.bracket_weight_lbs) : latestEntry ? Number(latestEntry.bracket_weight_lbs) : latestMatchWeight) ?? (isNolan ? 71 : null);
+    // Explicit user-selected cohort filters are not evidence of the athlete's current cohort.
+    const latestAgeGroup = currentCohort.ageGroup || latestEvidence?.age_group || latestEntry?.age_group || (isNolan ? "12U" : null);
+    const latestWeight = currentCohort.bracketWeight ?? (latestEvidence ? Number(latestEvidence.bracket_weight_lbs) : latestEntry ? Number(latestEntry.bracket_weight_lbs) : latestMatchWeight) ?? (isNolan ? 71 : null);
     const latestObservation = wrestlerObservations[0];
     const latestDate = newest([wrestlerMatches[0]?.event_date ?? null, latestEvidence?.event_date ?? null, latestEntry?.event_date ?? null, latestObservation?.event_date ?? null]);
     const recentCutoff = "2026-08-01";
