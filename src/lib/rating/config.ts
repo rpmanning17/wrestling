@@ -23,7 +23,14 @@ export type RatingConfig = {
     days: number;
   };
   /** The documented recency policy. Only one policy exists today; the field is stored for provenance. */
-  recency: { policy: "glicko2_inactivity_rd_growth" };
+  recency: {
+    policy: "glicko2_inactivity_rd_growth";
+    /** Optional experimental random-walk skill drift, in Glicko RD points per sqrt(year).
+     * Zero/absent preserves the validated production model and its config fingerprint.
+     * Added to variance each rating period, whether or not matches occur.
+     */
+    skillDriftRdPerYear?: number;
+  };
   uncertainty: {
     /** Conservative score = rating − k × RD. Leaderboard policy, not a forecasting parameter. */
     k: number;
@@ -103,12 +110,15 @@ export function resolveConfig(overrides: RatingConfigOverrides = {}): RatingConf
 export function validateConfig(config: RatingConfig) {
   const problems: string[] = [];
   const need = (ok: boolean, message: string) => { if (!ok) problems.push(message); };
-  const { glicko, period, uncertainty, dominance, metrics } = config;
+  const { glicko, period, recency, uncertainty, dominance, metrics } = config;
   need(glicko.tau >= 0.1 && glicko.tau <= 2, "glicko.tau must be between 0.1 and 2");
   need(glicko.initialRd > 0 && glicko.initialRd <= glicko.maxRd, "glicko.initialRd must be in (0, maxRd]");
   need(glicko.initialVolatility > 0 && glicko.initialVolatility < 1, "glicko.initialVolatility must be in (0, 1)");
   need(glicko.epsilon > 0 && glicko.epsilon < 0.01, "glicko.epsilon must be small and positive");
   need(Number.isInteger(period.days) && period.days >= 1 && period.days <= 120, "period.days must be an integer from 1 to 120");
+  need(recency.skillDriftRdPerYear === undefined ||
+    (Number.isFinite(recency.skillDriftRdPerYear) && recency.skillDriftRdPerYear >= 0 && recency.skillDriftRdPerYear <= 350),
+    "recency.skillDriftRdPerYear must be a finite value from 0 to 350");
   need(uncertainty.k >= 0 && uncertainty.k <= 5, "uncertainty.k must be between 0 and 5");
   need(uncertainty.establishedRd < uncertainty.provisionalRd, "uncertainty.establishedRd must be below provisionalRd");
   need(metrics.qualityPercentile > 0 && metrics.qualityPercentile < 1, "metrics.qualityPercentile must be in (0, 1)");
