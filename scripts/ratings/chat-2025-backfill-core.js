@@ -108,7 +108,7 @@
     if(!periods.has(p))periods.set(p,[]);
     periods.get(p).push(m);
   }
-  const players=new Map(),history=[];
+  const players=new Map(),history=[],trend=new Map(),trendCutoff=day(asOfDate)-config.metrics.trendDays;
   const stateAt=(key,p)=>{
     const old=players.get(key);
     if(!old)return {mu:(cfg.initialRating-1500)/scale,phi:cfg.initialRd/scale,sigma:cfg.initialVolatility};
@@ -137,7 +137,9 @@
       const newState=update(state(k),gs),old=players.get(k),z=stats.get(k);
       const result={state:newState,period:p,games:(old?.games??0)+gs.length,wins:(old?.wins??0)+z.wins,losses:(old?.losses??0)+z.losses,firstDay:old?Math.min(old.firstDay,z.firstDay):z.firstDay,lastDay:old?Math.max(old.lastDay,z.lastDay):z.lastDay};
       players.set(k,result);
-      history.push({athlete_key:k,period_end:iso((p+1)*config.period.days+4-1),rating:round(newState.mu*scale+1500,3),rating_deviation:round(newState.phi*scale,3),volatility:round(newState.sigma,6),match_count:result.games});
+      const endDay=(p+1)*config.period.days+4-1,fullRating=newState.mu*scale+1500;
+      history.push({athlete_key:k,period_end:iso(endDay),rating:round(fullRating,3),rating_deviation:round(newState.phi*scale,3),volatility:round(newState.sigma,6),match_count:result.games});
+      if(endDay<=trendCutoff)trend.set(k,fullRating);
     }
   }
   const asOf=day(asOfDate),endPeriod=periodOf(asOf),current=new Map();
@@ -169,8 +171,7 @@
     if(lr>=threshold)w.qw++;
     if(wr>=threshold)l.ql++;
   }
-  const trend=new Map();
-  for(const h of history)if(day(h.period_end)<=asOf-config.metrics.trendDays)trend.set(h.athlete_key,h.rating);
+
   const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
   const ratings=[];
   for(const [k,p] of players){
