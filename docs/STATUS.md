@@ -1,5 +1,13 @@
 # Status
 
+## Current verified production — 2026-11-04 expanded canonical recovery
+
+**This supersedes older live-state and missing-2025 statements below.** Active model `a29c4460-5e56-4d22-902d-ea39c65bfcac` uses the unchanged production formula under a truthful canonical-implementation version. Source **67,736**; rated bouts **64,050**; ratings **11,724**; history **34,809**; wins/losses **64,050 each**. Exact serialized-output equality and independent complete SOS/record audits pass. Old active `d64fd4ba-de14-4d07-bac8-2961e12d506d` is archived intact for rollback; failed `a957ed42-8ee2-4792-944d-5f63a0b4ce72` remains untouched building (500 ratings / no history). Source fingerprints and both uniqueness constraints are preserved; no experimental drift.
+
+Live comparison/rankings/clubs/Longwood roster and phone layouts verified. Expanded-source cohort/club timeouts were fixed with semantics-preserving invoker-view migrations (production **20261104201755**, **20261104202335**) and refreshed planner statistics; full cohort/standing/club-output preservation checks pass. No timeout/RLS/grant weakening. **139 tests**, lint/typecheck and CI production build pass; HTTP 200/no-store/noindex checks pass; post-fix production error/fatal scan is clear in its recorded window. Full provenance, counts, read-fix evidence, interrupted-write procedure, limitations and rollback: [RATING_RECOVERY_RELEASE.md](RATING_RECOVERY_RELEASE.md). Read-only audit: `supabase/audits/rating_recovery_validation.sql`.
+
+Earlier entries below retain historical release evidence.
+
 ## 2026-11-04 — reviewed club normalization
 
 Production migration **20261104161409** (source `20261104161040_approved_club_normalization.sql`) is applied. Clubs: **1,182 → 952**; aliases: 13 → 390 (377 insertions); memberships: 11,007 → 9,943; raw in-house contested matches: 2,009 → 2,076. The finite reconstruction differs from the unavailable earlier SQL's subsidiary projections (375 insertions / 1,066 memberships consolidated); actual values are 377 / 1,064. See [CLUB_NORMALIZATION.md](CLUB_NORMALIZATION.md) for provenance and rollback.

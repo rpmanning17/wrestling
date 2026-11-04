@@ -66,3 +66,6 @@ The database appends tier metadata to its existing strength view. `cohort-standi
 
 
 Production read optimization: profile construction uses current age/weight fields from the same strength-view row as rank/tier; missing/unrated athletes fetch classification separately. Club schedule calculations materialize their rating join once, including for filtered club pages. Neither path uses a data cache or widens permissions.
+
+
+Canonical recovery (2026-11-04): calculate.ts and the read-only recovery exporter share persisted-field serialization. Administrator connector batches lock/check immutable building metadata and exact rows; candidate promotion and activation are separate validated steps. Expanded source reads parse repeated literal labels once inside invoker-view CTEs, collapse redundant classification tuples, and fence classification joins. These are statement-local query intermediates, not persistent caches. See RATING_RECOVERY_RELEASE.md.

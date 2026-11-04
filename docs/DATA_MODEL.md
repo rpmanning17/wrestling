@@ -75,3 +75,6 @@ Migration `20261104143500_cohort_tiers_and_rating_clarity.sql` appends `tier_eli
 
 
 Two immutable query-plan follow-ups for the same club calculation are applied: `20261104145000_bound_club_schedule_read.sql` and `20261104145400_bound_filtered_club_schedule.sql`. They preserve existing club metrics/affiliations and the reference-1500 formula, while avoiding per-bout repeated scans and arbitrary-precision exponentiation. All raw and model tables remain untouched.
+
+
+Expanded-source read fixes (2026-11-04): source migrations 20261104201302 and 20261104202147 map to production 20261104201755 and 20261104202335. View outputs and invoker security/grants are preserved; raw/derived/model tables are unchanged by these read optimizations. Current active ratings are the complete canonical recovery run documented in RATING_RECOVERY_RELEASE.md. Do not perform unreconciled CLI migration pushes.

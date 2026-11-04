@@ -94,3 +94,7 @@ The currently active UUID above supports future rollback to this version through
 - Production `/clubs` returned 200 with populated conservative-strength and average-opponent SOS fields; Longwood displayed schedule 1569.6 and typical strength 1295.7.
 - Production responses retained private/no-store caching and `noindex, nofollow, noarchive` robot headers.
 - Repository verification: `pnpm lint`, `pnpm typecheck`, `pnpm test` (101 passed), `pnpm build` (dummy environment values) all passed. No application code changed for activation; the final commit records configuration and operational evidence.
+
+
+## Expanded canonical recovery — activated 2026-11-04
+The original activation above is historical. New sole active model is a29c4460-5e56-4d22-902d-ea39c65bfcac, canonical provenance-only version with the same production formula: 67,736 source / 64,050 rated / 11,724 ratings / 34,809 history. The original model remains archived intact for rollback, and the failed 500-row chat run remains untouched. Complete source/config/output hashes, validation, live checks, read optimizations, recovery process and rollback are in [RATING_RECOVERY_RELEASE.md](RATING_RECOVERY_RELEASE.md). No experimental drift adopted.
