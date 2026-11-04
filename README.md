@@ -30,7 +30,7 @@ Agent-specific instructions: [`AGENTS.md`](AGENTS.md) (coding agents in general,
 
 ## Data
 
-Match results live in `public.matches`. As of the 2026-11-03 audit the database holds 31,845 bouts dated 2024-10-05 to 2026-10-31: 11,647 in the 2024–2025 season (October 5 to December 30, 2024), 11,238 in 2025–2026 (January 4 to July 26, 2026) and 8,960 in 2026–2027 (from August 2026; 668 of them, all from 2026-10-31, carry the label `2026-2027` with a hyphen instead of an en dash). There are no bouts from calendar 2025. The earlier figure of 31,177 predates the 2026-10-31 event. The 2026 import assigns January–July bouts to the 2025–2026 season and August–October to 2026–2027, and excludes BYEs, rows without a named opponent, and exact duplicate rows. Known data-quality issues (near-duplicates, swapped records, club-label variants) are listed in [`docs/STATUS.md`](docs/STATUS.md). Each row keeps its source file and row number so a repeat import is idempotent.
+Match results live in `public.matches`. As of the 2026-11-03 audit the database holds 31,845 bouts dated 2024-10-05 to 2026-10-31: 11,647 in the 2024–2025 season (October 5 to December 30, 2024), 11,238 in 2025–2026 (January 4 to July 26, 2026) and 8,960 in 2026–2027 (from August 2026; 668 of them, all from 2026-10-31, carry the label `2026-2027` with a hyphen instead of an en dash). This is the historical 2026-11-03 snapshot; a November 4 backfill subsequently added calendar 2025 data. Supabase now has 67,736 rows, including 35,861 from 2025; the expanded 11,724-wrestler model is calculated but NOT active. The earlier figure of 31,177 predates the 2026-10-31 event. The 2026 import assigns January–July bouts to the 2025–2026 season and August–October to 2026–2027, and excludes BYEs, rows without a named opponent, and exact duplicate rows. Known data-quality issues (near-duplicates, swapped records, club-label variants) are listed in [`docs/STATUS.md`](docs/STATUS.md). Each row keeps its source file and row number so a repeat import is idempotent.
 
 Source ZIPs and CSV contents are intentionally not committed. The match CSV importer is **not** in this repository; only the tournament-observation importer is (`supabase/importers/`). See [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md).
 
@@ -68,7 +68,9 @@ Never commit `.env.local`, and never put `SUPABASE_PERSONAL_APP_KEY` or any serv
 pnpm ratings:calculate --config config/ratings.production.json --dry-run # validated production settings; writes nothing
 pnpm ratings:calculate --input export.json --dry-run   # offline, from { "matches": [], "aliases": [] }
 pnpm ratings:calculate --config config/ratings.production.json # write candidate; review, then activate atomically through restricted SQL function
-pnpm ratings:backtest                         # chronological, leakage-free evaluation -> docs/BACKTEST_REPORT.md
+pnpm ratings:backtest                         # original reference-grid evaluation -> docs/BACKTEST_REPORT.md
+pnpm ratings:recency-backtest                 # read-only test of faster skill adaptation vs PRODUCTION settings
+pnpm ratings:recency-backtest --input export.json --drifts 50,100,150,200
 ```
 
 Writing a model needs `SUPABASE_SERVICE_ROLE_KEY` in your **local** environment only. Reads use the same personal-app credentials as the site.
@@ -101,3 +103,9 @@ Current age/weight estimates use three distinct recent events (50/30/20), shared
 
 
 Cohort Tier shows a population decile (1 strongest, 10 weakest) when at least 20 rated wrestlers and unambiguous current cohort support are available. Equal conservative ratings share a tier. Cohort Strength remains 0–1,000; raw Glicko and opponent ratings have no fixed upper limit. Schedule Difficulty is a reference-1,500 expected win percentage: lower means harder opposition. Matchup Likelihood measures relevance/fit, not ability.
+
+## Experimental recency / youth development (not live)
+
+The validated Glicko-2 model grows uncertainty (RD) during inactivity but does not erase old matches or impose an age-based cutoff. An optional `recency.skillDriftRdPerYear` parameter now enables extra random-walk variance even across regular activity, so new evidence can move estimates of rapidly developing youth wrestlers more. It is **unset in** `config/ratings.production.json`; the old model's resolved config and fingerprint stay identical. A value of 100 means an **additional 100 Glicko RD points of random-walk standard deviation per square root of a year**, not a 100-point penalty, match weight, or literal half-life.
+
+`ratings:recency-backtest` uses the production model as the reference, tunes alternatives on earlier events, and checks only the selected variant on later unseen events. It produces `docs/RECENCY_EXPERIMENT_REPORT.md` locally (do not commit a report before actually running the expanded-data test); it never writes Supabase rows or activates a model. Do not adopt any value without favorable held-out log loss, calibration, and a review of youth/weight-change segments. See `docs/RANKINGS.md` and D30.
