@@ -71,9 +71,9 @@ export function winProbability(a: PlayerState, b: PlayerState, predictor: "combi
 }
 
 /** φ after `periods` empty rating periods (paper, "no games in the period": φ* = sqrt(φ² + σ²)). */
-export function inflatePhi(phi: number, sigma: number, periods: number, maxPhi: number) {
+export function inflatePhi(phi: number, sigma: number, periods: number, maxPhi: number, extraVariancePerPeriod = 0) {
   if (periods <= 0) return phi;
-  return Math.min(maxPhi, Math.sqrt(phi * phi + periods * sigma * sigma));
+  return Math.min(maxPhi, Math.sqrt(phi * phi + periods * (sigma * sigma + extraVariancePerPeriod)));
 }
 
 /** Step 5: iterative volatility update (Illinois algorithm). */
@@ -125,10 +125,10 @@ export function newVolatility(phi: number, sigma: number, delta: number, v: numb
  * `player` must already include any inactivity growth through the previous period. With no games only
  * step 6 applies: rating and volatility are unchanged and φ grows.
  */
-export function updatePlayer(player: PlayerState, games: readonly Game[], params: Pick<Glicko2Params, "tau" | "epsilon" | "maxRd">): PlayerState {
+export function updatePlayer(player: PlayerState, games: readonly Game[], params: Pick<Glicko2Params, "tau" | "epsilon" | "maxRd"> & { extraVariancePerPeriod?: number }): PlayerState {
   const maxPhi = rdToPhi(params.maxRd);
   if (!games.length) {
-    return { mu: player.mu, phi: inflatePhi(player.phi, player.sigma, 1, maxPhi), sigma: player.sigma };
+    return { mu: player.mu, phi: inflatePhi(player.phi, player.sigma, 1, maxPhi, params.extraVariancePerPeriod ?? 0), sigma: player.sigma };
   }
 
   let vInverse = 0;
@@ -143,7 +143,12 @@ export function updatePlayer(player: PlayerState, games: readonly Game[], params
   const delta = v * deltaSum;
 
   const sigmaNew = newVolatility(player.phi, player.sigma, delta, v, params.tau, params.epsilon);
-  const phiStar = Math.sqrt(player.phi * player.phi + sigmaNew * sigmaNew);
+  // Optional, empirically tuned skill random-walk noise: old evidence gradually becomes less
+  // precise even for regularly active wrestlers. Not a fractional score or a match deletion.
+  const drift = params.extraVariancePerPeriod ?? 0;
+  const phiStar = drift > 0
+    ? Math.min(maxPhi, Math.sqrt(player.phi * player.phi + sigmaNew * sigmaNew + drift))
+    : Math.sqrt(player.phi * player.phi + sigmaNew * sigmaNew);
   const phiNew = 1 / Math.sqrt(1 / (phiStar * phiStar) + 1 / v);
   const muNew = player.mu + phiNew * phiNew * deltaSum;
   return { mu: muNew, phi: phiNew, sigma: sigmaNew };
