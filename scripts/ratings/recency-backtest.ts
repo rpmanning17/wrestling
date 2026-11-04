@@ -40,7 +40,7 @@ function runWindow(
   const models = [
     new Glicko2Model(baseline, "production"),
     ...drifts.map((drift) => new Glicko2Model(
-      resolveConfig({ ...baseline, recency: { ...baseline.recency, skillDriftRdPerYear: drift } }),
+      resolveConfig({ ...baseline, recency: { ...baseline.recency, policy: "glicko2_continuous_skill_drift", skillDriftRdPerYear: drift } }),
       `drift-${drift}`,
     )),
   ];
