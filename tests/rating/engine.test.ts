@@ -211,6 +211,8 @@ describe("opt-in rating recency drift", () => {
     assert.equal(production.recency.skillDriftRdPerYear, undefined);
     assert.throws(() => resolveConfig({ recency: { skillDriftRdPerYear: -1 } }), /skillDriftRdPerYear/);
     assert.throws(() => resolveConfig({ recency: { skillDriftRdPerYear: Infinity } }), /skillDriftRdPerYear/);
+    assert.throws(() => resolveConfig({ recency: { skillDriftRdPerYear: 120 } }), /recency.policy/);
+    assert.throws(() => resolveConfig({ recency: { policy: "glicko2_continuous_skill_drift" } }), /recency.policy/);
   });
 
   it("drift adapts to recent wins without changing contested match counts", () => {
@@ -227,7 +229,7 @@ describe("opt-in rating recency drift", () => {
       })),
     ];
     const baseline = prepared(rows, { period: { days: 1 } });
-    const adaptive = prepared(rows, { period: { days: 1 }, recency: { skillDriftRdPerYear: 200 } });
+    const adaptive = prepared(rows, { period: { days: 1 }, recency: { policy: "glicko2_continuous_skill_drift", skillDriftRdPerYear: 200 } });
     const first = byKey(calculateRatings(baseline.matches, baseline.config, { asOfDate: "2026-07-01" }));
     const second = byKey(calculateRatings(adaptive.matches, adaptive.config, { asOfDate: "2026-07-01" }));
     const a = first.get("a")!;
