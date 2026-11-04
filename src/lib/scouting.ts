@@ -1,5 +1,4 @@
 import "server-only";
-import { inferCurrentCohort } from "@/lib/current-cohort";
 
 import { supabase } from "@/lib/supabase";
 import {
@@ -130,7 +129,13 @@ type PowerRow = {
   rating_trend: number | string | null;
 };
 
-/** Row of public.wrestler_strength_current: cohort rank and 0-1000 display from the active model. */
+/** Authoritative age/weight estimate, independent of the active rating model. */
+type CurrentCohortRow = {
+  athlete_key: string;
+  age_group: string | null;
+  bracket_weight_lbs: number | string | null;
+};
+
 type CohortStrengthRow = {
   athlete_name: string;
   age_group: string;
@@ -340,6 +345,17 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
     });
   }
 
+  const cohortResult = await db.from("wrestler_cohort_current")
+    .select("athlete_key,age_group,bracket_weight_lbs")
+    .in("athlete_key", [...found.values()].map((item) => identity(item.name)));
+  if (cohortResult.error) throw new Error("Current cohort classification unavailable");
+  const cohorts = new Map(((cohortResult.data ?? []) as CurrentCohortRow[]).map((row) => [row.athlete_key, row]));
+  for (const item of found.values()) {
+    if (item.evidence.startsWith("Owner-supplied")) continue;
+    const cohort = cohorts.get(identity(item.name));
+    item.ageGroup = cohort?.age_group ?? undefined;
+    item.weight = num(cohort?.bracket_weight_lbs) ?? undefined;
+  }
   return [...found.values()]
     .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))
     .slice(0, 8)
@@ -354,13 +370,6 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
 }
 
 const newest = (dates: Array<string | null>) => dates.filter(Boolean).sort().at(-1) ?? null;
-const parseWeight = (value: string) => {
-  const matches = value.match(/\d+(?:\.\d+)?/g);
-  if (!matches?.length) return null;
-  const numbers = matches.map(Number).filter((number) => number >= 40 && number <= 400);
-  return numbers.length ? numbers.at(-1)! : null;
-};
-
 export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfile[]> {
   const cleanRefs = refs
     .map((ref) => ({ ...ref, name: validName(ref.name) }))
@@ -384,7 +393,7 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
   const empty = { data: [] as unknown[] };
 
   const ratingKeys = [...new Set(names.map(identity))];
-  const [winsResult, lossesResult, entriesResult, observationsResult, evidenceResult, ratingsResult, notesResult, activeModelResult, powerResult, cohortResult] = await Promise.all([
+  const [winsResult, lossesResult, entriesResult, observationsResult, evidenceResult, ratingsResult, notesResult, activeModelResult, powerResult, cohortResult, currentCohortResult] = await Promise.all([
     names.length
       ? db.from("matches").select("id,event_date,event_name,city,weight_class,winner_name,winner_team,loser_name,loser_team,result,win_type").in("winner_name", names).order("event_date", { ascending: false }).limit(1000)
       : empty,
@@ -412,7 +421,12 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
     names.length
       ? db.from("wrestler_strength_current").select("athlete_name,age_group,weight_bucket,weight_band,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,division_birth_year_start,division_birth_year_end").in("athlete_name", names).limit(1000)
       : empty,
+    ratingKeys.length
+      ? db.from("wrestler_cohort_current").select("athlete_key,age_group,bracket_weight_lbs").in("athlete_key", ratingKeys)
+      : empty,
   ]);
+  if ("error" in currentCohortResult && currentCohortResult.error) throw new Error("Current cohort classification unavailable");
+  const currentCohorts = (currentCohortResult.data ?? []) as CurrentCohortRow[];
   // A model counts as active only if the view answered without error and returned a row.
   const modelActive = !("error" in activeModelResult && activeModelResult.error) && ((activeModelResult.data as unknown[] | null) ?? []).length > 0;
   const powerRows = modelActive ? ((powerResult.data ?? []) as PowerRow[]) : [];
@@ -489,22 +503,11 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
       ]),
     ).values()];
     const latestEntry = wrestlerEntries[0];
-    const requestedBucket = ref.weight == null ? null : Math.floor(ref.weight / 10) * 10;
-    const cohortEvidence = wrestlerEvidence.filter((item) =>
-      (!ref.ageGroup || item.age_group === ref.ageGroup)
-      && (requestedBucket == null || Math.floor(Number(item.bracket_weight_lbs) / 10) * 10 === requestedBucket));
-    const latestEvidence = cohortEvidence[0] ?? wrestlerEvidence[0];
-    const latestMatchWeight = wrestlerMatches.map((match) => parseWeight(match.weight_class)).find((weight) => weight != null) ?? null;
-    const currentCohort = inferCurrentCohort([
-      ...wrestlerEntries.map((item) => ({ date: item.event_date, event: item.event_name, ageGroup: item.age_group, bracketWeight: Number(item.bracket_weight_lbs), source: "entry" as const })),
-      ...wrestlerObservations.map((item) => ({ date: item.event_date, event: item.event_name, ageGroup: item.age_group, bracketWeight: item.bracket_weight_lbs == null ? parseBracketWeight(item.bracket_weight_label) : Number(item.bracket_weight_lbs), source: "observation" as const })),
-      ...wrestlerEvidence.map((item) => ({ date: item.event_date, event: item.event_name, ageGroup: item.age_group, bracketWeight: Number(item.bracket_weight_lbs), source: "evidence" as const })),
-      ...wrestlerMatches.map((item) => ({ date: item.event_date, event: item.event_name, ageGroup: parseAgeGroup(item.weight_class), bracketWeight: parseBracketWeight(item.weight_class), source: "match" as const })),
-    ]);
+    const latestEvidence = wrestlerEvidence[0];
+    const currentCohort = currentCohorts.find((row) => row.athlete_key === identity(ref.name));
     const isNolan = key === "nolan";
-    // Explicit user-selected cohort filters are not evidence of the athlete's current cohort.
-    const latestAgeGroup = currentCohort.ageGroup || latestEvidence?.age_group || latestEntry?.age_group || (isNolan ? "12U" : null);
-    const latestWeight = currentCohort.bracketWeight ?? (latestEvidence ? Number(latestEvidence.bracket_weight_lbs) : latestEntry ? Number(latestEntry.bracket_weight_lbs) : latestMatchWeight) ?? (isNolan ? 71 : null);
+    const latestAgeGroup = currentCohort?.age_group ?? (isNolan ? "12U" : null);
+    const latestWeight = num(currentCohort?.bracket_weight_lbs) ?? (isNolan ? 71 : null);
     const latestObservation = wrestlerObservations[0];
     const latestDate = newest([wrestlerMatches[0]?.event_date ?? null, latestEvidence?.event_date ?? null, latestEntry?.event_date ?? null, latestObservation?.event_date ?? null]);
     const recentCutoff = "2026-08-01";
@@ -547,15 +550,8 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
     // Opponent-adjusted model (when one is active): power rating plus cohort rank/0-1000 display.
     const powerRow = modelActive ? powerRows.find((row) => row.athlete_key === identity(ref.name)) : undefined;
     const powerRating = powerRow ? toPowerRating(powerRow) : null;
-    const cohortRow = modelActive
-      ? cohortRows
-          .filter((row) => normalize(row.athlete_name) === target)
-          .sort((a, b) => {
-            const aFit = (latestAgeGroup === a.age_group ? 2 : 0) + (desiredBucket === a.weight_bucket ? 1 : 0);
-            const bFit = (latestAgeGroup === b.age_group ? 2 : 0) + (desiredBucket === b.weight_bucket ? 1 : 0);
-            return bFit - aFit || b.evidence_date.localeCompare(a.evidence_date) || b.confidence_score - a.confidence_score;
-          })[0]
-      : undefined;
+    const cohortRow = modelActive ? cohortRows.find((row) =>
+      normalize(row.athlete_name) === target && row.age_group === latestAgeGroup && row.weight_bucket === desiredBucket) : undefined;
     const rating = modelActive ? cohortRow : legacyRating;
     const strength = rating ? Number(rating.strength_score) : null;
     const strengthReason = modelActive
@@ -591,8 +587,8 @@ export async function buildProfiles(refs: WrestlerRef[]): Promise<WrestlerProfil
       likelihoodReason: likelihoodExplanation(scoreInput),
       latestAgeGroup,
       latestWeight,
-      birthYearStart: rating?.division_birth_year_start ?? latestEvidence?.division_birth_year_start ?? null,
-      birthYearEnd: rating?.division_birth_year_end ?? latestEvidence?.division_birth_year_end ?? null,
+      birthYearStart: null,
+      birthYearEnd: null,
       cohortRank: rating?.cohort_rank ?? null,
       cohortSize: rating?.cohort_size ?? null,
       weightBand: rating?.weight_band ?? null,
@@ -627,7 +623,8 @@ export async function strongestPool() {
     .eq("weight_bucket", 70)
     .order("conservative_score", { ascending: false })
     .limit(200);
-  if (!adjusted.error && (adjusted.data ?? []).length) {
+  const active = await supabase().from("wrestler_rating_current").select("model_version").limit(1);
+  if (!adjusted.error && ((adjusted.data ?? []).length || (active.data ?? []).length)) {
     const rows = adjusted.data as Array<{ athlete_name: string; team: string; age_group: string; bracket_weight_lbs: number | string }>;
     const refs = [...new Map(rows.map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team, ageGroup: row.age_group, weight: Number(row.bracket_weight_lbs) }])).values()];
     return (await buildProfiles(refs)).filter((p) => p.latestAgeGroup === "12U" && p.latestWeight != null && Math.floor(p.latestWeight / 10) === 7).sort((a, b) => (b.strength ?? -1) - (a.strength ?? -1));
@@ -645,12 +642,12 @@ export async function strongestPool() {
 
 export async function likelyNolanPool() {
   const { data } = await supabase()
-    .from("wrestler_evidence")
-    .select("athlete_name,team,age_group,bracket_weight_lbs,confidence_score")
+    .from("wrestler_cohort_current")
+    .select("athlete_name,team,age_group,bracket_weight_lbs")
     .eq("age_group", "12U")
     .gte("bracket_weight_lbs", 65)
     .lte("bracket_weight_lbs", 80)
-    .order("event_date", { ascending: false })
+    .order("evidence_date", { ascending: false })
     .limit(800);
   const refs = [...new Map(((data ?? []) as Array<{ athlete_name: string; team: string; age_group: string; bracket_weight_lbs: number | string }>).map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team, ageGroup: row.age_group, weight: Number(row.bracket_weight_lbs) }])).values()];
   return (await buildProfiles(refs)).filter((p) => p.latestAgeGroup === "12U" && p.latestWeight != null && p.latestWeight >= 65 && p.latestWeight <= 80).sort((a, b) => b.likelihood - a.likelihood).slice(0, 6);

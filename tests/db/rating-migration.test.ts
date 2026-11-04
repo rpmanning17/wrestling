@@ -88,7 +88,7 @@ after(async () => { await db.close(); });
 describe("migrations apply cleanly in order", () => {
   it("creates the new tables, views and activation function and leaves the legacy view in place", async () => {
     const tables = (await db.query<{ table_name: string }>(`select table_name from information_schema.tables where table_schema='public'`)).rows.map((r) => r.table_name);
-    for (const name of ["matches", "wrestler_evidence", "wrestler_ratings", "rating_models", "wrestler_model_ratings", "wrestler_rating_history", "rating_backtest_runs", "wrestler_rating_current", "wrestler_strength_current"]) {
+    for (const name of ["matches", "wrestler_evidence", "wrestler_ratings", "rating_models", "wrestler_model_ratings", "wrestler_rating_history", "rating_backtest_runs", "wrestler_rating_current", "wrestler_strength_current", "wrestler_cohort_current"]) {
       assert.ok(tables.includes(name), `${name} missing`);
     }
     assert.equal(await count("select count(*) as n from public.wrestler_ratings"), 0); // legacy view still queries
@@ -172,7 +172,7 @@ describe("access control", () => {
     await db.exec("reset role");
     await db.query(HEADERS_OFF);
     await db.exec("set role anon");
-    for (const name of [...tables, "wrestler_rating_current", "wrestler_strength_current"]) {
+    for (const name of [...tables, "wrestler_rating_current", "wrestler_strength_current", "wrestler_cohort_current"]) {
       assert.equal(await count(`select count(*) as n from public.${name}`), 0, name);
     }
     await db.exec("reset role");
@@ -211,4 +211,106 @@ describe("access control", () => {
     await assert.rejects(() => db.exec("select count(*) from public.rating_models"), /permission denied/);
     await db.exec("reset role");
   });
+});
+
+describe("authoritative three-event classification", () => {
+  const seed = async (date: string, event: string, weight: number, age = "12U", source = "evidence", weighIn: number | null = null) => {
+    if (source === "entry") {
+      await db.query(`insert into tournament_entries (athlete_name,event_date,event_name,division_label,age_group,
+        division_birth_year_start,division_birth_year_end,bracket_weight_lbs,weigh_in_lbs,experience_division,source_file,source_key)
+        values ('Cohort Test',$1,$2,'Division',$3,2014,2015,$4,$5,'open','cohort-test',$6)`,
+      [date,event,age,weight,weighIn,`${date}-${event}-${weight}-${age}`]);
+    } else {
+      await db.query(`insert into wrestler_evidence (athlete_key,athlete_name,event_date,event_name,evidence_type,
+        age_group,division_birth_year_start,division_birth_year_end,bracket_weight_lbs,weight_basis,
+        confidence_score,confidence_label,reason,source_key)
+        values ('cohort test','Cohort Test',$1,$2,'inferred_same_bout',$3,2014,2015,$4,'match_class',90,'strong','test',$5)`,
+      [date,event,age,weight,`${date}-${event}-${weight}-${age}`]);
+    }
+  };
+  const cohort = async () => (await db.query<{age_group:string; bracket_weight_lbs:string; weight_bucket:number}>(
+    "select * from wrestler_cohort_current where athlete_key='cohort test'" )).rows[0];
+  const isolated = async (run: () => Promise<void>) => {
+    await db.exec("begin");
+    try { await run(); } finally { await db.exec("rollback"); }
+  };
+
+  it("uses exactly three events, newest wins a 50/30/20 tie, and repeated event evidence cannot add votes", () => isolated(async () => {
+    await seed("2026-10-24","Latest",80);
+    await seed("2026-10-17","Second",75);
+    await seed("2026-10-10","Third",75);
+    await seed("2026-10-03","Ignored",75);
+    await db.exec(`insert into wrestler_evidence (athlete_key,athlete_name,event_date,event_name,evidence_type,age_group,
+      division_birth_year_start,division_birth_year_end,bracket_weight_lbs,weight_basis,confidence_score,confidence_label,reason,source_key)
+      select athlete_key,athlete_name,event_date,event_name,evidence_type,age_group,division_birth_year_start,division_birth_year_end,
+      bracket_weight_lbs,weight_basis,confidence_score,confidence_label,reason,source_key||'-repeat-'||n
+      from wrestler_evidence cross join generate_series(1,8) n where athlete_key='cohort test' and event_name='Second'`);
+    assert.equal(Number((await cohort()).bracket_weight_lbs),80);
+  }));
+
+  it("evaluates cross-age and changing weight independently with source priority", () => isolated(async () => {
+    await seed("2026-10-24","Latest",80,"14U","entry");
+    await seed("2026-10-24","Latest",80,"12U","entry");
+    await seed("2026-10-24","Latest",65,"10U");
+    await seed("2026-10-17","Second",75,"12U","entry");
+    await seed("2026-10-10","Third",80,"12U","entry");
+    const row=await cohort();
+    assert.equal(row.age_group,"12U");
+    assert.equal(Number(row.bracket_weight_lbs),80);
+  }));
+
+  it("prefers verified weigh-ins to bracket labels without rewriting the bracket", () => isolated(async () => {
+    await seed("2026-10-24","Latest",85,"12U","entry",74.5);
+    assert.equal(Number((await cohort()).bracket_weight_lbs),74.5);
+    assert.equal(Number((await db.query<{bracket_weight_lbs:string}>("select bracket_weight_lbs from tournament_entries where athlete_name='Cohort Test'")).rows[0].bracket_weight_lbs),85);
+  }));
+
+  it("halves dual event influence, preserving tournament age and weight", () => isolated(async () => {
+    await seed("2026-10-24","State Duals",90,"14U");
+    await seed("2026-10-17","Second",75,"12U");
+    await seed("2026-10-10","Third",75,"12U");
+    assert.equal((await cohort()).age_group,"12U");
+    assert.equal(Number((await cohort()).bracket_weight_lbs),75);
+  }));
+
+  it("counts consecutive dates of a normalized multi-day event once and separates later editions", () => isolated(async () => {
+    await seed("2026-10-24"," State   Open ",80);
+    await seed("2026-10-25","state open",80);
+    await seed("2026-10-17","Second",75);
+    await seed("2026-10-10","state open",75);
+    assert.equal(Number((await cohort()).bracket_weight_lbs),80);
+  }));
+
+  it("splits conflicting same-source labels once each, independent of row count or insertion order", () => isolated(async () => {
+    await seed("2026-10-24","Latest",80,"14U");
+    await seed("2026-10-24","Latest",75,"12U");
+    await seed("2026-10-17","Second",75,"12U");
+    assert.equal((await cohort()).age_group,"12U");
+    assert.equal(Number((await cohort()).bracket_weight_lbs),75);
+  }));
+
+  it("regresses Waylon's 75 versus 80–89 mismatch: one current cohort, unchanged global rating", () => isolated(async () => {
+    await seed("2026-10-24","Juggernaut Winter Springs Qualifier",80);
+    await seed("2026-10-10","Juggernaut Orlando Qualifier",80);
+    await seed("2026-08-29","Lyman Juggernaut 2026",75);
+    await db.exec(ratingInsert(M2,"cohort test","Cohort Test",1514,122));
+    const rows=(await db.query<{weight_band:string; bracket_weight_lbs:string; rating:string; strength_score:string}>(
+      "select * from wrestler_strength_current where athlete_key='cohort test'")).rows;
+    assert.equal(rows.length,1);
+    assert.equal(rows[0].weight_band,"80–89 lb");
+    assert.equal(Number(rows[0].bracket_weight_lbs),80);
+    assert.equal(Number(rows[0].rating),1514);
+    assert.equal(Number(rows[0].strength_score),1000); // solitary fixture; historical screenshot scores aren't current expectations
+  }));
+
+  it("keeps missing age independent of known weight and never revives evidence older than three events", () => isolated(async () => {
+    await seed("2026-08-01","Old",75);
+    await db.exec(`insert into matches (event_date,season,event_name,weight_class,winner_name,loser_name,win_type)
+      values ('2026-10-24','2026','Latest','80','Cohort Test','Opponent','DEC'),
+      ('2026-10-17','2026','Second','80','Cohort Test','Opponent','DEC'),
+      ('2026-10-10','2026','Third','HWT','Cohort Test','Opponent','DEC')`);
+    assert.equal((await cohort()).age_group,null);
+    assert.equal(Number((await cohort()).bracket_weight_lbs),80);
+    assert.equal(await count("select count(*) n from wrestler_strength_current where athlete_key='cohort test'"),0);
+  }));
 });
