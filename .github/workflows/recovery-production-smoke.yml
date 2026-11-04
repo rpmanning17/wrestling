@@ -1,0 +1,25 @@
+name: Recovery production HTTP verification
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/recovery-production-smoke.yml
+permissions:
+  contents: read
+jobs:
+  read-only-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify public production responses and privacy headers
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in / /rankings /clubs; do
+            headers=$(mktemp)
+            status=$(curl --silent --show-error --max-time 60 --dump-header "$headers" --output /dev/null --write-out '%{http_code}' "https://wrestling-plum.vercel.app$route")
+            test "$status" = 200
+            grep -Eiq '^cache-control:.*no-store' "$headers"
+            grep -Eiq '^x-robots-tag:.*noindex' "$headers"
+            printf '%s: HTTP %s, no-store and noindex verified\n' "$route" "$status"
+          done
