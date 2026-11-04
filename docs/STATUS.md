@@ -78,3 +78,7 @@ A repeated comparison request exposed duplicate simultaneous classification read
 
 **Final tier verification:** runtime follow-up `e505526` deployed READY as `dpl_J5mgiQq7biAkwGavKZio5rTv1vr7` on the existing domain. Repeated comparison reads and sort toggles preserve Waylon's 524.34 / #12 of 28 / Tier 5. Aaron Matos shows strength 426.78, #5 of 9, and the minimum-20 unavailable explanation. Longwood's existing roster agrees with Waylon's comparison/ranking; ambiguous evidence retains rank and strength without tier. Live rankings, club list/search and roster loaded after the query fixes. Mobile 10→1 order, Tier-2 second-from-right selection, accessible text and no page-width overflow verified. Latest error/fatal deployment log scan returned no matching entries; Supabase security advisor remains clean. All 729 pre-existing ranking fields still have checksum 74676aea8ca71bfed2b6d48e5ef18f3e; raw/model checksums also remain identical. This supersedes pending UI verification above. No log drain was added and imported-population/same-name limitations remain.
 
+
+
+## 2026-11-04 — canonical recovery implementation
+Owner-approved provenance-only version implemented from main, separately from experimental drift. Shared persisted-field serialization, exact production-output checks and guarded idempotent connector batches have 137 passing tests plus lint/typecheck/build. Production execution is pending; no activation claimed. See [RATING_RECOVERY_RELEASE.md](RATING_RECOVERY_RELEASE.md).

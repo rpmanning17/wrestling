@@ -15,6 +15,7 @@ import { writeFileSync } from "node:fs";
 import { calculateRatings } from "../../src/lib/rating/engine";
 import { periodPolicyLabel } from "../../src/lib/rating/config";
 import { prepareMatches } from "../../src/lib/rating/prepare";
+import { serializeRatingRows, serializeHistoryRows } from "../../src/lib/rating/persistence";
 import { chunk, configHash, inputFingerprint, loadConfig, loadInputs, parseArgs, todayIso, writeClient } from "./common";
 
 const CODE_VERSION = "glicko2-engine-1";
@@ -88,24 +89,12 @@ async function main() {
   console.log(`Created model ${modelId} (building)`);
 
   try {
-    const rows = result.players.map((p) => ({
-      model_id: modelId, athlete_key: p.key, athlete_name: p.name, team: p.team,
-      rating: round(p.rating, 3), rating_deviation: round(p.rd, 3), volatility: round(p.volatility, 6),
-      conservative_score: round(p.conservative, 3), rating_status: p.status,
-      match_count: p.games, wins: p.wins, losses: p.losses, first_match_date: p.firstDate, last_match_date: p.lastDate,
-      pin_pct: round(p.pinPct, 5), bonus_pct: round(p.bonusPct, 5), win_methods: p.winMethods, loss_methods: p.lossMethods,
-      avg_win_margin: round(p.avgWinMargin, 2), avg_loss_margin: round(p.avgLossMargin, 2), margin_samples: p.marginSamples,
-      avg_opponent_rating: round(p.avgOpponentRating, 2), sos_expected_win_pct: round(p.sosExpectedWinPct, 5),
-      quality_wins: p.qualityWins, quality_losses: p.qualityLosses, rating_trend: round(p.trend, 2),
-    }));
+    const rows = serializeRatingRows(result, modelId);
     for (const part of chunk(rows, 500)) {
       const { error } = await db.from("wrestler_model_ratings").insert(part);
       if (error) throw new Error(`Writing ratings failed: ${error.message}`);
     }
-    const history = result.history.map((h) => ({
-      model_id: modelId, athlete_key: h.key, period_end: new Date(h.endDay * 86_400_000).toISOString().slice(0, 10),
-      rating: round(h.rating, 3), rating_deviation: round(h.rd, 3), volatility: round(h.sigma, 6), match_count: h.games,
-    }));
+    const history = serializeHistoryRows(result, modelId);
     for (const part of chunk(history, 1000)) {
       const { error } = await db.from("wrestler_rating_history").insert(part);
       if (error) throw new Error(`Writing history failed: ${error.message}`);
