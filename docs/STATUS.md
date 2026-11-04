@@ -8,6 +8,8 @@ All raw/evidence/history/model/cohort full-row checksums are unchanged. Independ
 
 Validation: **132 tests passed**, plus lint, typecheck and optimized production build. Build used dummy environment values. Latest production error/fatal log scan (20-minute window covering migration and browser checks) returned no matching entries. No monitoring/drain configuration was changed.
 
+**Source release verified:** `f69a001` on main deployed **READY** as `dpl_A8wiqdPLKitNtnnZbCg4HyWtb7jr`, assigned to the existing wrestling-plum.vercel.app domain. Fresh post-deployment mobile comparison agrees with production SQL: Camden 122 / 1,126 / 45%, Longwood 76 / 1,072 / 43%, without page-width overflow. Migration, finite manifest, rollback, regression tests and audit SQL are committed. No application formula or source match was rewritten. Documentation-only follow-ups do not change this runtime implementation.
+
 
 Last verified: 2026-11-03 against GitHub main, production Supabase and the live Vercel application.
 
