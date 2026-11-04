@@ -630,7 +630,7 @@ export async function strongestPool() {
   if (!adjusted.error && (adjusted.data ?? []).length) {
     const rows = adjusted.data as Array<{ athlete_name: string; team: string; age_group: string; bracket_weight_lbs: number | string }>;
     const refs = [...new Map(rows.map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team, ageGroup: row.age_group, weight: Number(row.bracket_weight_lbs) }])).values()];
-    return (await buildProfiles(refs)).sort((a, b) => (b.strength ?? -1) - (a.strength ?? -1));
+    return (await buildProfiles(refs)).filter((p) => p.latestAgeGroup === "12U" && p.latestWeight != null && Math.floor(p.latestWeight / 10) === 7).sort((a, b) => (b.strength ?? -1) - (a.strength ?? -1));
   }
   const { data } = await supabase()
     .from("wrestler_ratings")
@@ -653,5 +653,5 @@ export async function likelyNolanPool() {
     .order("event_date", { ascending: false })
     .limit(800);
   const refs = [...new Map(((data ?? []) as Array<{ athlete_name: string; team: string; age_group: string; bracket_weight_lbs: number | string }>).map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team, ageGroup: row.age_group, weight: Number(row.bracket_weight_lbs) }])).values()];
-  return (await buildProfiles(refs)).sort((a, b) => b.likelihood - a.likelihood).slice(0, 6);
+  return (await buildProfiles(refs)).filter((p) => p.latestAgeGroup === "12U" && p.latestWeight != null && p.latestWeight >= 65 && p.latestWeight <= 80).sort((a, b) => b.likelihood - a.likelihood).slice(0, 6);
 }
