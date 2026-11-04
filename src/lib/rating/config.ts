@@ -22,9 +22,9 @@ export type RatingConfig = {
     /** Rating period length in days. Games in a period are treated as simultaneous (Glicko-2). */
     days: number;
   };
-  /** The documented recency policy. Only one policy exists today; the field is stored for provenance. */
+  /** The documented recency policy; the optional drift version is experimental and stored for provenance. */
   recency: {
-    policy: "glicko2_inactivity_rd_growth";
+    policy: "glicko2_inactivity_rd_growth" | "glicko2_continuous_skill_drift";
     /** Optional experimental random-walk skill drift, in Glicko RD points per sqrt(year).
      * Zero/absent preserves the validated production model and its config fingerprint.
      * Added to variance each rating period, whether or not matches occur.
@@ -119,6 +119,10 @@ export function validateConfig(config: RatingConfig) {
   need(recency.skillDriftRdPerYear === undefined ||
     (Number.isFinite(recency.skillDriftRdPerYear) && recency.skillDriftRdPerYear >= 0 && recency.skillDriftRdPerYear <= 350),
     "recency.skillDriftRdPerYear must be a finite value from 0 to 350");
+  need(recency.policy === ((recency.skillDriftRdPerYear ?? 0) > 0
+    ? "glicko2_continuous_skill_drift"
+    : "glicko2_inactivity_rd_growth"),
+    "recency.policy must identify the enabled skill-drift policy (or inactivity-only when drift is absent)");
   need(uncertainty.k >= 0 && uncertainty.k <= 5, "uncertainty.k must be between 0 and 5");
   need(uncertainty.establishedRd < uncertainty.provisionalRd, "uncertainty.establishedRd must be below provisionalRd");
   need(metrics.qualityPercentile > 0 && metrics.qualityPercentile < 1, "metrics.qualityPercentile must be in (0, 1)");
