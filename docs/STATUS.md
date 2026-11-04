@@ -36,3 +36,7 @@ Migrations 009 and 010 are applied (production versions `20261103174437` and `20
 - Reconcile duplicate candidates only when source evidence proves duplication, with reversible derived handling and tests. Never delete raw matches.
 - Continue reviewed club aliases; keep Spartan RTC separate from LHP until verified. Causal club development analysis and age/weight-specific club strength remain future work.
 - Reconcile migration history in a dedicated change before adopting CLI migration pushes.
+
+
+## 2026-11-04 — three-event cohort inference (feature branch)
+A shared pure function now infers age-division and bracket-weight labels from the three latest distinct events (50/30/20) and is used in comparison profile construction. Tests cover multiple bouts per event, source priority and age/weight independence. **Not yet integrated into database-backed rankings and search suggestions**; cohort ranking view still uses its own evidence-selection logic. This feature must not be called fully deployed until that consistency work and live verification are complete.
