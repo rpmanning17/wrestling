@@ -1,0 +1,181 @@
+{
+  "windows": {
+    "evaluateFrom": "2024-12-04",
+    "splitDate": "2026-01-17"
+  },
+  "recommendation": "adopt_candidate",
+  "adopted": [
+    "period-1",
+    "dominance-dec-0.8"
+  ],
+  "baseline": {
+    "n": 16819,
+    "accuracy": 0.6819965515191153,
+    "logLoss": 0.5733252914546259,
+    "brier": 0.1975312098655788,
+    "ece": 0.02430932180778949,
+    "calibration": [
+      {
+        "lo": 0,
+        "hi": 0.1,
+        "n": 1826,
+        "meanPredicted": 0.05797063989231967,
+        "observedRate": 0.045454545454545456
+      },
+      {
+        "lo": 0.1,
+        "hi": 0.2,
+        "n": 2837,
+        "meanPredicted": 0.1521286063942523,
+        "observedRate": 0.17201268946069792
+      },
+      {
+        "lo": 0.2,
+        "hi": 0.3,
+        "n": 3513,
+        "meanPredicted": 0.2496472901843475,
+        "observedRate": 0.2937660119555935
+      },
+      {
+        "lo": 0.3,
+        "hi": 0.4,
+        "n": 3758,
+        "meanPredicted": 0.34873618802900685,
+        "observedRate": 0.3829164449175093
+      },
+      {
+        "lo": 0.4,
+        "hi": 0.5,
+        "n": 3694,
+        "meanPredicted": 0.4506890968021277,
+        "observedRate": 0.463183540877098
+      },
+      {
+        "lo": 0.5,
+        "hi": 0.6,
+        "n": 6076,
+        "meanPredicted": 0.5299793410817883,
+        "observedRate": 0.52238314680711
+      },
+      {
+        "lo": 0.6,
+        "hi": 0.7,
+        "n": 3758,
+        "meanPredicted": 0.6512638119709943,
+        "observedRate": 0.6170835550824907
+      },
+      {
+        "lo": 0.7,
+        "hi": 0.8,
+        "n": 3513,
+        "meanPredicted": 0.7503527098156536,
+        "observedRate": 0.7062339880444065
+      },
+      {
+        "lo": 0.8,
+        "hi": 0.9,
+        "n": 2837,
+        "meanPredicted": 0.8478713936057493,
+        "observedRate": 0.8279873105393021
+      },
+      {
+        "lo": 0.9,
+        "hi": 1,
+        "n": 1826,
+        "meanPredicted": 0.9420293601076796,
+        "observedRate": 0.9545454545454546
+      }
+    ]
+  },
+  "candidate": {
+    "n": 16819,
+    "accuracy": 0.6942446043165468,
+    "logLoss": 0.5593182940998996,
+    "brier": 0.19171369213466985,
+    "ece": 0.015520331303343191,
+    "calibration": [
+      {
+        "lo": 0,
+        "hi": 0.1,
+        "n": 1726,
+        "meanPredicted": 0.058098692334808966,
+        "observedRate": 0.03360370799536501
+      },
+      {
+        "lo": 0.1,
+        "hi": 0.2,
+        "n": 2805,
+        "meanPredicted": 0.15238042745636693,
+        "observedRate": 0.15080213903743314
+      },
+      {
+        "lo": 0.2,
+        "hi": 0.3,
+        "n": 3549,
+        "meanPredicted": 0.2506924137771002,
+        "observedRate": 0.27106227106227104
+      },
+      {
+        "lo": 0.3,
+        "hi": 0.4,
+        "n": 3851,
+        "meanPredicted": 0.35041538851098464,
+        "observedRate": 0.3801609971435991
+      },
+      {
+        "lo": 0.4,
+        "hi": 0.5,
+        "n": 3705,
+        "meanPredicted": 0.45114387256590416,
+        "observedRate": 0.4437246963562753
+      },
+      {
+        "lo": 0.5,
+        "hi": 0.6,
+        "n": 6071,
+        "meanPredicted": 0.5298158379415809,
+        "observedRate": 0.5343436007247571
+      },
+      {
+        "lo": 0.6,
+        "hi": 0.7,
+        "n": 3851,
+        "meanPredicted": 0.6495846114890166,
+        "observedRate": 0.6198390028564009
+      },
+      {
+        "lo": 0.7,
+        "hi": 0.8,
+        "n": 3549,
+        "meanPredicted": 0.7493075862228987,
+        "observedRate": 0.7289377289377289
+      },
+      {
+        "lo": 0.8,
+        "hi": 0.9,
+        "n": 2805,
+        "meanPredicted": 0.8476195725436328,
+        "observedRate": 0.8491978609625669
+      },
+      {
+        "lo": 0.9,
+        "hi": 1,
+        "n": 1726,
+        "meanPredicted": 0.9419013076651902,
+        "observedRate": 0.966396292004635
+      }
+    ]
+  },
+  "comparison": {
+    "candidate": "glicko2",
+    "baseline": "glicko2",
+    "events": 56,
+    "matches": 16819,
+    "deltaLogLoss": -0.014006997354721948,
+    "ci95": [
+      -0.01640192897188235,
+      -0.011689830021945954
+    ],
+    "significantlyBetter": true
+  }
+}
