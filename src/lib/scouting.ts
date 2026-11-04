@@ -640,7 +640,7 @@ export async function strongestPool() {
     .order("strength_score", { ascending: false })
     .limit(200);
   const refs = [...new Map(((data ?? []) as Array<{ athlete_name: string; team: string; age_group: string; bracket_weight_lbs: number | string }>).map((row) => [wrestlerKey(row.athlete_name), { name: row.athlete_name, team: row.team, ageGroup: row.age_group, weight: Number(row.bracket_weight_lbs) }])).values()];
-  return (await buildProfiles(refs)).sort((a, b) => (b.strength ?? -1) - (a.strength ?? -1));
+  return (await buildProfiles(refs)).filter((p) => p.latestAgeGroup === "12U" && p.latestWeight != null && Math.floor(p.latestWeight / 10) === 7).sort((a, b) => (b.strength ?? -1) - (a.strength ?? -1));
 }
 
 export async function likelyNolanPool() {
