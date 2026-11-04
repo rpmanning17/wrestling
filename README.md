@@ -30,7 +30,7 @@ Agent-specific instructions: [`AGENTS.md`](AGENTS.md) (coding agents in general,
 
 ## Data
 
-Match results live in `public.matches`. As of the 2026-11-03 audit the database holds 31,845 bouts dated 2024-10-05 to 2026-10-31: 11,647 in the 2024–2025 season (October 5 to December 30, 2024), 11,238 in 2025–2026 (January 4 to July 26, 2026) and 8,960 in 2026–2027 (from August 2026; 668 of them, all from 2026-10-31, carry the label `2026-2027` with a hyphen instead of an en dash). This is the historical 2026-11-03 snapshot; a November 4 backfill subsequently added calendar 2025 data. Supabase now has 67,736 rows, including 35,861 from 2025; the expanded 11,724-wrestler model is calculated but NOT active. The earlier figure of 31,177 predates the 2026-10-31 event. The 2026 import assigns January–July bouts to the 2025–2026 season and August–October to 2026–2027, and excludes BYEs, rows without a named opponent, and exact duplicate rows. Known data-quality issues (near-duplicates, swapped records, club-label variants) are listed in [`docs/STATUS.md`](docs/STATUS.md). Each row keeps its source file and row number so a repeat import is idempotent.
+Match results live in `public.matches`. As of the 2026-11-03 audit the database holds 31,845 bouts dated 2024-10-05 to 2026-10-31: 11,647 in the 2024–2025 season (October 5 to December 30, 2024), 11,238 in 2025–2026 (January 4 to July 26, 2026) and 8,960 in 2026–2027 (from August 2026; 668 of them, all from 2026-10-31, carry the label `2026-2027` with a hyphen instead of an en dash). This is the historical 2026-11-03 snapshot; a November 4 backfill subsequently added calendar 2025 data. Supabase now has 67,736 rows: 35,861 bouts dated 2025 plus 30 January 2026 bouts were added on November 4; the expanded 11,724-wrestler model is calculated but NOT active. The earlier figure of 31,177 predates the 2026-10-31 event. The 2026 import assigns January–July bouts to the 2025–2026 season and August–October to 2026–2027, and excludes BYEs, rows without a named opponent, and exact duplicate rows. Known data-quality issues (near-duplicates, swapped records, club-label variants) are listed in [`docs/STATUS.md`](docs/STATUS.md). Each row keeps its source file and row number so a repeat import is idempotent.
 
 Source ZIPs and CSV contents are intentionally not committed. The match CSV importer is **not** in this repository; only the tournament-observation importer is (`supabase/importers/`). See [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md).
 
@@ -103,6 +103,10 @@ Current age/weight estimates use three distinct recent events (50/30/20), shared
 
 
 Cohort Tier shows a population decile (1 strongest, 10 weakest) when at least 20 rated wrestlers and unambiguous current cohort support are available. Equal conservative ratings share a tier. Cohort Strength remains 0–1,000; raw Glicko and opponent ratings have no fixed upper limit. Schedule Difficulty is a reference-1,500 expected win percentage: lower means harder opposition. Matchup Likelihood measures relevance/fit, not ability.
+
+## Expanded 2025 activation handoff
+
+Full data provenance, source checksums, secure activation gates and Work/Codex execution steps are in [docs/RATINGS_2025_WORK_HANDOFF.md](docs/RATINGS_2025_WORK_HANDOFF.md). The production source can be audited without writes using [supabase/audits/rating_2025_readiness.sql](supabase/audits/rating_2025_readiness.sql). Both are on draft PR #6 until reviewed.
 
 ## Experimental recency / youth development (not live)
 
