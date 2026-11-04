@@ -92,3 +92,6 @@ The production deployment is protected by Vercel Authentication. Required Produc
 ## Data handling
 
 Result data comes from publicly available wrestling sites. The repository contains application code and migrations; result archives and imported records stay outside GitHub. Results are historical context, not a prediction of a future match.
+
+
+Current age/weight estimates use three distinct recent events (50/30/20), shared across search, comparisons and active rankings. Bracket labels are estimates, not bodyweight; optional verified entry weigh-ins take priority. Named duals have half classification influence. See docs/DECISIONS.md D25 and docs/DATA_MODEL.md for exact rules.

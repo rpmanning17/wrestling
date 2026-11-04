@@ -55,3 +55,7 @@ Vercel builds from GitHub. Production variables: `NEXT_PUBLIC_SUPABASE_URL`, `NE
 ## Validated production model
 
 As of 2026-11-03 the live application reads `glicko2-daily-dec08-v1`. Production configuration is committed separately in `config/ratings.production.json`; engine defaults remain the seven-day binary-outcome reference for reproducible backtests. Rating/SOS rows and history were calculated locally from a read-only connected Supabase snapshot, inserted as a building model through the connected administrator SQL tool, validated, marked candidate and atomically activated with the existing restricted function. No extra public RPC or credential was created. See `RATING_ACTIVATION.md` for provenance and verification.
+
+
+## Shared cohort read path (2026-11-04)
+`wrestler_cohort_current` is the sole current age/weight classifier; `wrestler_strength_current` joins it to unchanged active ratings. Search discovers candidate names then reads their authoritative classification; profile classification is not derived from limited match batches or user filters. Missing classification view raises an error instead of silently supplying historical labels. The old pure TypeScript classifier was removed; migration tests exercise the actual SQL. No credentials or caching were added.

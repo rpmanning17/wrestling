@@ -302,7 +302,7 @@ export function CompareBuilder() {
                 className={activeSuggestion === index ? "selected" : ""}
                 key={`${suggestion.name}-${suggestion.team}`} type="button" onClick={() => addRef(suggestion)}>
                 <strong>{suggestion.name}</strong>
-                <span>{suggestion.ageGroup ? suggestion.ageGroup + " division" : "Age not known"} · {suggestion.weight ? suggestion.weight + (suggestion.evidence.startsWith("Owner-supplied") ? " lb reported" : " lb bracket") : "Weight not known"} · {suggestion.team || "Club not recorded"}</span>
+                <span>{suggestion.ageGroup ? suggestion.ageGroup + " division" : "Age not known"} · {suggestion.weight ? suggestion.weight + (suggestion.evidence.startsWith("Owner-supplied") ? " lb reported" : " lb estimate") : "Weight not known"} · {suggestion.team || "Club not recorded"}</span>
               </button>
             ))}
           </div>
@@ -386,7 +386,7 @@ function ProfileCard({ profile, rank, sortMode, onUpdate, onAddNote, onDeleteNot
         <div><dt>Record</dt><dd>{profile.wins}-{profile.losses}</dd></div>
         <div><dt>Age group</dt><dd>{profile.latestAgeGroup || "Unknown"}</dd></div>
         <div><dt>Birth years</dt><dd>{profile.birthYearStart && profile.birthYearEnd ? `${profile.birthYearStart}–${profile.birthYearEnd}` : "Unknown"}</dd></div>
-        <div><dt>Weight</dt><dd>{profile.latestWeight ? `${profile.latestWeight} lb` : "Unknown"}</dd></div>
+        <div><dt>Weight</dt><dd>{profile.latestWeight ? `${profile.latestWeight} lb estimate` : "Unknown"}</dd></div>
         <div><dt>Cohort</dt><dd>{profile.cohortRank && profile.cohortSize ? `#${profile.cohortRank} of ${profile.cohortSize}` : "Unrated"}</dd></div>
         <div><dt>Latest</dt><dd>{profile.latestDate || "No result"}</dd></div>
       </dl>
