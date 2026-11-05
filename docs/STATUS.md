@@ -1,5 +1,9 @@
 # Status
 
+## 2026-11-05 — read-only full-history identity audit
+
+Implemented the offline identity-audit command and private source-evidence/review queue, independently of pending importer PR #13. Scanned all 67,736 matches, 125 entries and 322 observations; 11,816 normalized name keys are not assumed to be distinct people. Automatically filtered 122 already-handled casing/outer-space variants and 30 administrative self-results. Found 610 review candidates (one contested self-match, one same-name context conflict, 608 nearby-name pairs); these are not confirmed errors. The first private 25-case report preserves all affected original records. Evidence-hash decisions suppress reviewed cases until relevant evidence changes. Source checksum stayed unchanged; no production correction, schema change or rating activation occurred. Permanent person IDs and reversible merge/split migration remain planned. See IDENTITY_AUDIT.md. Local lint/typecheck, 164 tests and production build pass.
+
 ## Current operational snapshot — 2026-11-04
 
 **Live Mat Notes:** https://wrestling-plum.vercel.app. **Active canonical Glicko-2:** `a29c4460-5e56-4d22-902d-ea39c65bfcac` — 67,736 source bouts (including calendar 2025), 64,050 rated bouts, 11,724 wrestlers, and 34,809 history points. Original daily/decision-0.8 formula unchanged. Previous full model archived for rollback; incomplete 500-row run remains untouched. See [RATING_RECOVERY_RELEASE.md](RATING_RECOVERY_RELEASE.md).

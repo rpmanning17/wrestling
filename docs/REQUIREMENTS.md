@@ -34,6 +34,8 @@ Owner context used for the "likely opponents" feature (kept as configuration in 
 
 ## Non-functional and safety requirements
 
+Identity audit update (November 5): F5 remains partial for same-name people. A read-only, full-history candidate audit now handles routine casing noise, uses contextual evidence rather than club changes alone, and supports private evidence-aware review decisions. Canonical person IDs, reversible corrections and rating/notes propagation are still planned; no automatic uncertain merge or split is introduced. See IDENTITY_AUDIT.md.
+
 - No logins or accounts. Access is the Vercel Authentication gate plus a server-only database key. Keep `noindex` and `no-store` headers.
 - Raw matches and evidence are preserved; derived tables can be rebuilt.
 - Never use future results to score a past prediction. Dominance or margin adjustments stay experimental unless a backtest shows a meaningful, well-calibrated improvement.

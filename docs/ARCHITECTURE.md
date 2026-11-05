@@ -2,6 +2,8 @@
 
 ## Runtime
 
+Offline identity audit (November 5): `scripts/identity/audit.ts` reads a private checked snapshot; `src/lib/identity/audit.ts` resolves existing aliases, discovers context/name candidates and fingerprints relevant case evidence. Private JSON and Markdown reports contain original source references. No database client, public endpoint, credentials or runtime UI change is introduced. Decisions affect only review-queue visibility; canonical IDs and assignment/lineage persistence remain separate planned architecture. See IDENTITY_AUDIT.md.
+
 - **Next.js 16 App Router** on Vercel. Server components and server actions read and write Supabase using a server-only key. The browser only receives rendered HTML and action results.
 - **Supabase Postgres** with row-level security. The `anon` role may read/write only when the request carries the personal-app key (`private.personal_app_request_is_valid()`); the existing administrator connector is used for guarded rating batch writes. Views use `security_invoker`.
 - No authentication layer in the app. `src/proxy.ts` adds `Cache-Control: private, no-store`, `X-Robots-Tag: noindex, nofollow, noarchive` and other hardening headers to every response.

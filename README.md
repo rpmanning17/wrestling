@@ -80,6 +80,8 @@ The production deployment is protected by Vercel Authentication. Required Produc
 
 ## Data handling
 
+`pnpm identity:audit --input C:/private/identity-snapshot.json --report C:/private/identity-report.json --review C:/private/identity-first-25.md` performs a read-only identity audit with private source evidence and review decisions. It never merges people or changes ratings. See [identity audit operations and limitations](docs/IDENTITY_AUDIT.md).
+
 Result data comes from publicly available wrestling sites. The repository contains application code and migrations; result archives and imported records stay outside GitHub. Results are historical context, not a prediction of a future match.
 
 
