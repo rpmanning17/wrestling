@@ -1,5 +1,9 @@
 # Status
 
+## 2026-11-05 — original 2025 archive reconciled, read-only
+
+[Source reconciliation](FLO_2025_RECONCILIATION.md) accounts for all 53,315 records in the original 104-member archive. All 35,891 retained archive records match original source fields/coordinates (35,861 calendar-2025 plus 30 early-2026). Other rows are unnamed participants, duplicate exports, early-2026 records already represented under 2026 sources, four explicit byes, or twelve unresolved same-file repetitions (three contested, nine forfeits). No clearly new 2025 bout was identified; identical repeated bouts are not automatically deemed duplicates. Private evidence is retained outside Git. No production write, migration or rating activation occurred; active canonical model and 67,736 source total remain unchanged. The next import exercise needs genuinely new results, a complete frozen baseline and explicit approval of a reviewed clean subset.
+
 ## 2026-11-05 — Phase 1 Flo importer, local implementation
 
 Implemented the versioned offline raw Flo CSV/ZIP adapter, bounded ZIP validation, full-match-baseline reconciliation, private dry-run manifests, clean-subset selection and administrator SQL that atomically persists bouts plus approval/source/quarantine evidence. New migration `20261105124918_flo_import_audit.sql` is **unapplied**. No production data, evidence, ratings or permissions changed. [FLO_IMPORT.md](FLO_IMPORT.md) documents commands, the observed format and remaining work; [synthetic example](examples/flo-dry-run.json) contains invented participants only.
