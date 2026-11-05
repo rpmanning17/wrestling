@@ -1,5 +1,6 @@
 /** Offline person-keyed Glicko-2 candidate. Writes only to the supplied private directory. */
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { calculateRatings } from "../../src/lib/rating/engine";
@@ -51,10 +52,14 @@ const assignmentFingerprint = sha256([...plan.assignments]
 const sourceRatingInputFingerprint = inputFingerprint({ matches: raw, aliases: snapshot.aliases, source: "private-snapshot" });
 const inputHash = createHash("sha256").update(JSON.stringify(["person-rating-input-v1",
   sourceRatingInputFingerprint, assignmentFingerprint])).digest("hex");
+const commit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+const dirty = execFileSync("git", ["status", "--porcelain", "--", "src/lib/rating", "src/lib/identity",
+  "scripts/identity", "config/ratings.production.json"], { encoding: "utf8" });
+if (dirty.trim()) throw new Error("Commit calculation and identity sources before exporting a candidate");
 const model = {
   model_version: config.modelVersion, status: "building", identity_scheme: "person_uuid",
   assignment_fingerprint: assignmentFingerprint, config, config_hash: configHash(config),
-  input_fingerprint: inputHash, code_version: "person-identity-v1", as_of_date: asOfDate,
+  input_fingerprint: inputHash, code_version: `${commit}/person-identity-v1`, as_of_date: asOfDate,
   match_cutoff: result.matchCutoff, first_match_date: result.firstMatchDate,
   rating_period_policy: periodPolicyLabel(config), rating_period_days: config.period.days,
   uncertainty_k: config.uncertainty.k, provisional_rd: config.uncertainty.provisionalRd,
