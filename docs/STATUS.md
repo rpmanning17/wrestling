@@ -1,5 +1,18 @@
 # Status
 
+## Current operational snapshot — 2026-11-04
+
+**Live Mat Notes:** https://wrestling-plum.vercel.app. **Active canonical Glicko-2:** `a29c4460-5e56-4d22-902d-ea39c65bfcac` — 67,736 source bouts (including calendar 2025), 64,050 rated bouts, 11,724 wrestlers, and 34,809 history points. Original daily/decision-0.8 formula unchanged. Previous full model archived for rollback; incomplete 500-row run remains untouched. See [RATING_RECOVERY_RELEASE.md](RATING_RECOVERY_RELEASE.md).
+
+**Repository:** Rating recovery/activation safeguards from PR #9 and normalized-CSV staging, count-divergence freshness warning and read-only migration audit from PRs #10–11 are merged and deployed. Latest recorded PR #10 checks: **154 tests, lint, typecheck, build passed**; Vercel reported production READY. No raw Flo-to-normalized converter, automatic rating recalculation or authenticated-browser verification of the warning has been claimed. An unchanged raw-match count does **not** prove identical rating inputs.
+
+**Next work:** Obtain/review the original Flo/Trackwrestling import converter, then exercise one supervised end-to-end import and recalculation. Keep activation guarded and manual. Reconcile the 20 local/production migration version differences only after verifying applied SQL; **do not run blind `supabase db push`**. Review [RATING_OPERATIONS.md](RATING_OPERATIONS.md), [MATCH_IMPORT_READINESS.md](MATCH_IMPORT_READINESS.md), and [MIGRATION_HISTORY_AUDIT.md](MIGRATION_HISTORY_AUDIT.md).
+
+All entries below are historical implementation and verification records, not instructions to restore an earlier model.
+
+---
+
+
 ## Independent infrastructure review — 2026-11-04
 
 Read-only production verification reconfirmed the canonical active UUID, 67,736 source rows / 35,861 calendar-2025 rows / 199 files, 11,724 ratings / 34,809 history / 64,050 wins and losses, unchanged source hashes, zero audited invalid active rows, both unique indexes and denied client activation permissions. No production records or schema changed.
