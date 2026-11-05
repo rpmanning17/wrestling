@@ -32,7 +32,7 @@ describe("normalized match import safety", () => {
     assert.throws(() => parseCsv('a,b\n"unterminated'), /Unclosed/);
   });
   it("retains possible genuine same-event rematches and opposite winners", () => {
-    const copy = example.replace("Jax Perry,Creeks Wrestling,Lincoln Sliwa", "Lincoln Sliwa,Creeks Wrestling,Jax Perry").replace(",2", ",3");
+    const copy = example.replace("Jax Perry,Creeks Wrestling,Lincoln Sliwa", "Lincoln Sliwa,Creeks Wrestling,Jax Perry").replace(/,2$/, ",3");
     const x = parse(header + "\n" + example + "\n" + copy + "\n");
     assert.equal(x.rows.length, 2);
     assert.equal(x.repeatedPairGroups, 1);
