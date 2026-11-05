@@ -7,7 +7,7 @@
  */
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
-import { isAbsolute, resolve, sep } from "node:path";
+import { resolve, sep } from "node:path";
 import { guardedMatchImportSql, validateNormalizedMatchCsv } from "../../src/lib/imports/matches-csv";
 
 function main() {
