@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { guardedMatchImportSql, parseCsv, validateNormalizedMatchCsv, type MatchImportRow } from "../../src/lib/imports/matches-csv";
 
@@ -42,6 +46,29 @@ describe("normalized match import safety", () => {
     const x = parse(data.replace(",F,2025 Results.zip", ",NEWCODE,2025 Results.zip"));
     assert.deepEqual(x.unrecognizedMethods, ["NEWCODE"]);
   });
+  it("CLI stages private SQL and manifest without connecting to a database", () => {
+    const dir = mkdtempSync(join(tmpdir(), "mat-notes-match-import-"));
+    try {
+      const csv = join(dir, "sample.csv");
+      const output = join(dir, "guarded.sql");
+      const manifest = join(dir, "manifest.json");
+      writeFileSync(csv, data, "utf8");
+      const args = ["--import", "tsx", "scripts/imports/prepare-matches.ts", "--input", csv,
+        "--out", output, "--report", manifest];
+      const run = spawnSync(process.execPath, args, { cwd: process.cwd(), encoding: "utf8", timeout: 60000 });
+      assert.equal(run.status, 0, run.stderr);
+      assert.match(readFileSync(output, "utf8"), /Match import conflicting existing source row/);
+      assert.match(readFileSync(output, "utf8"), /on conflict \(source_file,source_row\) do nothing/);
+      const report = JSON.parse(readFileSync(manifest, "utf8"));
+      assert.equal(report.rows, 1);
+      assert.equal(report.writesPerformed, false);
+      assert.equal(report.inputSha256.length, 64);
+      const again = spawnSync(process.execPath, args, { cwd: process.cwd(), encoding: "utf8", timeout: 60000 });
+      assert.equal(again.status, 1);
+      assert.match(again.stderr, /EEXIST/);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+
   it("rejects an empty, oversized or repeated-key SQL batch", () => {
     assert.throws(() => guardedMatchImportSql([]), /nonempty/);
     assert.throws(() => guardedMatchImportSql(Array.from({ length: 251 }, () => sample())), /at most/);
