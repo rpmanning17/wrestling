@@ -31,7 +31,7 @@ Match results live in `public.matches`. The verified November 4, 2026 snapshot c
 
 Source ZIPs and CSV contents are intentionally not committed. The repository has an **offline staging tool for normalized Mat Notes match CSVs** (`pnpm matches:prepare`), not a raw Flo/Trackwrestling-to-normalized converter. The tournament-observation builder is separate (`supabase/importers/`). See [MATCH_IMPORT_READINESS](docs/MATCH_IMPORT_READINESS.md). Reviewed club normalization and the finite Scorpions/Kongkrete catch-up are live; see [CLUB_NORMALIZATION](docs/CLUB_NORMALIZATION.md).
 
-The person-identity branch implements agent-reviewed wrestler UUIDs, reversible assignments for each source appearance, and person-based search, profiles, comparisons, rankings, cohorts and club reads. Matching happens offline through `scripts/identity/`; the app has no matching screen. These additions are not live until the additive migrations, supervised assignment/candidate rollout, app deployment and separately authorized model activation are complete. See [identity operations](docs/IDENTITY_OPERATIONS.md).
+The person-identity branch implements agent-reviewed wrestler UUIDs, reversible assignments for each source appearance, and person-based search, profiles, comparisons, rankings, cohorts and club reads. Matching happens offline through `scripts/identity/`; the app has no matching screen. The additive migrations, assignments and validated rating candidate are in production; the app code is in draft PR #16 and the old name-keyed model remains active. The new read path requires app deployment and separately authorized model activation. See [identity operations](docs/IDENTITY_OPERATIONS.md).
 
 ## Ratings
 

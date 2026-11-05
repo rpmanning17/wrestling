@@ -2,9 +2,9 @@
 
 ## Runtime
 
-The November 5 offline identity audit (`scripts/identity/audit.ts`) remains the read-only source-evidence discovery tool. The person-identity branch adds `revalidate-links.ts`, `plan.ts`, `calculate-candidate.ts`, `validate-candidate.ts`, and `rollout-sql.ts` for agent-side decisions, immutable private output, and supervised connector batches. No identity-matching UI or public write endpoint exists. See IDENTITY_AUDIT.md and IDENTITY_OPERATIONS.md.
+The November 5 offline identity audit (`scripts/identity/audit.ts`) remains the read-only source-evidence discovery tool. The person-identity branch adds `revalidate-links.ts`, `plan.ts`, `calculate-candidate.ts`, `validate-candidate.ts`, `rollout-sql.ts` and `candidate-rollout-sql.ts` for agent-side decisions, immutable private output, and supervised connector batches. No identity-matching UI or public write endpoint exists. See IDENTITY_AUDIT.md and IDENTITY_OPERATIONS.md.
 
-## Person identity path (branch implementation; production pending)
+## Person identity path (database prepared; app deployment and activation pending)
 
 `wrestler_people.id` is a permanent UUID. Every original match side, tournament entry and observation has an independent versioned assignment in `source_identity_assignments`; `source_identity_current_rows` is the indexed current state and `source_identity_current` the invoker view. `identity_decisions` records authority and evidence; batches and revisions support compensating rollback. Unassigned source rows retain their original names and cannot enter a person history. Existing notes remain unattributed until linked by evidence; new notes under a person model carry `person_id`.
 
