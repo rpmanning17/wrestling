@@ -69,3 +69,10 @@ Production read optimization: profile construction uses current age/weight field
 
 
 Canonical recovery (2026-11-04): calculate.ts and the read-only recovery exporter share persisted-field serialization. Administrator connector batches lock/check immutable building metadata and exact rows; candidate promotion and activation are separate validated steps. Expanded source reads parse repeated literal labels once inside invoker-view CTEs, collapse redundant classification tuples, and fence classification joins. These are statement-local query intermediates, not persistent caches. See RATING_RECOVERY_RELEASE.md.
+
+
+## Input freshness and offline normalized match staging (unmerged feature PR)
+
+`src/components/rating-freshness-banner.tsx` performs a server-only, RLS-protected exact source-bout count and reads the sole active `rating_models` metadata in parallel. `src/lib/rating/freshness.ts` classifies count divergence; warnings are conditional and are **not** full input-fingerprint validation. It is mounted asynchronously beneath the global navigation without sending Supabase credentials to the client.
+
+`src/lib/imports/matches-csv.ts` validates normalized historical match columns and produces transactional idempotent, conflict-checked SQL. `scripts/imports/prepare-matches.ts` stages a private reviewed SQL file; it never writes to Supabase. The raw Flo CSV converter is not included. This is an independent process from alias review, evidence refresh and rating calculation; use `RATING_OPERATIONS.md` for the latter.
