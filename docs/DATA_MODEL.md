@@ -82,7 +82,7 @@ Two immutable query-plan follow-ups for the same club calculation are applied: `
 Expanded-source read fixes (2026-11-04): source migrations 20261104201302 and 20261104202147 map to production 20261104201755 and 20261104202335. View outputs and invoker security/grants are preserved; raw/derived/model tables are unchanged by these read optimizations. Current active ratings are the complete canonical recovery run documented in RATING_RECOVERY_RELEASE.md. Do not perform unreconciled CLI migration pushes.
 
 
-## Source-input freshness and imported match staging (unmerged feature PR)
+## Source-input freshness and imported match staging (PR #10, deployed)
 
 A newly generated normalized match source must preserve `source_file` and `source_row` and pass the same schema constraints as `public.matches`. The offline validator stages conflict-checked inserts through the existing unique source index, never overwriting a prior source row. Input quality and older source files can only be verified by reviewing the original archives; this tool does not invent stable wrestler IDs, merge clubs, or infer measured bodyweight.
 
