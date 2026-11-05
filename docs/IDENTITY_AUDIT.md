@@ -1,6 +1,6 @@
 # Identity audit — November 5, 2026
 
-Implemented: deterministic, offline, read-only candidate discovery and private review reports. **Not implemented:** canonical person IDs, identity reassignment, merge/split persistence, production corrections or rating activation. No production writes were performed.
+This document records the original read-only audit. The person-identity branch now implements canonical person IDs, assignment lineage and person-keyed candidate code; its production rollout and activation are still pending. See [IDENTITY_OPERATIONS.md](IDENTITY_OPERATIONS.md). The original audit itself performed no production writes.
 
 ## Verified full-history pass
 

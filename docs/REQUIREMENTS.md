@@ -19,7 +19,7 @@ Owner context used for the "likely opponents" feature (kept as configuration in 
 | F2 | Compare a list of wrestlers (a bracket): record, age group, weight, cohort rank, likelihood and strength, recent bouts, placements, notes | Implemented |
 | F3 | Saved comparisons, results browser, "add a missing bout" form | Implemented (see `src/app/actions.ts`, `compare-actions.ts`, `results/`) |
 | F4 | Private scouting notes per wrestler, queued offline-tolerant sync | Implemented (`wrestler_notes`) |
-| F5 | **Wrestler identity resolution:** one canonical identity per real person; spelling aliases are reviewed and the original label stays searchable; uncertain identities are never merged | Implemented for reviewed aliases (`wrestler_aliases`). Automatic merging is not done on purpose. Same-name different people cannot be distinguished: known limitation |
+| F5 | **Wrestler identity resolution:** stable person IDs, independently assigned source appearances, reviewed spelling/nickname evidence, same-name separation, searchable original labels and reversible decisions. Matching is agent-side, with no matching screen; unresolved appearances never enter a person's history | Implemented in the person-identity branch, with offline candidate and migration tests. Production rollout, app deployment and separately authorized rating activation remain pending; the live model still has the historical same-name limitation |
 | F6 | **Flo imports:** tournament placers and weight-class tables captured from Flo event pages become `tournament_observations` with provenance (file names, ZIP hash) | Partial. Tournament-observation builder is in `supabase/importers/`; normalized match CSV staging and guarded SQL are now in `scripts/imports/`. The raw Flo/Trackwrestling converter remains external and unverified |
 | F7 | **Age and weight inference** from division birth-year bands and bracket classes, with a confidence label; no exact body weight from a bracket; no birth date from a division | Implemented in SQL (`private.refresh_wrestler_evidence`), see `DATA_MODEL.md` |
 | F8 | **Tournament placements** are stored and shown as placements; never converted into wins or losses | Implemented |
@@ -34,7 +34,7 @@ Owner context used for the "likely opponents" feature (kept as configuration in 
 
 ## Non-functional and safety requirements
 
-Identity audit update (November 5): F5 remains partial for same-name people. A read-only, full-history candidate audit now handles routine casing noise, uses contextual evidence rather than club changes alone, and supports private evidence-aware review decisions. Canonical person IDs, reversible corrections and rating/notes propagation are still planned; no automatic uncertain merge or split is introduced. See IDENTITY_AUDIT.md.
+Identity update (November 5): The read-only audit now feeds an offline, evidence-checked person assignment plan. Current club aliases, direct-opponent conflicts, same-day contexts, entire transitive groups and exact owner source scopes are checked before assignment. Unknown observations and source errors remain unattributed. Stable IDs, assignment lineage, person-keyed ratings, app reads and note ownership are implemented in branch code but not yet live. See IDENTITY_AUDIT.md and IDENTITY_OPERATIONS.md.
 
 - No logins or accounts. Access is the Vercel Authentication gate plus a server-only database key. Keep `noindex` and `no-store` headers.
 - Raw matches and evidence are preserved; derived tables can be rebuilt.

@@ -2,7 +2,13 @@
 
 ## Runtime
 
-Offline identity audit (November 5): `scripts/identity/audit.ts` reads a private checked snapshot; `src/lib/identity/audit.ts` resolves existing aliases, discovers context/name candidates and fingerprints relevant case evidence. Private JSON and Markdown reports contain original source references. No database client, public endpoint, credentials or runtime UI change is introduced. Decisions affect only review-queue visibility; canonical IDs and assignment/lineage persistence remain separate planned architecture. See IDENTITY_AUDIT.md.
+The November 5 offline identity audit (`scripts/identity/audit.ts`) remains the read-only source-evidence discovery tool. The person-identity branch adds `revalidate-links.ts`, `plan.ts`, `calculate-candidate.ts`, `validate-candidate.ts`, and `rollout-sql.ts` for agent-side decisions, immutable private output, and supervised connector batches. No identity-matching UI or public write endpoint exists. See IDENTITY_AUDIT.md and IDENTITY_OPERATIONS.md.
+
+## Person identity path (branch implementation; production pending)
+
+`wrestler_people.id` is a permanent UUID. Every original match side, tournament entry and observation has an independent versioned assignment in `source_identity_assignments`; `source_identity_current_rows` is the indexed current state and `source_identity_current` the invoker view. `identity_decisions` records authority and evidence; batches and revisions support compensating rollback. Unassigned source rows retain their original names and cannot enter a person history. Existing notes remain unattributed until linked by evidence; new notes under a person model carry `person_id`.
+
+The rating engine accepts reviewed match-side IDs without changing Glicko-2 arithmetic. Candidate rows use UUID strings as rating keys and also store `person_id`; the model records `identity_scheme=person_uuid` and an assignment fingerprint. Until such a model is active, app reads continue through the current name-key views. After activation, search, profiles, comparisons, cohorts, rankings and club views use the person-specific invoker views. The same validated three-event cohort vote, conservative score, tier and club-SOS formulas are reused with person-keyed inputs. Current assignment writes are refused while a person model is active, so correction requires a new supervised rating release. The database guard checks person rating counts and current assignment fingerprint before active promotion.
 
 - **Next.js 16 App Router** on Vercel. Server components and server actions read and write Supabase using a server-only key. The browser only receives rendered HTML and action results.
 - **Supabase Postgres** with row-level security. The `anon` role may read/write only when the request carries the personal-app key (`private.personal_app_request_is_valid()`); the existing administrator connector is used for guarded rating batch writes. Views use `security_invoker`.

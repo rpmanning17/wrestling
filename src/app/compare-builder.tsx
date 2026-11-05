@@ -9,7 +9,8 @@ import { wrestlerKey } from "@/lib/scouting-types";
 
 const COMPARE_KEY = "matnotes.compare.v1";
 const PENDING_KEY = "matnotes.pending-notes.v1";
-type PendingNote = { wrestlerName: string; body: string; clientId: string };
+type PendingNote = { wrestlerName: string; personId?: string; body: string; clientId: string };
+const refKey = (ref: WrestlerRef) => ref.personId ?? wrestlerKey(ref.name);
 
 function safeStoredRefs() {
   try {
@@ -53,7 +54,7 @@ export function CompareBuilder() {
           name: nextProfiles[index]?.name ?? ref.name,
           team: nextProfiles[index]?.team ?? ref.team,
         }));
-        const uniqueRefs = [...new Map(canonicalRefs.map((ref) => [wrestlerKey(ref.name), ref])).values()].slice(0, 8);
+        const uniqueRefs = [...new Map(canonicalRefs.map((ref) => [refKey(ref), ref])).values()].slice(0, 8);
         setRefs((current) => JSON.stringify(current) === JSON.stringify(uniqueRefs) ? current : uniqueRefs);
       }
     } catch {
@@ -106,7 +107,7 @@ export function CompareBuilder() {
   const addRef = (ref: WrestlerRef) => {
     setMessage("");
     setRefs((current) => {
-      if (current.some((item) => wrestlerKey(item.name) === wrestlerKey(ref.name))) return current;
+      if (current.some((item) => refKey(item) === refKey(ref))) return current;
       if (current.length >= 8) {
         setMessage("A comparison can hold up to 8 wrestlers.");
         return current;
@@ -123,7 +124,7 @@ export function CompareBuilder() {
 
   const updateRef = (key: string, changes: Partial<WrestlerRef>) => {
     setRefs((current) => {
-      const next = current.map((ref) => wrestlerKey(ref.name) === key ? { ...ref, ...changes } : ref);
+      const next = current.map((ref) => refKey(ref) === key ? { ...ref, ...changes } : ref);
       void refreshProfiles(next);
       return next;
     });
@@ -131,7 +132,7 @@ export function CompareBuilder() {
 
   const removeRef = (key: string) => {
     setRefs((current) => {
-      const next = current.filter((ref) => wrestlerKey(ref.name) !== key);
+      const next = current.filter((ref) => refKey(ref) !== key);
       void refreshProfiles(next);
       return next;
     });
@@ -192,16 +193,20 @@ export function CompareBuilder() {
     setSearching(true);
     const resolved = await Promise.all(names.map(async (name) => {
       try {
-        const [best] = await searchWrestlers(name);
+        const suggestions = await searchWrestlers(name);
+        const [best] = suggestions;
+        if (best?.personId && suggestions.some(candidate => candidate.personId !== best.personId &&
+          candidate.matchScore === best.matchScore && wrestlerKey(candidate.name) === wrestlerKey(best.name)))
+          return { name, unknown: true };
         return best && best.matchScore >= 55 ? best : { name, unknown: true };
       } catch {
         return { name, unknown: true };
       }
     }));
-    const existing = new Set(refs.map((ref) => wrestlerKey(ref.name)));
+    const existing = new Set(refs.map(refKey));
     const next = [...refs];
     for (const ref of resolved) {
-      const key = wrestlerKey(ref.name);
+      const key = refKey(ref);
       if (!existing.has(key) && next.length < 8) {
         next.push(ref);
         existing.add(key);
@@ -226,7 +231,7 @@ export function CompareBuilder() {
     const clientId = crypto.randomUUID().replaceAll("-", "");
     const optimistic: WrestlerNote = { id: -Number.parseInt(clientId.slice(0, 8), 16), wrestlerKey: profile.key, body, clientId, createdAt: "" };
     setProfiles((current) => current.map((item) => item.key === profile.key ? { ...item, notes: [optimistic, ...item.notes] } : item));
-    const pending = { wrestlerName: profile.name, body, clientId };
+    const pending = { wrestlerName: profile.name, personId: profile.personId, body, clientId };
     try {
       const saved = await saveWrestlerNote(pending);
       setProfiles((current) => current.map((item) => item.key === profile.key ? { ...item, notes: item.notes.map((note) => note.clientId === clientId ? saved : note) } : item));
@@ -302,7 +307,7 @@ export function CompareBuilder() {
             {suggestions.map((suggestion, index) => (
               <button id={"athlete-suggestion-" + index} role="option" aria-selected={activeSuggestion === index}
                 className={activeSuggestion === index ? "selected" : ""}
-                key={`${suggestion.name}-${suggestion.team}`} type="button" onClick={() => addRef(suggestion)}>
+                key={suggestion.personId ?? `${suggestion.name}-${suggestion.team}`} type="button" onClick={() => addRef(suggestion)}>
                 <strong>{suggestion.name}</strong>
                 <span>{suggestion.ageGroup ? suggestion.ageGroup + " division" : "Age not known"} · {suggestion.weight ? suggestion.weight + (suggestion.evidence.startsWith("Owner-supplied") ? " lb reported" : " lb estimate") : "Weight not known"} · {suggestion.team || "Club not recorded"}</span>
               </button>
@@ -335,7 +340,7 @@ export function CompareBuilder() {
           </div>
 
           <div className="selected-strip" aria-label="Selected wrestlers">
-            {refs.map((ref) => <span key={wrestlerKey(ref.name)}>{ref.name}<button type="button" aria-label={`Remove ${ref.name}`} onClick={() => removeRef(wrestlerKey(ref.name))}>×</button></span>)}
+            {refs.map((ref) => <span key={refKey(ref)}>{ref.name}<button type="button" aria-label={`Remove ${ref.name}`} onClick={() => removeRef(refKey(ref))}>×</button></span>)}
           </div>
 
           {loading && !profiles.length ? <div className="loading-card">Building the comparison…</div> : (
@@ -377,7 +382,8 @@ function ProfileCard({ profile, rank, sortMode, onUpdate, onAddNote, onDeleteNot
       <div className="profile-topline"><span>#{rank}</span><span className={`confidence ${profile.evidenceConfidence}`}>{profile.evidenceConfidence} evidence</span></div>
       <h3>{profile.name}</h3>
       <p className="team-line">{profile.team || "Team not recorded"}</p>
-      {profile.unknown && <span className="temporary-label">Temporary wrestler</span>}
+      {profile.identityUnresolved ? <span className="temporary-label">Identity unresolved — select a search result</span>
+        : profile.unknown && <span className="temporary-label">Temporary wrestler</span>}
 
       <CohortStanding standing={profile} />
       <p className="matchup-likelihood"><strong>Matchup Likelihood (0–1,000): {profile.likelihood.toFixed(2)}</strong><span>Opponent relevance and fit, not wrestling ability.</span></p>
@@ -393,7 +399,7 @@ function ProfileCard({ profile, rank, sortMode, onUpdate, onAddNote, onDeleteNot
         <div><dt>Latest</dt><dd>{profile.latestDate || "No result"}</dd></div>
       </dl>
 
-      {profile.unknown && (
+      {profile.unknown && !profile.identityUnresolved && (
         <div className="manual-evidence">
           <label>Age group<select value={profile.ageGroup || ""} onChange={(event) => onUpdate({ ageGroup: event.target.value || undefined })}><option value="">Unknown</option><option>10U</option><option>12U</option><option>14U</option></select></label>
           <label>Weight<input type="number" min="40" max="400" value={profile.weight || ""} onChange={(event) => onUpdate({ weight: event.target.value ? Number(event.target.value) : undefined })} placeholder="lbs" /></label>
@@ -412,7 +418,7 @@ function ProfileCard({ profile, rank, sortMode, onUpdate, onAddNote, onDeleteNot
         <div className="history-block"><h4>Recent bouts</h4>{profile.bouts.length ? profile.bouts.map((bout) => <p key={bout.id}><b className={bout.outcome === "W" ? "win" : "loss"}>{bout.outcome}</b> vs {bout.opponent}<span>{bout.event} · {bout.date} · {bout.weight} · {bout.result}</span></p>) : <p>No imported bouts.</p>}</div>
         <div className="notes-block">
           <h4>Scouting notes</h4>
-          <form onSubmit={submitNote}><textarea value={note} onChange={(event) => setNote(event.target.value)} rows={3} maxLength={4000} placeholder="Dated note about stance, setups, tendencies…" /><button disabled={!note.trim()}>Save note</button></form>
+          {!profile.identityUnresolved && <form onSubmit={submitNote}><textarea value={note} onChange={(event) => setNote(event.target.value)} rows={3} maxLength={4000} placeholder="Dated note about stance, setups, tendencies…" /><button disabled={!note.trim()}>Save note</button></form>}
           {profile.notes.map((saved) => <div className="saved-note" key={saved.clientId}><time>{saved.createdAt ? new Date(saved.createdAt).toLocaleString() : "Just now"}</time>{saved.id < 0 && <em>Queued to sync</em>}<p>{saved.body}</p><button type="button" onClick={() => onDeleteNote(saved)}>Delete</button></div>)}
         </div>
       </details>

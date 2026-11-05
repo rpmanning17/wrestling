@@ -2,6 +2,8 @@
 
 The 2026-11-05 finite club alias catch-up adds 27 literal rows to `public.club_aliases` and a denied private insertion ledger for guarded rollback. It retains original team text in `matches`, entries and observations. Club views resolve those rows at read time. Production version `20261105150602` is applied; see CLUB_NORMALIZATION.md.
 
+The person-identity branch adds `wrestler_people`, `identity_decisions`, `identity_assignment_batches`, append-only `source_identity_assignments`, and indexed `source_identity_current_rows`. These are **local migration definitions until applied**. Each match winner and loser, tournament entry, and observation has its own current assignment or an explicit null. Source rows and spellings remain unchanged. Every assignment revision points to a decision with owner-confirmed, agent-inferred, source-evidenced or administrative authority. The `private.assign_source_identity` and bounded `private.apply_identity_batch` functions compare source names and expected revisions; rollback records a new revision and retains history. `wrestler_notes.person_id` is nullable, so an old name-key note is not guessed onto either same-name wrestler. The application reads `person_matches`, `person_tournament_entries`, `person_tournament_observations`, `person_cohort_current`, `person_strength_current`, `person_rating_current`, and person club views only after a person-keyed model is active.
+
 ## Reviewed club aliases (2026-11-04)
 
 The finite `config/club-normalization.approved.json` drives source migration `20261104161040_approved_club_normalization.sql`, production version `20261104161409`. It inserts 377 aliases and preserves all 13 original rows. Exact punctuation replacement may leave a trailing space. Original team labels and raw/evidence/model/history records remain unchanged; ordinary club views aggregate canonical organizations. `private.club_normalization_20261104_inserted` captures actual insertions with timestamps, RLS enabled and client/service-role privileges revoked, for guarded administrator rollback. See CLUB_NORMALIZATION.md for measurements and reconstruction differences.
@@ -46,16 +48,16 @@ Calendar 2025 was backfilled November 4. Current baseline: 67,736 source rows, 6
 
 ## Relationships and normalization
 
-- There is no `wrestlers` table. A wrestler's identity is a **normalized name string**: `lower(trim(name))` in SQL (`athlete_key`), `identityKey()` in TypeScript, with the app's own `wrestlerKey()` slug for notes and URLs. Matches, entries, observations and ratings relate by that key, not by foreign key.
+- The currently active production model still uses the historical normalized-name key (`lower(trim(name))`). The new candidate uses `wrestler_people.id`; rating `athlete_key` is its UUID text and `person_id` is a foreign key. The app's `wrestlerKey()` slug remains only for legacy note compatibility.
 - `wrestler_aliases.alias_key` maps a raw label to its canonical name. Raw labels are preserved (`tournament_observations.source_athlete_name`) and aliases stay searchable. The only alias today is Grayson Piaseck → Grayson Piasecki (user confirmed). Migration 008 also rewrote `matches` names for that alias.
 - `wrestler_evidence.source_entry_id` → `tournament_entries(id)`; `source_match_id` → `matches(id)`; both cascade on delete.
 - Clubs are free-text `team` columns copied onto matches, entries, observations and ratings. Confirmed club aliases and event-specific attribution are implemented by migration 010 (see `REQUIREMENTS.md` F13); raw team labels remain preserved.
 
 ## Identity resolution rules
 
-November 5 audit: all historical matches, entries and observations were scanned without changing these tables or keys. Candidate case/evidence hashes are private review identifiers, **not person IDs**. No new alias, identity assignment or merge/split table is deployed. See IDENTITY_AUDIT.md for verified counts, suppression semantics and the planned appearance-to-person design.
+November 5 audit: all historical matches, entries and observations were scanned without changing source rows. Candidate case/evidence hashes are private review identifiers, **not person IDs**. The additive person tables and assignment lineage are implemented in branch migrations but have not yet been applied to production. See IDENTITY_AUDIT.md and IDENTITY_OPERATIONS.md.
 
-1. Exact normalized-name match is the same identity. This is a known weakness: two different wrestlers with the same name merge, and the rating model cannot separate them. `supabase/audits/match_outcome_audit.sql` query 5 lists names seen with more than one club: on 2026-11-03, 2,439 of 7,797 distinct names (31%) appeared under more than one club label. Most are probably club-name variants or club switches rather than different people, but the data cannot tell them apart without club normalization.
+1. The old active model groups exact normalized names; this is a known weakness. The person plan uses source-side overrides for confirmed same-name splits, reviewed links for spelling/nickname merges, and a provisional name bucket only for other uncontradicted appearances. This baseline is not proof of identity. Held source appearances remain unattributed; future rows require a new agent-side decision.
 2. Spelling variants are merged only through a reviewed row in `wrestler_aliases` with a stated reason and confidence.
 3. Observation rows use `identity_resolution`; `ambiguous` rows are shown labelled "identity review" and not merged; `placeholder` rows are excluded.
 4. Rating computation applies aliases retrospectively (the whole alias table is a reviewed fact, not an outcome signal) and the backtest reports the effect of turning that off.

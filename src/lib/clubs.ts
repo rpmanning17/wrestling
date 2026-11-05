@@ -1,6 +1,7 @@
 import "server-only";
 import { toCohortStanding, type CohortStanding, type CohortStandingRow } from "@/lib/cohort-standing";
 import { supabase } from "@/lib/supabase";
+import { personModelActive } from "@/lib/identity/read-mode";
 
 /** A club's recorded matches are credited to the team represented AT THE EVENT.
  * Rating columns reflect the current active wrestler model, not past-season ratings.
@@ -82,8 +83,9 @@ export async function getClubs(
   sort: ClubSort,
   query: string,
 ): Promise<{ clubs: ClubSummary[]; error: string | null }> {
+  const personMode = await personModelActive();
   let request = client()
-    .from("club_rankings_current")
+    .from(personMode ? "person_club_rankings_current" : "club_rankings_current")
     .select("*")
     .eq("season", season)
     .gte("wrestlers", 1)
@@ -101,15 +103,16 @@ export async function getClub(
   key: string,
   season: ClubSeason,
 ): Promise<{ club: ClubSummary | null; wrestlers: ClubWrestler[]; aliases: string[]; error: string | null }> {
+  const personMode = await personModelActive();
   const [clubQuery, rosterQuery, aliasQuery] = await Promise.all([
-    client().from("club_rankings_current").select("*").eq("club_key", key).eq("season", season).maybeSingle(),
-    client().from("club_roster_current").select("athlete_key,athlete_name,bouts,wins,losses,rating,rating_deviation,conservative_score,sos_expected_win_pct,avg_opponent_rating,rating_status")
+    client().from(personMode ? "person_club_rankings_current" : "club_rankings_current").select("*").eq("club_key", key).eq("season", season).maybeSingle(),
+    client().from(personMode ? "person_club_roster_current" : "club_roster_current").select("athlete_key,athlete_name,bouts,wins,losses,rating,rating_deviation,conservative_score,sos_expected_win_pct,avg_opponent_rating,rating_status")
       .eq("club_key", key).eq("season", season).order("bouts", { ascending: false }).limit(150),
     client().from("club_aliases").select("alias_key").eq("club_key", key).order("alias_key"),
   ]);
   if (clubQuery.error || rosterQuery.error) return { club: null, wrestlers: [], aliases: [], error: "Club analytics are not ready." };
   const keys = (rosterQuery.data ?? []).map((row) => row.athlete_key);
-  const cohortQuery = keys.length ? await client().from("wrestler_strength_current")
+  const cohortQuery = keys.length ? await client().from(personMode ? "person_strength_current" : "wrestler_strength_current")
     .select("athlete_key,age_group,weight_band,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason")
     .in("athlete_key", keys) : { data: [], error: null };
   if (cohortQuery.error) return { club: null, wrestlers: [], aliases: [], error: "Current cohort standings are unavailable. Try again." };

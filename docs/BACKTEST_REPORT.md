@@ -111,3 +111,13 @@ Newcomer = either wrestler has fewer than 5 prior recorded bouts. Established = 
 - Ratings are fitted on the same events used for scoring only through the walk-forward process; the tuning/confirmation split limits, but cannot eliminate, selection effects.
 - Same-name wrestlers are one identity in this database; the report cannot detect two different people sharing a name.
 - The 2025 season is absent from the imported data, so predictions after that gap rely on long-inactive ratings and measure the inactivity policy as much as the rating model.
+# Person-identity candidate check — 2026-11-05
+
+The offline candidate reuses the active production Glicko-2 formula (daily periods; decision win score 0.8) and changes only the source appearance identity keys. The verified 67,736-row snapshot has full-source MD5 `62b66f3179fc648dfac09c4be09a15a6`; both preparations rate 64,050 bouts. Chronological walk-forward scoring begins with events on 2025-01-01, after training on earlier bouts, and scores the same 53,018 outcomes in both runs. No later result enters an earlier prediction.
+
+| Identity input | Accuracy | Log loss | Brier | Calibration error |
+|---|---:|---:|---:|---:|
+| Active name-key interpretation | 0.689294 | 0.564402 | 0.193537 | 0.010679 |
+| Person-keyed candidate | 0.694990 | 0.559245 | 0.191350 | 0.010601 |
+
+These are offline checks of the identity change, not an activated model or a new scoring variant. The old report above remains the historical tuning/backtest record. Full private results and source assignments stay outside Git.
