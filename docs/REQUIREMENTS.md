@@ -47,7 +47,7 @@ Owner context used for the "likely opponents" feature (kept as configuration in 
 F16: population decile tiers (1 strongest to 10 weakest), minimum 20 rated cohort members, ties kept together and no tier for missing/tied cohort support. Implemented in SQL and shared UI; production verification is recorded in STATUS. Strength, tier, uncertainty and Matchup Likelihood remain separate. Existing club views use precise raw-Glicko labels and current wrestler cohort metadata without new browsing capabilities.
 
 
-## Next-step ingestion reliability (2026-11-04, unmerged feature)
+## Next-step ingestion reliability (2026-11-04, PR #10 released)
 
 F17 (Partial): Provide a normalized Mat Notes match-CSV staging tool with strict original source provenance, dry-run validation, a reviewable batch output, and no automatic merges. The current implementation covers the normalized schema and conflict-checked SQL only. Raw Flo/Trackwrestling header-to-normalized import remains external and unverified.
 
