@@ -53,6 +53,8 @@ Calendar 2025 was backfilled November 4. Current baseline: 67,736 source rows, 6
 
 ## Identity resolution rules
 
+November 5 audit: all historical matches, entries and observations were scanned without changing these tables or keys. Candidate case/evidence hashes are private review identifiers, **not person IDs**. No new alias, identity assignment or merge/split table is deployed. See IDENTITY_AUDIT.md for verified counts, suppression semantics and the planned appearance-to-person design.
+
 1. Exact normalized-name match is the same identity. This is a known weakness: two different wrestlers with the same name merge, and the rating model cannot separate them. `supabase/audits/match_outcome_audit.sql` query 5 lists names seen with more than one club: on 2026-11-03, 2,439 of 7,797 distinct names (31%) appeared under more than one club label. Most are probably club-name variants or club switches rather than different people, but the data cannot tell them apart without club normalization.
 2. Spelling variants are merged only through a reviewed row in `wrestler_aliases` with a stated reason and confidence.
 3. Observation rows use `identity_resolution`; `ambiguous` rows are shown labelled "identity review" and not merged; `placeholder` rows are excluded.
