@@ -1,5 +1,7 @@
 # Match ingestion: normalized CSV validation and guarded staging
 
+**November 5 update:** the local raw Flo CSV/ZIP adapter is now implemented at `scripts/imports/prepare-flo.ts`; see [FLO_IMPORT.md](FLO_IMPORT.md) for the observed format, private manifests, baseline reconciliation, approval gates and unapplied audit migration. No production import has been performed. Trackwrestling and ambiguous-case resolution remain unsupported. The historical PR #10 status below describes the released normalized path.
+
 **Status:** offline staging merged in PR #10; application code deployed READY. The staging CLI has not been used for a production import, and no imports or schema changes were performed. Raw Flo/Trackwrestling converters are still external and must be audited separately. This path accepts only **normalized Mat Notes match CSVs** (such as `mat_notes_2025_matches.csv`), not arbitrary Flo CSVs.
 
 ## Existing normalized shape

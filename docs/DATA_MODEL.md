@@ -89,3 +89,9 @@ A newly generated normalized match source must preserve `source_file` and `sourc
 The global warning compares the live source count to the active model's `matches_total`, not a database-maintained fingerprint or last-modified timestamp. Equal counts can hide same-count edits; source/alias fingerprint checks remain necessary for authoritative recalculation.
 
 Migration-version differences are recorded without modification at `docs/MIGRATION_HISTORY_AUDIT.md`. Never apply previously deployed local migrations simply because their source filename has a different version.
+
+## Flo source provenance (November 5, unapplied migration)
+
+`20261105124918_flo_import_audit.sql` adds administrator-only `private.flo_import_runs`: run/manifest SHA-256, owner approval reference, complete JSON evidence (source/container/member hashes, original decoded cells and record indexes, statuses/issues, normalized candidates, baseline fingerprint, selected signatures), inserted count and timestamp. RLS is enabled with no client policies; privileges are revoked from PUBLIC, anon, authenticated and service_role. Original bytes remain privately retained and hash-addressed; no raw archive is stored in Git. No production schema change has been performed.
+
+New Flo bout keys use `source_file=flo-v1/<semantic SHA-256>, source_row=2`; original source coordinates are in the audit evidence, not encoded as a misleading new archive path. Signatures cover exact normalized bout/context fields excluding season/packaging, with a parser-version prefix. Retry comparison still includes season. Existing legacy keys are preserved; semantic matches against them are quarantined rather than automatically relabeled. These are source/bout identities, not permanent wrestler identities. Identity merge/split migration remains Phase 2 work. See FLO_IMPORT.md.

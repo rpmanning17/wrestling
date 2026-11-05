@@ -18,7 +18,7 @@ const LENGTHS: Partial<Record<StringColumn, number>> = {
 };
 
 /** Handles quoted commas, embedded newlines, escaped quotes, BOM and CRLF. */
-export function parseCsv(text: string): string[][] {
+export function parseCsv(text: string, preserveEmptyRecords = false): string[][] {
   const records: string[][] = [];
   let record: string[] = [];
   let cell = "";
@@ -26,7 +26,7 @@ export function parseCsv(text: string): string[][] {
   let closedQuote = false;
   let atStart = true;
   const field = () => { record.push(cell); cell = ""; atStart = true; closedQuote = false; };
-  const row = () => { field(); if (record.some(value => value !== "")) records.push(record); record = []; };
+  const row = () => { field(); if (preserveEmptyRecords || record.some(value => value !== "")) records.push(record); record = []; };
   const source = text.startsWith("\ufeff") ? text.slice(1) : text;
   for (let i = 0; i < source.length; i += 1) {
     const ch = source[i];
