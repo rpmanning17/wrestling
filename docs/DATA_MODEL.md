@@ -1,5 +1,7 @@
 # Data model
 
+The 2026-11-05 finite club alias catch-up adds 27 literal rows to `public.club_aliases` and a denied private insertion ledger for guarded rollback. It retains original team text in `matches`, entries and observations. Club views resolve those rows at read time. Production version `20261105150602` is applied; see CLUB_NORMALIZATION.md.
+
 ## Reviewed club aliases (2026-11-04)
 
 The finite `config/club-normalization.approved.json` drives source migration `20261104161040_approved_club_normalization.sql`, production version `20261104161409`. It inserts 377 aliases and preserves all 13 original rows. Exact punctuation replacement may leave a trailing space. Original team labels and raw/evidence/model/history records remain unchanged; ordinary club views aggregate canonical organizations. `private.club_normalization_20261104_inserted` captures actual insertions with timestamps, RLS enabled and client/service-role privileges revoked, for guarded administrator rollback. See CLUB_NORMALIZATION.md for measurements and reconstruction differences.

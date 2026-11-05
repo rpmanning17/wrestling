@@ -1,5 +1,9 @@
 # Production migration-history audit — 2026-11-04
 
+## 2026-11-05 addendum
+
+The finite club alias catch-up source file `20261105150000_club_alias_catchup.sql` was applied through the administrator connector as production version `20261105150602`, name `club_alias_catchup_20261105`. This adds one more local/remote version difference to the historical inventory below. The 23-file/23-record counts remain the original 2026-11-04 snapshot, not a current count. Existing differences have not been reconciled; do not run blind `supabase db push`.
+
 **Read-only inventory. NOT A REPAIR, NOT A SCHEMA CHANGE.**
 
 Project: `tprodwivvwvpmpzaedom`. Local directory: `supabase/migrations/` as of merged PR #9.

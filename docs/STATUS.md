@@ -1,5 +1,9 @@
 # Status
 
+## 2026-11-05 — finite club alias catch-up
+
+The live club rankings exposed labels missed by the 2026-11-04 finite alias manifest, including multiple Scorpions and Kongkrete entries. A new 27-alias catch-up migration groups those reviewed organization, team and program labels, plus River Springs, South Broward High School and Well Trained variants. **Applied to production as `20261105150602`**; aliases 390 → 417, all-season club rows 1,696 → 1,672, source matches stayed 67,736. Live database ranking views now return one Scorpions and one Kongkrete row and no raw rows for the selected label families. No app code deployment or rating recalculation was needed. The SQL and guarded rollback preserve original team labels; local fixture tests verify consolidation, source preservation, private rollback ledger and rollback refusal after a later alias edit. Lint, typecheck, 155 tests and production build pass. An authenticated browser check of the page remains unverified. See [CLUB_NORMALIZATION.md](CLUB_NORMALIZATION.md).
+
 ## Current operational snapshot — 2026-11-04
 
 **Live Mat Notes:** https://wrestling-plum.vercel.app. **Active canonical Glicko-2:** `a29c4460-5e56-4d22-902d-ea39c65bfcac` — 67,736 source bouts (including calendar 2025), 64,050 rated bouts, 11,724 wrestlers, and 34,809 history points. Original daily/decision-0.8 formula unchanged. Previous full model archived for rollback; incomplete 500-row run remains untouched. See [RATING_RECOVERY_RELEASE.md](RATING_RECOVERY_RELEASE.md).

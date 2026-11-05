@@ -29,7 +29,7 @@ Agent-specific instructions: [`AGENTS.md`](AGENTS.md) (coding agents in general,
 
 Match results live in `public.matches`. The verified November 4, 2026 snapshot contains 67,736 source rows, including 35,861 calendar-2025 bouts and 30 additional January-2026 bouts. The active canonical model rates 64,050 contested bouts across 11,724 wrestlers, with 34,809 history points. Each source file/row pair is unique for idempotent import. Known identity, rematch and source-label limitations remain; see [docs/RATING_RECOVERY_RELEASE.md](docs/RATING_RECOVERY_RELEASE.md).
 
-Source ZIPs and CSV contents are intentionally not committed. The repository has an **offline staging tool for normalized Mat Notes match CSVs** (`pnpm matches:prepare`), not a raw Flo/Trackwrestling-to-normalized converter. The tournament-observation builder is separate (`supabase/importers/`). See [MATCH_IMPORT_READINESS](docs/MATCH_IMPORT_READINESS.md). Reviewed club normalization is live (952 club identities); see [CLUB_NORMALIZATION](docs/CLUB_NORMALIZATION.md).
+Source ZIPs and CSV contents are intentionally not committed. The repository has an **offline staging tool for normalized Mat Notes match CSVs** (`pnpm matches:prepare`), not a raw Flo/Trackwrestling-to-normalized converter. The tournament-observation builder is separate (`supabase/importers/`). See [MATCH_IMPORT_READINESS](docs/MATCH_IMPORT_READINESS.md). Reviewed club normalization and the finite Scorpions/Kongkrete catch-up are live; see [CLUB_NORMALIZATION](docs/CLUB_NORMALIZATION.md).
 
 ## Ratings
 
