@@ -1,5 +1,17 @@
 # Status
 
+## 2026-11-05 — original 2025 archive reconciled, read-only
+
+[Source reconciliation](FLO_2025_RECONCILIATION.md) accounts for all 53,315 records in the original 104-member archive. All 35,891 retained archive records match original source fields/coordinates (35,861 calendar-2025 plus 30 early-2026). Other rows are unnamed participants, duplicate exports, early-2026 records already represented under 2026 sources, four explicit byes, or twelve unresolved same-file repetitions (three contested, nine forfeits). No clearly new 2025 bout was identified; identical repeated bouts are not automatically deemed duplicates. Private evidence is retained outside Git. No production write, migration or rating activation occurred; active canonical model and 67,736 source total remain unchanged. The next import exercise needs genuinely new results, a complete frozen baseline and explicit approval of a reviewed clean subset.
+
+## 2026-11-05 — Phase 1 Flo importer, local implementation
+
+Implemented the versioned offline raw Flo CSV/ZIP adapter, bounded ZIP validation, full-match-baseline reconciliation, private dry-run manifests, clean-subset selection and administrator SQL that atomically persists bouts plus approval/source/quarantine evidence. New migration `20261105124918_flo_import_audit.sql` is **unapplied**. No production data, evidence, ratings or permissions changed. [FLO_IMPORT.md](FLO_IMPORT.md) documents commands, the observed format and remaining work; [synthetic example](examples/flo-dry-run.json) contains invented participants only.
+
+Read-only checks found no open PRs at kickoff and reconfirmed the 67,736-row canonical active model and 23 recorded migrations. Private source exercise parsed 208 members / 92,613 records across four result archives with no member failures; these are inventory counts, not new unique bouts. Without a complete database baseline every row remains blocked. Production import, multi-session concurrency, evidence refresh and subsequent authorized rating activation remain **unverified/unperformed**. Phase 1 is partial until that supervised round trip is complete; canonical identity migration and later handoff phases remain planned.
+
+Local verification: **170 tests passed** (16 Flo tests), lint, typecheck and production build passed with dummy build-only environment values. pnpm 11 ran with automatic dependency verification disabled after locked installation; details in FLO_IMPORT.md. Existing generated club-SQL tests now normalize checkout line endings; applied migration contents are unchanged.
+
 ## Current operational snapshot — 2026-11-04
 
 **Live Mat Notes:** https://wrestling-plum.vercel.app. **Active canonical Glicko-2:** `a29c4460-5e56-4d22-902d-ea39c65bfcac` — 67,736 source bouts (including calendar 2025), 64,050 rated bouts, 11,724 wrestlers, and 34,809 history points. Original daily/decision-0.8 formula unchanged. Previous full model archived for rollback; incomplete 500-row run remains untouched. See [RATING_RECOVERY_RELEASE.md](RATING_RECOVERY_RELEASE.md).

@@ -1,0 +1,127 @@
+{
+  "synthetic": true,
+  "manifestSha256": "f1a30593fc737ecf367e38af8ca5f90884ca8e0695238314979c2dde21d6a397",
+  "manifest": {
+    "version": "flo-results-v1",
+    "season": "2026-2027",
+    "baselineFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "files": [
+      {
+        "path": "invented-event.csv",
+        "sha256": "9355679a483b1436cb76c853fe9322fa39abd432396881586016b0b198ec746d",
+        "bytes": 389,
+        "rows": 2
+      }
+    ],
+    "counts": {
+      "rows": 2,
+      "accepted": 1,
+      "alreadySeen": 0,
+      "blocked": 1,
+      "administrativePreserved": 0,
+      "failedMembers": 0
+    },
+    "events": [
+      "[\"2026-10-31\",\"Example Open\",\"Example City\",\"FL\"]"
+    ],
+    "records": [
+      {
+        "member": "invented-event.csv",
+        "fileSha256": "9355679a483b1436cb76c853fe9322fa39abd432396881586016b0b198ec746d",
+        "sourceRow": 2,
+        "raw": [
+          "10/31/2026",
+          "12U 75",
+          "Round 1",
+          "Example One",
+          "Club A",
+          "4-2",
+          "DEC",
+          "Example Two",
+          "Club B",
+          "Example City",
+          "FL",
+          "Example Open"
+        ],
+        "status": "accepted",
+        "issues": [],
+        "administrative": false,
+        "repeatedPair": false,
+        "normalized": {
+          "event_date": "2026-10-31",
+          "season": "2026-2027",
+          "event_name": "Example Open",
+          "city": "Example City",
+          "state": "FL",
+          "weight_class": "12U 75",
+          "round": "Round 1",
+          "winner_name": "Example One",
+          "winner_team": "Club A",
+          "loser_name": "Example Two",
+          "loser_team": "Club B",
+          "result": "4-2",
+          "win_type": "DEC",
+          "source_file": "flo-v1/d9b7255480a1fd78e435434ed714846ca603c6285dda0ed1bb422f2ae248e8b9",
+          "source_row": 2
+        },
+        "signature": "d9b7255480a1fd78e435434ed714846ca603c6285dda0ed1bb422f2ae248e8b9"
+      },
+      {
+        "member": "invented-event.csv",
+        "fileSha256": "9355679a483b1436cb76c853fe9322fa39abd432396881586016b0b198ec746d",
+        "sourceRow": 3,
+        "raw": [
+          "10/31/2026",
+          "12U 80",
+          "Round 1",
+          "Example Three",
+          "Club C",
+          "0-0",
+          "UNKNOWN",
+          "Example Four",
+          "Club D",
+          "Example City",
+          "FL",
+          "Example Open"
+        ],
+        "status": "blocked",
+        "issues": [
+          "Unknown outcome requires source review"
+        ],
+        "administrative": false,
+        "repeatedPair": false,
+        "normalized": {
+          "event_date": "2026-10-31",
+          "season": "2026-2027",
+          "event_name": "Example Open",
+          "city": "Example City",
+          "state": "FL",
+          "weight_class": "12U 80",
+          "round": "Round 1",
+          "winner_name": "Example Three",
+          "winner_team": "Club C",
+          "loser_name": "Example Four",
+          "loser_team": "Club D",
+          "result": "0-0",
+          "win_type": "UNKNOWN",
+          "source_file": "flo-v1/a2a47a5225ce4d4a2df3ecfa6ebf7785c175a17f87848a0b5ef1615de8bede86",
+          "source_row": 2
+        },
+        "signature": "a2a47a5225ce4d4a2df3ecfa6ebf7785c175a17f87848a0b5ef1615de8bede86"
+      }
+    ],
+    "missingFromNewExport": [],
+    "identityReviewCandidates": [
+      "Example Four",
+      "Example One",
+      "Example Three",
+      "Example Two"
+    ],
+    "warnings": [
+      "No identity merges; same-name identity limitation remains.",
+      "Administrative outcomes are retained as raw evidence and excluded by the existing rating policy.",
+      "Missing rows never delete previous bouts. Repeated pairs are diagnostics, not duplicate proof."
+    ],
+    "writesPerformed": false
+  }
+}

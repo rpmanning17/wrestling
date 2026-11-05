@@ -94,6 +94,8 @@ Canonical recovery uses `config/ratings.recovery-20261104.json` and the read-onl
 
 ## Result ingestion and rating freshness (released 2026-11-04)
 
+**November 5 local implementation:** `pnpm flo:prepare --input C:/private/results.zip --season 2026-2027 --report C:/private/dry-run.json` parses observed raw Flo results CSVs/ZIPs offline. A complete match baseline enables reconciliation; explicit owner approval of the manifest is required before an administrator import. The private audit migration is **unapplied** and no production import/activation is claimed. See [Flo operations and acceptance gaps](docs/FLO_IMPORT.md) and the [invented-data dry-run example](docs/examples/flo-dry-run.json). Trackwrestling and ambiguous identity/correction resolution remain follow-ups.
+
 `pnpm matches:prepare --input ../private/normalized.csv` validates a **normalized Mat Notes match CSV** offline; add `--out ../private/guarded.sql` to stage reviewable, idempotent administrator SQL. It does NOT connect to Supabase or parse raw Flo CSVs. Do not commit private files or execute generated SQL without source review. See [docs/MATCH_IMPORT_READINESS.md](docs/MATCH_IMPORT_READINESS.md).
 
 A small server-rendered warning on all pages compares the active rating model's source-bout count to the current results table. If counts differ, the app warns that ratings may be stale. Equal counts **do not prove** source/alias freshness (same-count edits are not detected); the full input fingerprint and operational review remain authoritative. Released through merged PR #10. GitHub CI passed 154/154 tests, lint, typecheck and build; Vercel reports the production deployment READY. The warning's actual appearance on authenticated pages has not yet been independently browser-verified.
