@@ -1,4 +1,6 @@
 import "server-only";
+import { personModelActive } from "@/lib/identity/read-mode";
+import { buildPersonProfiles, findPeople, personRankingPools } from "@/lib/identity/person-scouting";
 import { toCohortStanding } from "@/lib/cohort-standing";
 
 import { supabase } from "@/lib/supabase";
@@ -237,6 +239,7 @@ function nameMatchScore(query: string, candidate: string) {
 }
 
 export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestion[]> {
+  if (await personModelActive()) return findPeople(rawQuery);
   const query = validName(rawQuery);
   if (query.length < 2) return [];
   const db = supabase();
@@ -376,6 +379,7 @@ export async function findWrestlers(rawQuery: string): Promise<WrestlerSuggestio
 
 const newest = (dates: Array<string | null>) => dates.filter(Boolean).sort().at(-1) ?? null;
 export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentCohortRow[]): Promise<WrestlerProfile[]> {
+  if (await personModelActive()) return buildPersonProfiles(refs);
   const cleanRefs = refs
     .map((ref) => ({ ...ref, name: validName(ref.name) }))
     .filter((ref) => ref.name)
@@ -667,6 +671,7 @@ export async function likelyNolanPool() {
 
 /** Both ranking lists share their candidate and classification snapshot. */
 export async function rankingPools() {
+  if (await personModelActive()) return personRankingPools();
   const { data, error } = await supabase().from("wrestler_cohort_current")
     .select("athlete_key,athlete_name,team,age_group,bracket_weight_lbs")
     .eq("age_group", "12U").gte("bracket_weight_lbs", 65).lte("bracket_weight_lbs", 80)

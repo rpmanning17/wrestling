@@ -1,7 +1,9 @@
 export type WrestlerRef = {
   name: string;
+  personId?: string;
   team?: string;
   unknown?: boolean;
+  identityUnresolved?: boolean;
   ageGroup?: string;
   weight?: number;
 };

@@ -25,6 +25,7 @@ export type RawMatch = {
 };
 
 export type AliasRow = { alias_key: string; canonical_key: string; canonical_name: string };
+export type MatchIdentityAssignment = { matchId: string; side: "winner" | "loser"; personId: string | null };
 
 /** A contested bout normalised for rating. Winner and loser are canonical identity keys. */
 export type RatedMatch = {
@@ -55,7 +56,8 @@ export type ExclusionReason =
   | "self_match"
   | "non_contested_method"
   | "unrecognized_method"
-  | "duplicate_row";
+  | "duplicate_row"
+  | "unresolved_identity";
 
 export type ExclusionReport = {
   total: number;
@@ -98,14 +100,18 @@ export function resolveAliasMap(aliases: AliasRow[]) {
   return { resolve, size: direct.size };
 }
 
-export function prepareMatches(raw: RawMatch[], aliases: AliasRow[], config: RatingConfig): { matches: RatedMatch[]; report: ExclusionReport } {
+export function prepareMatches(
+  raw: RawMatch[], aliases: AliasRow[], config: RatingConfig,
+  identityAssignments?: MatchIdentityAssignment[],
+): { matches: RatedMatch[]; report: ExclusionReport } {
   const alias = config.matching.aliasPolicy === "retrospective" ? resolveAliasMap(aliases) : resolveAliasMap([]);
+  const assigned = identityAssignments && new Map(identityAssignments.map((a) => [`${a.matchId}:${a.side}`, a.personId]));
   const contested = new Set<MethodKind>(config.outcomes.contested);
   const report: ExclusionReport = {
     total: raw.length,
     rated: 0,
     excluded: 0,
-    byReason: { invalid_date: 0, missing_name: 0, placeholder_opponent: 0, self_match: 0, non_contested_method: 0, unrecognized_method: 0, duplicate_row: 0 },
+    byReason: { invalid_date: 0, missing_name: 0, placeholder_opponent: 0, self_match: 0, non_contested_method: 0, unrecognized_method: 0, duplicate_row: 0, unresolved_identity: 0 },
     excludedMethods: {},
     unrecognizedWinTypes: {},
     methodCounts: {},
@@ -142,15 +148,22 @@ export function prepareMatches(raw: RawMatch[], aliases: AliasRow[], config: Rat
       continue;
     }
 
-    const winner = alias.resolve(identityKey(winnerName));
-    const loser = alias.resolve(identityKey(loserName));
-    if (winner.name) report.aliasesApplied += 1;
-    if (loser.name) report.aliasesApplied += 1;
+    const winnerId = assigned?.get(`${row.id}:winner`);
+    const loserId = assigned?.get(`${row.id}:loser`);
+    if (assigned && (!winnerId || !loserId)) { exclude("unresolved_identity"); continue; }
+    const winner = assigned ? { key: winnerId!, name: "" } : alias.resolve(identityKey(winnerName));
+    const loser = assigned ? { key: loserId!, name: "" } : alias.resolve(identityKey(loserName));
+    if (!assigned && winner.name) report.aliasesApplied += 1;
+    if (!assigned && loser.name) report.aliasesApplied += 1;
     if (winner.key === loser.key) { exclude("self_match"); continue; }
 
     const date = String(row.event_date).slice(0, 10);
     if (config.matching.dedupeExactRows) {
-      const signature = [date, normalizeEvent(String(row.event_name ?? "")), row.weight_class, row.round ?? "", winner.key, loser.key, row.result ?? "", methodLabel].join("|");
+      // Identity changes must not make two distinct recorded pairings collide in the
+      // legacy exact-row deduper. Preserve its source-name signature for person runs.
+      const signature = [date, normalizeEvent(String(row.event_name ?? "")), row.weight_class, row.round ?? "",
+        assigned ? identityKey(winnerName) : winner.key, assigned ? identityKey(loserName) : loser.key,
+        row.result ?? "", methodLabel].join("|");
       if (seen.has(signature)) { exclude("duplicate_row"); continue; }
       seen.add(signature);
     }

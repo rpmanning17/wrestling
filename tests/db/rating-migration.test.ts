@@ -145,10 +145,12 @@ describe("expanded-source cohort read optimization", () => {
 describe("migrations apply cleanly in order", () => {
   it("creates the new tables, views and activation function and leaves the legacy view in place", async () => {
     const tables = (await db.query<{ table_name: string }>(`select table_name from information_schema.tables where table_schema='public'`)).rows.map((r) => r.table_name);
-    for (const name of ["matches", "wrestler_evidence", "wrestler_ratings", "rating_models", "wrestler_model_ratings", "wrestler_rating_history", "rating_backtest_runs", "wrestler_rating_current", "wrestler_strength_current", "wrestler_cohort_current"]) {
+    for (const name of ["matches", "wrestler_evidence", "wrestler_ratings", "rating_models", "wrestler_model_ratings", "wrestler_rating_history", "rating_backtest_runs", "wrestler_rating_current", "wrestler_strength_current", "wrestler_cohort_current", "wrestler_people", "identity_decisions", "identity_assignment_batches", "source_identity_assignments", "source_identity_current_rows", "person_matches", "person_cohort_current", "person_strength_current", "person_club_roster_current", "person_club_rankings_current"]) {
       assert.ok(tables.includes(name), `${name} missing`);
     }
     assert.equal(await count("select count(*) as n from public.wrestler_ratings"), 0); // legacy view still queries
+    assert.equal((await db.query<{ identity_scheme: string }>(`select identity_scheme from public.rating_models where id='${M1}'`)).rows[0].identity_scheme, "name_key");
+    assert.equal(await count("select count(*) as n from public.person_rating_current"), 0);
   });
 });
 

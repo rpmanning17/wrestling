@@ -4,6 +4,12 @@ This document covers **wrestler** ratings. Club normalization and analytics are 
 
 Production uses the 2025-inclusive canonical Glicko-2 model `a29c4460-5e56-4d22-902d-ea39c65bfcac`, activated November 4, 2026. See RATING_RECOVERY_RELEASE.md for exact hashes and counts, RATING_OPERATIONS.md for future imports, and RECENCY_RESEARCH.md for the rejected drift experiment.
 
+## Person-keyed candidate (branch implementation; inactive)
+
+The new candidate passes reviewed winner and loser person UUID assignments to `prepareMatches`. Unresolved sides are explicitly excluded; no source name is edited. Glicko-2 update, period length, decision score, uncertainty, conservative score, and schedule formulas remain the active production settings. Rating and history keys become UUID text with `person_id` foreign keys, and `rating_models.identity_scheme`/`assignment_fingerprint` record the identity version. The person-current views return rows only after a supervised activation. The active name-key model remains unchanged.
+
+Offline verification of the unchanged 67,736-row source: 64,050 rated bouts under either identity interpretation, 3,679 administrative outcomes, six unknown methods, and one held self-result; 11,430 person ratings, 34,776 history points, zero independent record or strength-of-schedule mismatches. Production candidate `cd6d932e-289d-42e2-a79c-a699d1dedcfa` passed full stored-row replay and source/assignment fingerprint checks; it is inactive. A fixed-formula walk-forward comparison scores the same 53,018 bouts from 2025 onward: name-key log loss 0.564402 / Brier 0.193537; person-key log loss 0.559245 / Brier 0.191350. This is candidate evidence, not a causal estimate of identity quality. See BACKTEST_REPORT.md and IDENTITY_OPERATIONS.md. Activation still requires app deployment, final live checks and separate owner authorization.
+
 ## 1. Legacy heuristic (fallback only)
 
 `public.wrestler_ratings` view (migration 004) and `src/lib/scoring.ts`: per (wrestler, age group, 10 lb band) a raw score of win rate x 500 + placement credit (up to 200) + share of wins by fall/tech/major (up to 100) + recency (up to 100, linear over 730 days) + volume (up to 100, saturating at 20 bouts), min-max scaled to 0..1000 within the cohort. Known weaknesses: ignores opponent quality, counts every recorded bout (including forfeits) as a win or loss, and rewards raw win rate on weak schedules.
