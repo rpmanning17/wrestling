@@ -77,7 +77,7 @@ export async function loadInputs(args: Args): Promise<Inputs> {
 export const sha256 = (text: string) => createHash("sha256").update(text).digest("hex");
 
 /** Identifies the exact inputs: every match id with its outcome-defining fields, plus the alias table. */
-export function inputFingerprint(inputs: Inputs): string {
+export function legacyInputFingerprint(inputs: Inputs): string {
   const lines = inputs.matches
     .map((m) => [m.id, m.event_date, m.winner_name, m.loser_name, m.win_type, m.result ?? "", m.weight_class].join("\u001f"))
     .sort();
@@ -95,4 +95,16 @@ export function chunk<T>(items: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
   return out;
+}
+
+/** Versioned unambiguous encoding of every calculation-input field, including display context.
+ * Historical fingerprints remain unchanged; new runs use v2. Sorting ignores transport row order. */
+export function inputFingerprint(inputs: Inputs): string {
+  const matches = inputs.matches.map(m => JSON.stringify([
+    m.id, m.event_date, m.event_name, m.city ?? null, m.weight_class, m.round ?? null,
+    m.winner_name, m.winner_team ?? null, m.loser_name, m.loser_team ?? null,
+    m.result ?? null, m.win_type,
+  ])).sort();
+  const aliases = inputs.aliases.map(a => JSON.stringify([a.alias_key, a.canonical_key, a.canonical_name])).sort();
+  return sha256(JSON.stringify(["rating-input-v2", matches, aliases]));
 }

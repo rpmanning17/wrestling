@@ -1,3 +1,6 @@
+<!-- Historical release evidence; operational commands below reflect that release. -->
+> Current import/recalculation procedure: [RATING_OPERATIONS.md](RATING_OPERATIONS.md). The legacy calculation writer, --force and --activate are now disabled. Do not repeat historical activation steps.
+
 # First production rating activation — 2026-11-03
 
 ## Outcome

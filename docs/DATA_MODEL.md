@@ -28,7 +28,9 @@ Migration `202611030009` was **applied to production on 2026-11-03** (production
 
 **Migration naming:** production records the timestamp at which each migration was applied through the Supabase connector, so 10 of 13 repo file names (`202610250001` and `202611030001` to `202611030009`) differ from the production versions. Do not run `supabase db push` against production without reconciling first.
 
-## Known data-quality issues in `matches` (audit 2026-11-03)
+## Historical data-quality audit (2026-11-03; superseded counts)
+
+Calendar 2025 was backfilled November 4. Current baseline: 67,736 source rows, 64,050 rated bouts; exclusions 3,679 administrative, one self-match and six OTHER1, zero exact duplicates. The table below preserves the earlier investigation, not current coverage.
 
 | Issue | Count | Rating pipeline today |
 |---|---|---|

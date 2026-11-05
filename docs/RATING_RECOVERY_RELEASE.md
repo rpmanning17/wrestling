@@ -1,3 +1,6 @@
+<!-- Historical release evidence; operational commands below reflect that release. -->
+> Current import/recalculation procedure: [RATING_OPERATIONS.md](RATING_OPERATIONS.md). The legacy calculation writer, --force and --activate are now disabled. Do not repeat historical activation steps.
+
 # Canonical Glicko-2 recovery — verified 2026-11-04
 
 ## Outcome
