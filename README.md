@@ -30,7 +30,7 @@ Agent-specific instructions: [`AGENTS.md`](AGENTS.md) (coding agents in general,
 
 ## Data
 
-Match results live in `public.matches`. As of the 2026-11-03 audit the database holds 31,845 bouts dated 2024-10-05 to 2026-10-31: 11,647 in the 2024–2025 season (October 5 to December 30, 2024), 11,238 in 2025–2026 (January 4 to July 26, 2026) and 8,960 in 2026–2027 (from August 2026; 668 of them, all from 2026-10-31, carry the label `2026-2027` with a hyphen instead of an en dash). There are no bouts from calendar 2025. The earlier figure of 31,177 predates the 2026-10-31 event. The 2026 import assigns January–July bouts to the 2025–2026 season and August–October to 2026–2027, and excludes BYEs, rows without a named opponent, and exact duplicate rows. Known data-quality issues (near-duplicates, swapped records, club-label variants) are listed in [`docs/STATUS.md`](docs/STATUS.md). Each row keeps its source file and row number so a repeat import is idempotent.
+Match results live in `public.matches`. The verified November 4, 2026 snapshot contains 67,736 source rows, including 35,861 calendar-2025 bouts and 30 additional January-2026 bouts. The active canonical model rates 64,050 contested bouts across 11,724 wrestlers, with 34,809 history points. Each source file/row pair is unique for idempotent import. Known identity, rematch and source-label limitations remain; see [docs/RATING_RECOVERY_RELEASE.md](docs/RATING_RECOVERY_RELEASE.md).
 
 Source ZIPs and CSV contents are intentionally not committed. The match CSV importer is **not** in this repository; only the tournament-observation importer is (`supabase/importers/`). See [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md).
 
@@ -67,11 +67,11 @@ Never commit `.env.local`, and never put `SUPABASE_PERSONAL_APP_KEY` or any serv
 ```
 pnpm ratings:calculate --config config/ratings.production.json --dry-run # validated production settings; writes nothing
 pnpm ratings:calculate --input export.json --dry-run   # offline, from { "matches": [], "aliases": [] }
-pnpm ratings:calculate --config config/ratings.production.json # write candidate; review, then activate atomically through restricted SQL function
+node --import tsx scripts/ratings/recovery-export.ts --config config/ratings.production.json --input ../snapshot.json --as-of YYYY-MM-DD --out ../candidate.json # private export; no writes
 pnpm ratings:backtest                         # chronological, leakage-free evaluation -> docs/BACKTEST_REPORT.md
 ```
 
-Writing a model needs `SUPABASE_SERVICE_ROLE_KEY` in your **local** environment only. Reads use the same personal-app credentials as the site.
+Candidate writes use the existing authorized administrator connector and guarded batches. The calculation CLI is read-only; `--activate` and `--force` are disabled. Follow [the import/recalculation runbook](docs/RATING_OPERATIONS.md); never create or extract credentials for this workflow.
 
 ## Database migrations
 

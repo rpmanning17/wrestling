@@ -45,7 +45,9 @@ describe("canonical provenance-only recovery", () => {
         const start = migration.indexOf(`create table public.${name} (`);
         await db.exec(migration.slice(start, migration.indexOf("\n);", start) + 4));
       }
-      const model = { id: modelId, status: "building", code_version: "canonical-commit/glicko2-engine-1" };
+      const model = { id: modelId, status: "building", code_version: "canonical-commit/glicko2-engine-1",
+        model_version: "recovery", config: {}, config_hash: "a".repeat(64), input_fingerprint: "b".repeat(64),
+        as_of_date: "2026-11-04", match_cutoff: null };
       await db.exec(`insert into public.rating_models
         (id,model_version,config,config_hash,input_fingerprint,code_version,as_of_date,rating_period_policy,
          rating_period_days,uncertainty_k,provisional_rd,established_rd,recency_policy)
@@ -77,6 +79,11 @@ describe("canonical provenance-only recovery", () => {
       await assert.rejects(db.exec(guardedBatchSql(model, "wrestler_rating_history",
         history.map(h => ({ ...h, rating: h.rating! + 1 })))), /existing-row mismatch/);
       assert.deepEqual((await db.query("select to_jsonb(r) r from public.wrestler_model_ratings r order by athlete_key")).rows, before.rows);
+      const { config_hash: omitted, ...incomplete } = model;
+      assert.ok(omitted);
+      assert.throws(() => guardedBatchSql(incomplete, "wrestler_model_ratings", ratings), /Complete expected/);
+      await db.exec(`update public.rating_models set status='archived' where id='${modelId}'`);
+      await assert.rejects(db.exec(guardedBatchSql(model, "wrestler_model_ratings", ratings)), /provenance mismatch/);
       await db.exec(`update public.rating_models set status='active' where id='${modelId}'`);
       await assert.rejects(db.exec(guardedBatchSql(model, "wrestler_model_ratings", ratings)), /provenance mismatch/);
       assert.throws(() => guardedBatchSql({ ...model, status: "active" }, "wrestler_model_ratings", ratings), /building model/);

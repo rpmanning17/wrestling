@@ -23,6 +23,11 @@ export function guardedBatchSql(
 ) {
   if (model.status !== "building" || typeof model.id !== "string" ||
       !/^[0-9a-f-]{36}$/i.test(model.id) || !rows.length) throw new Error("Explicit building model and nonempty batch required");
+  for (const field of ["model_version", "config", "config_hash", "input_fingerprint", "code_version", "as_of_date", "match_cutoff"]) {
+    if (!(field in model) || model[field] === undefined || (field !== "match_cutoff" && model[field] === null)) {
+      throw new Error("Complete expected configuration and provenance required: " + field);
+    }
+  }
   const keys = table === "wrestler_model_ratings"
     ? ["model_id", "athlete_key"] : ["model_id", "athlete_key", "period_end"];
   const columns = Object.keys(rows[0]);

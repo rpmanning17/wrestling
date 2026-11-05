@@ -1,5 +1,13 @@
 # Status
 
+## Independent infrastructure review — 2026-11-04
+
+Read-only production verification reconfirmed the canonical active UUID, 67,736 source rows / 35,861 calendar-2025 rows / 199 files, 11,724 ratings / 34,809 history / 64,050 wins and losses, unchanged source hashes, zero audited invalid active rows, both unique indexes and denied client activation permissions. No production records or schema changed.
+
+Review fixes disable the destructive/non-atomic legacy CLI writer, require core configuration/provenance on guarded batches, and cover all calculation fields in a v2 fingerprint for future runs. The existing private exporter now accepts the unchanged production config for future imports and requires a frozen snapshot. Current procedure and remaining importer/freshness/manual-validation limitations: [RATING_OPERATIONS.md](RATING_OPERATIONS.md). PR #6 is closed as evaluated/not adopted after research preservation merged to main in PR #8 (full CI passed), without experimental runtime; see [RECENCY_RESEARCH.md](RECENCY_RESEARCH.md).
+
+Local verification: 141 tests, lint and typecheck pass using locked dependencies and equivalent direct script entrypoints; local production build attempted but Windows denied the native SWC download/rename. Final build verification is tracked in the review PR CI. No model recalculated against production or activated.
+
 ## Current verified production — 2026-11-04 expanded canonical recovery
 
 **This supersedes older live-state and missing-2025 statements below.** Active model `a29c4460-5e56-4d22-902d-ea39c65bfcac` uses the unchanged production formula under a truthful canonical-implementation version. Source **67,736**; rated bouts **64,050**; ratings **11,724**; history **34,809**; wins/losses **64,050 each**. Exact serialized-output equality and independent complete SOS/record audits pass. Old active `d64fd4ba-de14-4d07-bac8-2961e12d506d` is archived intact for rollback; failed `a957ed42-8ee2-4792-944d-5f63a0b4ce72` remains untouched building (500 ratings / no history). Source fingerprints and both uniqueness constraints are preserved; no experimental drift.
@@ -21,7 +29,7 @@ Validation: **132 tests passed**, plus lint, typecheck and optimized production 
 
 Last verified: 2026-11-03 against GitHub main, production Supabase and the live Vercel application.
 
-## Live in production
+## Historical production snapshot — 2026-11-03
 
 - Application code at `003bf0f` includes opponent-adjusted ratings, Florida club analytics and athlete autocomplete. Earlier notes saying these changes were unmerged/undeployed are superseded. No open PRs were found at the start of activation.
 - **Active model:** `d64fd4ba-de14-4d07-bac8-2961e12d506d`, version `glicko2-daily-dec08-v1`, as of 2026-11-03, bouts through 2026-10-31.
@@ -35,7 +43,7 @@ Last verified: 2026-11-03 against GitHub main, production Supabase and the live 
 
 `pnpm lint`, `pnpm typecheck`, `pnpm test` (101 passing), and `pnpm build` all passed on the deployed source. Build used dummy environment values, not production secrets. Stored rows satisfy counts, record balance and conservative-score checks; all wrestler SOS values are populated. Raw match count and outcome checksum were identical before and after activation.
 
-## Data and modeling limitations
+## Historical limitations — 2026-11-03 (current coverage above)
 
 - Calendar 2025 is absent: no bouts between 2024-12-30 and 2026-01-04. Long gaps and sparse data produce high uncertainty: 7,665 provisional, 121 developing, two established. Thresholds remain RD 120/80; these are display policies, not a minimum-match eligibility gate.
 - 310 same-opponent/date/event/bracket/round groups (319 extra records), including 57 opposite-result groups, are **not proven duplicates**. Source-row examples have distinct scores/methods and may be genuine rematches. All are preserved under D19; no pair-based filtering was added.

@@ -6,22 +6,32 @@ import { periodPolicyLabel } from "../../src/lib/rating/config";
 import { prepareMatches } from "../../src/lib/rating/prepare";
 import { serializeRatingRows, serializeHistoryRows, roundPersisted } from "../../src/lib/rating/persistence";
 import { assertSameFormula } from "../../src/lib/rating/recovery";
-import { configHash, inputFingerprint, loadConfig, loadInputs, parseArgs, sha256 } from "./common";
+import { configHash, inputFingerprint, loadConfig, loadInputs, parseArgs, sha256, legacyInputFingerprint } from "./common";
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const asOfDate = args.values.get("as-of");
   const out = args.values.get("out");
   if (!asOfDate || !out) throw new Error("Explicit --as-of and private --out required");
-  const config = loadConfig({ ...args, values: new Map(args.values).set("config", "config/ratings.recovery-20261104.json") });
+  if (!args.values.has("input")) throw new Error("Explicit immutable --input snapshot required for resumable export");
+  if (args.values.has("cutoff")) throw new Error("Export the complete snapshot; --cutoff is unsupported");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(asOfDate) || new Date(asOfDate).toISOString().slice(0, 10) !== asOfDate) {
+    throw new Error("Valid ISO --as-of date required");
+  }
+  const historical = !args.values.has("config");
+  const config = historical ? loadConfig({ ...args, values: new Map(args.values).set("config", "config/ratings.recovery-20261104.json") }) : loadConfig(args);
   const production = loadConfig({ ...args, values: new Map(args.values).set("config", "config/ratings.production.json") });
-  assertSameFormula(production, config);
+  if (historical) assertSameFormula(production, config);
+  else if (JSON.stringify({ ...production, modelVersion: config.modelVersion }) !== JSON.stringify(config)) {
+    throw new Error("Only the production formula/policies may be exported");
+  }
   const commit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
-  const dirty = execFileSync("git", ["status", "--porcelain", "--", "src/lib/rating", "scripts/ratings", "config/ratings.production.json", "config/ratings.recovery-20261104.json"], { encoding: "utf8" });
+  const dirty = execFileSync("git", ["status", "--porcelain", "--", "src/lib/rating", "scripts/ratings", "config/ratings.production.json", "config/ratings.recovery-20261104.json", ...(args.values.has("config") ? [args.values.get("config")!] : [])], { encoding: "utf8" });
   if (dirty.trim()) throw new Error("Commit the reviewed calculation sources before recording provenance");
   const inputs = await loadInputs(args);
   const prepared = prepareMatches(inputs.matches, inputs.aliases, config);
   const result = calculateRatings(prepared.matches, config, { asOfDate, recordHistory: true });
+  if (result.matchCutoff && result.matchCutoff > asOfDate) throw new Error("Snapshot contains matches after --as-of");
   const reference = calculateRatings(prepareMatches(inputs.matches, inputs.aliases, production).matches,
     production, { asOfDate, recordHistory: true });
   const rows = serializeRatingRows(result, "PENDING");
@@ -33,7 +43,7 @@ async function main() {
   const report = prepared.report;
   const model = {
     model_version: config.modelVersion, status: "building", config, config_hash: configHash(config),
-    input_fingerprint: inputFingerprint(inputs), code_version: `${commit}/glicko2-engine-1`,
+    input_fingerprint: historical ? legacyInputFingerprint(inputs) : inputFingerprint(inputs), code_version: `${commit}/glicko2-engine-1`,
     as_of_date: asOfDate, match_cutoff: result.matchCutoff, first_match_date: result.firstMatchDate,
     rating_period_policy: periodPolicyLabel(config), rating_period_days: config.period.days,
     uncertainty_k: config.uncertainty.k, provisional_rd: config.uncertainty.provisionalRd,
@@ -41,8 +51,8 @@ async function main() {
     dominance_enabled: config.dominance.enabled, matches_total: report.total, matches_rated: report.rated,
     matches_excluded: { byReason: report.byReason, excludedMethods: report.excludedMethods, unrecognizedWinTypes: report.unrecognizedWinTypes },
     wrestlers_rated: rows.length, quality_threshold: roundPersisted(result.qualityThreshold, 2),
-    label: "Canonical engine recovery — unchanged production formula",
-    notes: "Owner-approved provenance-only replacement for interrupted chat run a957ed42-8ee2-4792-944d-5f63a0b4ce72. Numerical settings unchanged; full serialized output equals production formula. Original run preserved. No experimental skill drift.",
+    label: historical ? "Canonical engine recovery — unchanged production formula" : "Canonical production calculation",
+    notes: historical ? "Owner-approved provenance-only replacement for interrupted chat run a957ed42-8ee2-4792-944d-5f63a0b4ce72. Numerical settings unchanged; full serialized output equals production formula. Original run preserved. No experimental skill drift." : "Input fingerprint v2. Canonical repository engine; unchanged production formula. Validate before candidate promotion and separately authorized activation.",
   };
   const verification = {
     productionConfigHash: configHash(production), ratings: rows.length, history: history.length,

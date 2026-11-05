@@ -1,10 +1,10 @@
 # Ranking methodology
 
-This document covers **wrestler** ratings. Club identity normalization and club rankings are **not implemented** anywhere in this repository (see `REQUIREMENTS.md` F13/F14); nothing below applies to clubs.
+This document covers **wrestler** ratings. Club normalization and analytics are implemented; their aggregates use current ratings as explained in REQUIREMENTS.md and DATA_MODEL.md.
 
-Two systems exist. The legacy heuristic is what production shows today. The Glicko-2 pipeline is implemented and tested but has not been calculated on production data.
+Production uses the 2025-inclusive canonical Glicko-2 model `a29c4460-5e56-4d22-902d-ea39c65bfcac`, activated November 4, 2026. See RATING_RECOVERY_RELEASE.md for exact hashes and counts, RATING_OPERATIONS.md for future imports, and RECENCY_RESEARCH.md for the rejected drift experiment.
 
-## 1. Legacy heuristic (currently in production)
+## 1. Legacy heuristic (fallback only)
 
 `public.wrestler_ratings` view (migration 004) and `src/lib/scoring.ts`: per (wrestler, age group, 10 lb band) a raw score of win rate x 500 + placement credit (up to 200) + share of wins by fall/tech/major (up to 100) + recency (up to 100, linear over 730 days) + volume (up to 100, saturating at 20 bouts), min-max scaled to 0..1000 within the cohort. Known weaknesses: ignores opponent quality, counts every recorded bout (including forfeits) as a win or loss, and rewards raw win rate on weak schedules.
 
@@ -74,21 +74,21 @@ Every calculation writes a new `rating_models` row containing model id/version, 
 ## 6. Known limitations
 
 - Same-name wrestlers are one identity.
-- Calendar 2025 has no data (2024-12-30 to 2026-01-04), so returning wrestlers rely on RD growth; its effect is measured in the real-data backtest ("returning after 180+ days" segment).
+- Calendar 2025 is included (35,861 source bouts). Coverage remains incomplete across events and identities; returning wrestlers still gain RD during inactivity.
 - Repeated and opposite-result bouts are preserved under D19; matching opponents/event is not proof of duplication. The full 2026-11-03 preparation excluded zero exact duplicate signatures.
 - Provisional/developing/established thresholds and k are defaults, not calibrated.
 - Opponent-quality metrics use current ratings and can differ from the rating at match time.
 - Dual meets and tournaments are weighted the same; there is no evidence yet on whether they should differ.
 
-## 7. Production adoption (2026-11-03)
+## 7. Historical first adoption (2026-11-03)
 
-Model `glicko2-daily-dec08-v1` is active, as of 2026-11-03 through bouts dated 2026-10-31. The tuning window selected daily periods and decision winner score 0.8; the combined candidate then cleared the predefined independent confirmation gate: 8,146 bouts in 26 events, accuracy 66.17%, log loss 0.59524 versus 0.60451, ECE 0.01567 versus 0.02453, paired event-bootstrap difference -0.00927 (95% CI -0.01156 to -0.00727). Decision weighting is now validated for this dataset, not an assertion that the score is a literal probability of ability or that margin information is universally superior. Scoring margins are not enabled. Other defaults, including k and status thresholds, are retained.
+Model `glicko2-daily-dec08-v1` was first activated as of 2026-11-03 through bouts dated 2026-10-31. The tuning window selected daily periods and decision winner score 0.8; the combined candidate then cleared the predefined independent confirmation gate: 8,146 bouts in 26 events, accuracy 66.17%, log loss 0.59524 versus 0.60451, ECE 0.01567 versus 0.02453, paired event-bootstrap difference -0.00927 (95% CI -0.01156 to -0.00727). Decision weighting is now validated for this dataset, not an assertion that the score is a literal probability of ability or that margin information is universally superior. Scoring margins are not enabled. Other defaults, including k and status thresholds, are retained.
 
-All 7,788 rated wrestlers have SOS metrics. Most remain provisional; high RD is exposed rather than hidden. SOS compares a reference 1500 wrestler against opponents' current ratings, so lower schedule-expected win percentage means harder opposition. The quality-win threshold implementation uses the non-provisional (developing plus established) pool, not only established wrestlers. Full operational evidence and rerun instructions are in `RATING_ACTIVATION.md`.
+All 7,788 rated wrestlers have SOS metrics. Most remain provisional; high RD is exposed rather than hidden. SOS compares a reference 1500 wrestler against opponents' current ratings, so lower schedule-expected win percentage means harder opposition. The quality-win threshold implementation uses the non-provisional (developing plus established) pool, not only established wrestlers. Historical activation evidence is in `RATING_ACTIVATION.md`; current rerun instructions are in `RATING_OPERATIONS.md`.
 
 
 ## Current cohort correction (2026-11-04)
-The introductory legacy-only statements are historical and superseded by section 7. Current cohorts now use D25's three distinct events, independently voting age and weight, instead of latest evidence per historical cohort. All active-model scores retain conservative Glicko min-max scaling but membership is one current cohort per athlete, so scaled scores can change without changing any rating. Dual evidence has half influence for classification; dual bouts retain full existing rating treatment. Search and comparisons consume the same database view. Waylon Jones's latest recorded events are 80, 80, 75 lb; production SQL after migration shows 12U 80–89 lb, estimate 80, strength 524.34, rank 12/28, rating 1513.787 ±121.764. Reported screenshot values 938.35/838.35 were not reproduced in this production snapshot and are not fixed expectations. No rating recalculation/backtest change was needed.
+The following cohort release examples predate the expanded November 4 model; current production values are in RATING_RECOVERY_RELEASE.md. Current cohorts now use D25's three distinct events, independently voting age and weight, instead of latest evidence per historical cohort. All active-model scores retain conservative Glicko min-max scaling but membership is one current cohort per athlete, so scaled scores can change without changing any rating. Dual evidence has half influence for classification; dual bouts retain full existing rating treatment. Search and comparisons consume the same database view. Waylon Jones's latest recorded events are 80, 80, 75 lb; production SQL after migration shows 12U 80–89 lb, estimate 80, strength 524.34, rank 12/28, rating 1513.787 ±121.764. Reported screenshot values 938.35/838.35 were not reproduced in this production snapshot and are not fixed expectations. No rating recalculation/backtest change was needed.
 
 
 ## Cohort Tier and rating terminology (2026-11-04)
@@ -97,4 +97,4 @@ Cohort Tier uses population deciles, not 100-point strength bands. D27 gives the
 UI vocabulary: Glicko Rating (raw, initial 1,500, no fixed upper limit); Rating Deviation (RD, uncertainty); Conservative Glicko Rating (raw rating minus configured uncertainty adjustment); Cohort Strength (0–1,000 within cohort); Cohort Tier (population decile); Average Opponent Glicko Rating (raw scale); Schedule Difficulty (reference-1,500 expected win percentage, lower is harder); Matchup Likelihood (0–1,000 relevance/fit, not ability). No engine or backtest configuration changed; the existing validated backtest report remains applicable rather than rerunning a model for presentation changes.
 
 
-Canonical recovery version `glicko2-daily-dec08-canonical-recovery-20261104-v1` changes provenance only. All numerical/policy settings remain `ratings.production.json`; the exporter enforces exact serialized rating/history equivalence. No backtest formula changes; expanded-data backtests are recorded separately on PR #6. See RATING_RECOVERY_RELEASE.md.
+Canonical recovery version `glicko2-daily-dec08-canonical-recovery-20261104-v1` changes provenance only. All numerical/policy settings remain `ratings.production.json`; the exporter enforces exact serialized rating/history equivalence. No backtest formula changes; expanded-data backtests and rejected drift findings are preserved in RECENCY_RESEARCH.md. See RATING_RECOVERY_RELEASE.md.
