@@ -37,6 +37,24 @@ a { color: var(--green); }
   background: rgba(21, 35, 30, .98);
   border-bottom: 1px solid #31423b;
 }
+.rating-freshness-banner {
+  display: flex;
+  gap: 8px 14px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 10px 24px;
+  border-bottom: 1px solid #d4b875;
+  background: #fff3d5;
+  color: #594319;
+  font-size: .83rem;
+  line-height: 1.5;
+}
+.rating-freshness-banner strong { font-weight: 850; }
+.rating-freshness-banner span { max-width: 800px; }
+.rating-freshness-banner a { color: #594319; font-weight: 750; }
+.rating-freshness-unavailable { background: #edece4; border-color: #d5d4cc; color: #4d554e; }
+
 .brand { color: white; font-weight: 900; letter-spacing: .16em; text-decoration: none; font-size: .92rem; }
 .app-header nav { display: flex; gap: 6px; }
 .app-header nav a { color: #dfe8e1; text-decoration: none; font-size: .78rem; padding: 10px 8px; border-radius: 6px; }

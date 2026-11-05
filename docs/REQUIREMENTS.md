@@ -45,3 +45,10 @@ Owner context used for the "likely opponents" feature (kept as configuration in 
 
 ## Cohort tiers and rating clarity (2026-11-04)
 F16: population decile tiers (1 strongest to 10 weakest), minimum 20 rated cohort members, ties kept together and no tier for missing/tied cohort support. Implemented in SQL and shared UI; production verification is recorded in STATUS. Strength, tier, uncertainty and Matchup Likelihood remain separate. Existing club views use precise raw-Glicko labels and current wrestler cohort metadata without new browsing capabilities.
+
+
+## Next-step ingestion reliability (2026-11-04, unmerged feature)
+
+F17 (Partial): Provide a normalized Mat Notes match-CSV staging tool with strict original source provenance, dry-run validation, a reviewable batch output, and no automatic merges. The current implementation covers the normalized schema and conflict-checked SQL only. Raw Flo/Trackwrestling header-to-normalized import remains external and unverified.
+
+F18 (Partial): Warn when the active rating model's stored raw-source match count differs from current database count. Equality is not source-fingerprint verification. This flag cannot catch edits or alias changes without a count change; supervised full fingerprint checks remain required for activation.

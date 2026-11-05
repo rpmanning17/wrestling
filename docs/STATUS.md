@@ -98,3 +98,12 @@ A repeated comparison request exposed duplicate simultaneous classification read
 
 ## 2026-11-04 — canonical recovery implementation
 Owner-approved provenance-only version implemented from main, separately from experimental drift. Shared persisted-field serialization, exact production-output checks and guarded idempotent connector batches have 137 passing tests plus lint/typecheck/build. Production execution is pending; no activation claimed. See [RATING_RECOVERY_RELEASE.md](RATING_RECOVERY_RELEASE.md).
+
+
+## 2026-11-04 — source freshness and normalized import preparation (UNMERGED feature branch)
+
+After PR #9 merged, the current active rating model remains the expanded 2024–2026 canonical Glicko model (11,724 ratings; 67,736 source matches). A new branch `feature/import-readiness-and-rating-freshness` adds a count-based stale-ratings warning rendered server-side. The live model's `matches_total` is compared against the exact current source table count; mismatches warn that recalculation is needed. Equal counts are intentionally silent, **not proof of equality** when existing outcomes or aliases change. The code is pending PR review/CI; production deployment is not claimed.
+
+The branch also adds an offline normalized Mat Notes CSV validator and guarded SQL staging CLI. Actual normalized 2025 CSV columns were inspected; raw Flo/Trackwrestling-to-normalized translation remains external. Validation preserves source pairs and genuine rematches, rejects conflicting pairs/unknown methods, and emits no automatic database writes. Generated SQL is for reviewed administrator execution only. See `MATCH_IMPORT_READINESS.md`.
+
+Read-only production migration inventory confirms 23 applied records against 23 source migration files; **20 version strings differ** (one also has a differing name prefix). Full mapping in `MIGRATION_HISTORY_AUDIT.md`. No production schema, migration history, permissions, source records or rating rows have been changed. The migration versions remain *unreconciled* pending applied-SQL equivalence review.

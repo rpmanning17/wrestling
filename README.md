@@ -104,3 +104,12 @@ Cohort Tier shows a population decile (1 strongest, 10 weakest) when at least 20
 
 
 Canonical recovery uses `config/ratings.recovery-20261104.json` and the read-only `scripts/ratings/recovery-export.ts`; see [recovery execution](docs/RATING_RECOVERY_RELEASE.md). This is a provenance-only version with the production formula unchanged. Never commit full output or use the legacy CLI activation switch.
+
+
+## Result ingestion and rating freshness (feature PR, not yet released)
+
+`pnpm matches:prepare --input ../private/normalized.csv` validates a **normalized Mat Notes match CSV** offline; add `--out ../private/guarded.sql` to stage reviewable, idempotent administrator SQL. It does NOT connect to Supabase or parse raw Flo CSVs. Do not commit private files or execute generated SQL without source review. See [docs/MATCH_IMPORT_READINESS.md](docs/MATCH_IMPORT_READINESS.md).
+
+A small server-rendered warning on all pages compares the active rating model's source-bout count to the current results table. If counts differ, the app warns that ratings may be stale. Equal counts **do not prove** source/alias freshness (same-count edits are not detected); the full input fingerprint and operational review remain authoritative. This feature is confined to the unmerged PR until CI and deployment checks finish.
+
+Read-only production migration-version mapping: [docs/MIGRATION_HISTORY_AUDIT.md](docs/MIGRATION_HISTORY_AUDIT.md). Applied SQL versions are **not yet reconciled**; do not run `supabase db push` until the mapping and actual applied SQL are verified.
