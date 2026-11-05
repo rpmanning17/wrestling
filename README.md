@@ -1,8 +1,5 @@
 # Mat Notes
 
-Reviewed club normalization is live (952 identities). [Mapping, verification and rollback](docs/CLUB_NORMALIZATION.md) documents the finite alias set and actual results.
-
-
 A personal, mobile-first Florida youth wrestling scouting site: look up wrestlers, compare a bracket, read results, placements and age/weight evidence, rank opponents, and keep scouting notes. Built with Next.js (App Router), Supabase (Postgres) and Vercel.
 
 **This repository is the authoritative record of the project.** Chat histories are not. Humans, Claude and ChatGPT/Codex all start from the documents below. Before changing anything, read them in this order:
@@ -32,14 +29,14 @@ Agent-specific instructions: [`AGENTS.md`](AGENTS.md) (coding agents in general,
 
 Match results live in `public.matches`. The verified November 4, 2026 snapshot contains 67,736 source rows, including 35,861 calendar-2025 bouts and 30 additional January-2026 bouts. The active canonical model rates 64,050 contested bouts across 11,724 wrestlers, with 34,809 history points. Each source file/row pair is unique for idempotent import. Known identity, rematch and source-label limitations remain; see [docs/RATING_RECOVERY_RELEASE.md](docs/RATING_RECOVERY_RELEASE.md).
 
-Source ZIPs and CSV contents are intentionally not committed. The match CSV importer is **not** in this repository; only the tournament-observation importer is (`supabase/importers/`). See [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md).
+Source ZIPs and CSV contents are intentionally not committed. The repository has an **offline staging tool for normalized Mat Notes match CSVs** (`pnpm matches:prepare`), not a raw Flo/Trackwrestling-to-normalized converter. The tournament-observation builder is separate (`supabase/importers/`). See [MATCH_IMPORT_READINESS](docs/MATCH_IMPORT_READINESS.md). Reviewed club normalization is live (952 club identities); see [CLUB_NORMALIZATION](docs/CLUB_NORMALIZATION.md).
 
 ## Ratings
 
 Two rating systems exist side by side:
 
 - **Legacy heuristic** (`public.wrestler_ratings` view, `src/lib/scoring.ts`): win rate, placement, finishing, recency and volume. It ignores opponent quality. It remains available as fallback when no model is active.
-- **Opponent-adjusted Glicko-2** (migration `202611030009`, `src/lib/rating/`, `scripts/ratings/`): rating, rating deviation (uncertainty), conservative score, provisional status, strength-of-schedule explanations and chronological backtesting. **Live and active as of 2026-11-03:** `glicko2-daily-dec08-v1`, 7,788 wrestlers from 30,133 contested bouts. Daily periods and decision score 0.8 passed real-data held-out validation. Use `config/ratings.production.json` for recalculation; see `docs/RATING_ACTIVATION.md` for results and the secure activation procedure. See [`docs/STATUS.md`](docs/STATUS.md).
+- **Opponent-adjusted Glicko-2** (migration `202611030009`, `src/lib/rating/`, `scripts/ratings/`): rating, uncertainty (RD), conservative score, provisional status, strength-of-schedule and chronological backtesting. **Current active model (2026-11-04):** `glicko2-daily-dec08-canonical-recovery-20261104-v1` (`a29c4460-5e56-4d22-902d-ea39c65bfcac`), based on **67,736 raw bouts / 64,050 rated bouts, 11,724 wrestlers and 34,809 rating-history points**. Existing daily periods and decision weighting 0.8 are unchanged. Recalculation and activation follow the **guarded** [rating operations runbook](docs/RATING_OPERATIONS.md); `scripts/ratings/calculate.ts` is read-only. The initial 7,788-wrestler activation is retained separately as [historical evidence](docs/RATING_ACTIVATION.md).
 
 The site reads the opponent-adjusted views when a model is active and falls back to the legacy view otherwise.
 
@@ -75,18 +72,7 @@ Candidate writes use the existing authorized administrator connector and guarded
 
 ## Database migrations
 
-Schema changes happen only through version-controlled files in `supabase/migrations/`. Never edit the database by hand without a matching migration, and never edit an applied migration; add a new one.
-
-| Migration | Purpose | Applied to production |
-|---|---|---|
-| `202610250001_private_results` | initial owner-based schema | yes |
-| `20261025212304_personal_app_access` | personal-app access model | yes |
-| `20261025212902_optimize_personal_access_policy` | server-key check in a security-invoker function | yes |
-| `20261025220936_create_private_matches` | `matches` table used by imports | yes |
-| `202611030001`–`202611030008` | tournament entries, birth-year naming, notes, evidence + legacy ratings, observations, aliases | recorded as applied by the owner; verify with `supabase migration list` |
-| `202611030009_create_versioned_opponent_adjusted_ratings` | versioned rating tables and views | **yes**, production version `20261103174437` |
-
-Do not re-run applied migrations on the linked project.
+Schema changes belong in new reviewed `supabase/migrations/` files; never edit or replay applied migrations. **Production migration history is not yet reconciled:** the [read-only migration audit](docs/MIGRATION_HISTORY_AUDIT.md) maps 23 repository files to 23 production records, with 20 version differences. Do **not** run `supabase db push` or a blind migration repair until the applied SQL has been compared and a safe migration plan verified. Production data and historical migrations have not been changed by that audit.
 
 ## Deployment
 
