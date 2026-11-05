@@ -33,7 +33,7 @@ after(async () => { await db.close(); });
 
 describe("approved finite club normalization", () => {
   it("reproduces the committed migration and preserves all four literal punctuation keys", () => {
-    // Windows checkouts may use CRLF; compare SQL without changing applied migrations.
+    // Windows checkouts may use CRLF; compare SQL content without changing applied migrations.
     const lf = (text: string) => text.replaceAll("\r\n", "\n");
     assert.equal(lf(readFileSync(path.join("supabase/migrations", migrationName), "utf8")), lf(migration));
     assert.equal(lf(readFileSync("supabase/rollbacks/20261104_approved_club_normalization.sql", "utf8")), lf(buildRollback()));
