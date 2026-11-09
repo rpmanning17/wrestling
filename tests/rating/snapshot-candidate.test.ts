@@ -36,6 +36,9 @@ it("uses current verified assignments, preserves reverse-result rematches and he
   assert.throws(()=>calculateSnapshotCandidate(source,production(),"2026-11-06","fixture"),/precedes/);
 });
 it("rejects missing sides, changed recorded names, unknown people and duplicate assignments",()=>{
+  const numeric=fixture();
+  numeric.rows.assignments.push({source_kind:"tournament_entry",source_id:"125",person_id:id(101),recorded_name:"A",revision:1});
+  assert.equal(personSnapshotInputs(numeric).allAssignments.length,9);
   const missing=fixture();missing.rows.assignments.pop();assert.throws(()=>personSnapshotInputs(missing),/Incomplete/);
   const changed=fixture();changed.rows.assignments[0].recorded_name="Changed";assert.throws(()=>personSnapshotInputs(changed),/original source/);
   const orphan=fixture();orphan.rows.assignments[0].person_id=id(999);assert.throws(()=>personSnapshotInputs(orphan),/orphan/);

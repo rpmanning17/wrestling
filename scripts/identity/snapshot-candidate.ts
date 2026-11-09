@@ -38,9 +38,10 @@ export function personSnapshotInputs(snapshot: VerifiedSnapshot) {
   const sides: MatchIdentityAssignment[] = [];
   const seen = new Set<string>();
   for (const row of rows.assignments) {
-    const kind = text(row,"source_kind"), id = uuid(text(row,"source_id"));
+    const kind = text(row,"source_kind"), id = text(row,"source_id");
     if (!["match_winner","match_loser","tournament_entry","tournament_observation"].includes(kind))
       throw new Error("Unexpected source appearance kind");
+    if (!id || (kind.startsWith("match_") && !UUID.test(id))) throw new Error("Invalid source appearance ID");
     const key = kind+":"+id, personId = row.person_id == null ? null : uuid(text(row,"person_id"));
     if (seen.has(key) || (personId && !people.has(personId))) throw new Error("Duplicate or orphan source assignment");
     if (!Number.isSafeInteger(row.revision) || Number(row.revision)<1) throw new Error("Invalid assignment revision");
