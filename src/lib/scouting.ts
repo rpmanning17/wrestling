@@ -88,6 +88,7 @@ type EvidenceRow = {
   confidence_score: number;
   confidence_label: "confirmed" | "strong" | "moderate" | "limited";
   evidence_type: string;
+  source_match_id: string | null;
   reason: string;
 };
 
