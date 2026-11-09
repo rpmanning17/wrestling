@@ -117,7 +117,7 @@ begin
     end if;
   end loop;
   return inserted;
-end $$;
+end; $;
 revoke all on function private.import_usa_bracketing_verified(jsonb)
   from public, anon, authenticated, service_role;
 commit;
