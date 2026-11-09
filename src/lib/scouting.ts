@@ -680,7 +680,7 @@ export async function likelyNolanPool() {
 export async function rankingPools() {
   if (await personModelActive()) return personRankingPools();
   const { data, error } = await supabase().rpc("current_wrestler_cohorts", { target_age: 12 })
-    .select("athlete_key,athlete_name,team,age_group,bracket_weight_lbs")
+    .select("athlete_key,athlete_name,team,age_group,bracket_weight_lbs,evidence_date")
     .eq("age_group", "12U").gte("bracket_weight_lbs", 65).lte("bracket_weight_lbs", 80)
     .order("evidence_date", { ascending: false }).limit(120);
   if (error) throw new Error("Current ranking classification unavailable");
