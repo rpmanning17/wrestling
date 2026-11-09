@@ -1,5 +1,14 @@
 # Status
 
+## 2026-11-09 — Follow-up Rankings memory tuning (production applied; live reliability not yet proven)
+
+After the November 9 cohort-view optimization, a diagnostic admin-role EXPLAIN observed 4.97 seconds for the full 12,043-row cohort view, with substantial temp-file spill. Five controlled later trials on the same 68,783-match production source found 4 MB ~2.04s (temp spill), 16 MB ~1.87–1.91s (no temp spill), and 32 MB ~1.67–1.68s (no temp spill). These are query-plan tests, not measurements of the authenticated app page or guarantees of stability.
+
+**Applied production migration `20261109202737`** (`rankings_anon_work_mem`), source `20261109210000_rankings_anon_work_mem.sql`: `ALTER ROLE anon SET work_mem = '32MB'`. PostgREST applies impersonated role settings to request transactions. Verified `anon` still has `statement_timeout=3s` and now `work_mem=32MB`; authorization/RLS, views, source matches, active rating model and app code were not changed. Security advisor still reports only eight previously known RLS-no-policy informational notices on deliberately denied private ledgers. Per-operation memory and concurrent query use should be monitored; rollback through a **new** migration `ALTER ROLE anon RESET work_mem` if necessary.
+
+**Still pending:** repeated actual protected production Rankings loads, error log review, rating candidate calculation from verified 221-page export and independent validation followed by separately authorized activation. Do not report this as complete or promote the stale candidate.
+
+
 ## 2026-11-09 — verified bounded export; rankings timeout remains open
 
 Continued from deployed main `b571038` / PR #17, with no open PRs found. Reverified 68,783 matches, 1,047 USA Bracketing bouts across 13 events, 648 imported placements (878 preserved privately), 1,926/2,094 assigned bout sides and 491/648 assigned placement appearances. Uncertain identities remain held.
