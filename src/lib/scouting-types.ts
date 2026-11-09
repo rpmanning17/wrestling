@@ -21,6 +21,7 @@ export type BoutSummary = {
   outcome: "W" | "L";
   result: string;
   weight: string;
+  ageGroup: string | null;
 };
 
 export type PlacementSummary = {
