@@ -4,6 +4,7 @@ import { type PowerRating, type WrestlerProfile, type WrestlerRef, type Wrestler
 import { likelihoodExplanation, likelihoodScore } from "@/lib/scoring";
 import { headToHead, commonOpponents, type Bout } from "@/lib/rating/relations";
 import { classifyMethod, CONTESTED_BY_DEFAULT } from "@/lib/rating/outcomes";
+import { ageGroupForBout, type BoutAgeEvidence } from "@/lib/bout-age";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -128,6 +129,16 @@ async function loadResolvedPersonProfiles(refs: WrestlerRef[]): Promise<Wrestler
     observations: ((observationsResult.data ?? []) as Array<ObservationRow & { person_id: string }>).filter(row => row.person_id === id),
   }));
   const allBouts = [...new Map(details.flatMap(item => item.matches).map(row => [row.id, row])).values()];
+  const recentRows = [...new Map(details.flatMap(item => item.matches.slice(0, 8)).map(row => [row.id, row])).values()];
+  const recentNames = [...new Set(recentRows.flatMap(row => [row.winner_name, row.loser_name]))];
+  const recentDates = [...new Set(recentRows.map(row => row.event_date))];
+  const boutAgeResult = recentRows.length
+    ? await db.from("wrestler_evidence")
+      .select("source_match_id,event_date,event_name,athlete_name,age_group,bracket_weight_lbs,confidence_label")
+      .in("athlete_name", recentNames).in("event_date", recentDates).limit(2500)
+    : { data: [] };
+  if ("error" in boutAgeResult && boutAgeResult.error) throw new Error("Bout age evidence unavailable");
+  const boutAgeEvidence = (boutAgeResult.data ?? []) as BoutAgeEvidence[];
   const relations: Bout[] = allBouts.filter(row => row.winner_person_id && row.loser_person_id &&
     CONTESTED_BY_DEFAULT.includes(classifyMethod(row.win_type, row.result))).map(row => ({
       date: row.event_date, winnerKey: row.winner_person_id!, loserKey: row.loser_person_id!,
@@ -198,7 +209,8 @@ async function loadResolvedPersonProfiles(refs: WrestlerRef[]): Promise<Wrestler
       bouts: matches.slice(0, 8).map(row => ({ id: row.id, date: row.event_date, event: row.event_name,
         opponent: row.winner_person_id === id ? row.loser_name : row.winner_name,
         outcome: row.winner_person_id === id ? "W" as const : "L" as const,
-        result: [row.win_type, row.result].filter(Boolean).join(" · "), weight: row.weight_class })),
+        result: [row.win_type, row.result].filter(Boolean).join(" · "), weight: row.weight_class,
+        ageGroup: ageGroupForBout(row, boutAgeEvidence) })),
       placements: placements.slice(0, 8),
       notes: ((notesResult.data ?? []) as Array<{ id: number; person_id: string; wrestler_key: string;
         body: string; client_id: string; created_at: string }>).filter(note => note.person_id === id)
