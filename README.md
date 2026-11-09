@@ -27,6 +27,8 @@ Agent-specific instructions: [`AGENTS.md`](AGENTS.md) (coding agents in general,
 
 ## Data
 
+November 9 continuation: production contains 68,783 bouts, including 1,047 USA Bracketing bouts, plus 648 new placement observations. The complete ratings-input export is verified in private 1,000-row checkpoints; active ratings still cover 67,736 bouts. Rankings timeouts remain intermittent. See [continuation verification](docs/USA_IMPORT_CONTINUATION_20261109.md). Verify a retained export offline with `node --import tsx scripts/ratings/verify-snapshot.ts <private-directory>`; this does not calculate or activate ratings.
+
 Match results live in `public.matches`. The verified November 4, 2026 snapshot contains 67,736 source rows, including 35,861 calendar-2025 bouts and 30 additional January-2026 bouts. The active canonical model rates 64,050 contested bouts across 11,724 wrestlers, with 34,809 history points. Each source file/row pair is unique for idempotent import. Known identity, rematch and source-label limitations remain; see [docs/RATING_RECOVERY_RELEASE.md](docs/RATING_RECOVERY_RELEASE.md).
 
 Source ZIPs and CSV contents are intentionally not committed. The repository has an **offline staging tool for normalized Mat Notes match CSVs** (`pnpm matches:prepare`), not a raw Flo/Trackwrestling-to-normalized converter. The tournament-observation builder is separate (`supabase/importers/`). See [MATCH_IMPORT_READINESS](docs/MATCH_IMPORT_READINESS.md). Reviewed club normalization and the finite Scorpions/Kongkrete catch-up are live; see [CLUB_NORMALIZATION](docs/CLUB_NORMALIZATION.md).

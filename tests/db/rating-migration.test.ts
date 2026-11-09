@@ -131,6 +131,11 @@ describe("expanded-source cohort read optimization", () => {
       await db.exec(readFileSync(path.join(MIGRATIONS, "20261104201302_bound_expanded_cohort_reads.sql"), "utf8")
         .replace(/^begin;\s*/, "").replace(/commit;\s*$/, ""));
       assert.deepEqual(await snapshot(), optimized);
+      const rawCount = await count("select count(*) n from public.matches");
+      await db.exec(readFileSync(path.join(MIGRATIONS, "20261109183704_bound_cohort_input_duplicates.sql"), "utf8")
+        .replace(/^begin;\s*/, "").replace(/commit;\s*$/, ""));
+      assert.deepEqual(await snapshot(), optimized);
+      assert.equal(await count("select count(*) n from public.matches"), rawCount);
       const options = (await db.query<{ reloptions: string[] }>(
         "select reloptions from pg_class where oid='public.wrestler_cohort_current'::regclass")).rows[0].reloptions;
       assert.ok(options.includes("security_invoker=true"));

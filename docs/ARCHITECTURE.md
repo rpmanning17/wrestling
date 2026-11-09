@@ -36,6 +36,8 @@ tests/rating, tests/db      node:test suites (tests/db applies migrations in PGl
 
 ## Rating pipeline
 
+Bounded connector exports preserve each row's original PostgreSQL `to_jsonb(row)::text` in ordered private JSON pages. `scripts/ratings/snapshot.ts` reconstructs and verifies all pages against full-row table fingerprints captured together in one SQL statement. Thus the verified reconstructed inputs correspond to that single MVCC snapshot; independent page counts are insufficient. The CLI writes only a private integrity report and cannot activate a model. See USA_IMPORT_CONTINUATION_20261109.md for ordering and fingerprint encoding.
+
 ```
 public.matches ──read──▶ prepareMatches ──▶ calculateRatings ──▶ batch write ──▶ rating_models (building→candidate→active)
 public.wrestler_aliases ─┘   (classify, dedupe,       (walk-forward Glicko-2)        wrestler_model_ratings

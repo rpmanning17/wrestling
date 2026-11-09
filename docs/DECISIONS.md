@@ -71,6 +71,10 @@ Newest first within each area is not required; each entry has a date, the decisi
 
 ## Not yet decided / not built
 
+**D40. Collapse identical cohort inputs before canonical joins (2026-11-09).** After a reproduced app-role statement timeout, move only the duplicate collapse already implied by canonical DISTINCT earlier into the raw evidence union. Full production cohort and standing checksums agree; raw bouts, priorities, labels, votes, tiers, ratings, RLS and invoker security stay unchanged. This modest improvement does not fully resolve the intermittent three-second timeout, so retain that limitation. Rejected: raising the app timeout, a stale classification cache, privileged read functions or silently reclassifying in TypeScript.
+
+**D41. Reconstruct an atomic input snapshot through verified bounded pages (2026-11-09).** Capture ordered full-row fingerprints for matches, current assignments, people and wrestler aliases together in one SQL statement. Independently transported pages become usable only when every count and full-row fingerprint reconstructs that atomic baseline. Recheck live fingerprints before release. This avoids a monolithic connector response or new production export tables; it does not treat independent page counts as a consistent snapshot. Preserve interrupted pages and fail on differences rather than replacing a baseline. The operational encoding is explicitly SHA256 of ordered full-row MD5 hex strings; it is not a signed provenance archive. Rejected: assuming a partial export completed, blind offset pagination during source changes, or activating the stale person candidate.
+
 - Club identity normalization and initial club rankings were implemented under D20/D21; causal development analysis remains future work.
 - Whether duals should be weighted differently from tournaments: no evidence yet.
 
