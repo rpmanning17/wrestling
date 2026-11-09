@@ -2,6 +2,8 @@
 
 ## Scoped current cohorts
 
+Source matches also maintain a private indexed appearance projection in the same insert/update/delete transaction. It contains source-side classification inputs, with no cohort or rating result cache. Name/age indexes drive scoped reads; live aliases/assignments are joined afterward. `current_wrestler_strength` and `current_person_strength` take the same optional age argument, and their NULL calls back the full strength views. Ranking profiles reuse the candidate classification and ask for complete age-population standings. Active models skip the unused legacy heuristic query.
+
 The full cohort views and Rankings RPCs share `current_wrestler_cohorts(target_age)` and `current_person_cohorts(target_age)`. NULL evaluates every athlete. An explicit age reduces the athlete population before event/vote windows using any supporting source-age value; it retains every source row for selected athletes and the caller still filters the final classification. Thus the three-event classifier has one authority per identity scheme. Both functions are stable invokers with empty search_path and parameterized static query execution, without stored derived state. This forces planning for each actual argument while preserving access controls.
 
 ## Runtime

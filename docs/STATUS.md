@@ -1,6 +1,12 @@
 
 # Status
 
+## 2026-11-09 — transactional appearance indexes; standings read follow-up
+
+The first scoped release (`703e5fc`, production `dpl_C4ijbew5fQKjJDNfTPDKdmssyznD`) still had intermittent candidate timeouts. An indexed private per-source-side projection is now atomically maintained by a protected source trigger: 137,566 rows for 68,783 bouts. No source/assignment/rating row changed. Real anon plans now show age/athlete Index Cond lookups. Ten fresh protected production reloads rendered the page; the first five candidate HTTP requests took 605/1102/774/780/340 ms, all 200. **Standing reliability is not yet passed:** a later successful page rendered unavailable strength values after its separate full standing read timed out.
+
+Applied follow-ups: projection `20261109210141`, driven name indexes `20261109210512`, scoped shared standings `20261109210826`, driven person indexes `20261109210917`. Full name cohort/standing/person cohort hashes remain unchanged. Person scoped cohort trial: 343 rows in ~335 ms. Security advisor has no new warnings/errors. New regression coverage verifies source insert/update/delete/rollback synchronization, denied projection writes and complete age-population standings. Page code now scopes standing reads, reuses person classifications and skips unused legacy heuristic queries; this follow-up page deployment remains pending at this checkpoint. Active ratings are still the older model.
+
 ## 2026-11-09 — age-scoped rankings reads (applied; page deployment pending)
 
 Fresh protected production loads reproduced the ranking failure after the 32MB role change (two failures among five reloads). Configuration reload removed further measured temp writes but did not establish reliability. Rankings now calls an invoker function with an explicit age argument. It first selects athletes with any supporting age value, keeps their complete evidence histories, and applies the unchanged three-event classifier. The full views use the same functions with NULL. Person inputs additionally parse distinct weight/event labels once and collapse identical classification tuples; raw bouts and assignments are untouched.

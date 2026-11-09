@@ -1,5 +1,7 @@
 # Data model
 
+The private `match_cohort_appearances` relation holds exactly two classification-input rows per source bout. Its primary key is (source_match_id, side); it preserves source names, team, date, event and parsed bracket labels. Generated name/age keys and private indexes support selective reads. The source-table AFTER trigger updates this projection atomically; no asynchronous refresh or derived rating is stored. Client roles cannot write the table or execute its maintenance trigger. The same personal-app authorization check guards reads. Alias and person assignment resolution occurs at query time, so corrections do not require refreshing this projection.
+
 November 9 scoped-query follow-up: existing cohort views now use shared invoker functions with an optional age argument. NULL retains the full result. Both new functions require the same underlying table RLS; PUBLIC/authenticated execution is revoked and only existing app-role anon execution is granted. No source, assignment, rating, cohort vote or persistence change. See STATUS and USA_IMPORT_CONTINUATION_20261109.md.
 
 

@@ -1,5 +1,20 @@
 # USA Bracketing continuation — November 9, 2026
 
+## Transactional appearance index checkpoint
+
+Production code `703e5fc` deployed READY as `dpl_C4ijbew5fQKjJDNfTPDKdmssyznD`; production domain confirmed. The earlier `f58d132` production build exposed a missing RPC sort projection (SQL 42703); `703e5fc` includes evidence_date and fixes it. Further actual app-role timeouts were reproduced, so the scoped SQL-only trial was not accepted as reliable.
+
+Additional applied sources / production versions:
+
+| Source migration | Production version |
+|---|---|
+| 20261109211500_index_transactional_cohort_appearances.sql | 20261109210141 |
+| 20261109212500_drive_cohort_appearance_indexes.sql | 20261109210512 |
+| 20261109213000_scope_current_standings.sql | 20261109210826 |
+| 20261109213500_drive_person_appearance_indexes.sql | 20261109210917 |
+
+The private projection has exactly 137,566 rows, maintained in each source transaction, with unchanged raw input fingerprints and full cohort/standing hashes. An anon-role plan proves text age and athlete Index Cond lookups; the numeric age predicate had been kept as a full-index filter under RLS. Ten fresh protected live loads then rendered; their separate full standing reads can still fail and display unavailable strength. Scoped standing page changes therefore remain a release gate. Do not calculate or activate until complete rankings/standings reliability has passed. Security advisor after these changes reports no new warning/error.
+
 ## Local continuation: scoped rankings query
 
 Private 221-page input snapshot reverified successfully. Fresh protected production browser loads reproduced digest 4274830494 after the memory change; among five post-config-refresh reloads two failed. App-role pg_stat_statements showed no additional temp writes after a PostgREST config refresh, but reads still timed out. No new rating run was calculated at this checkpoint.

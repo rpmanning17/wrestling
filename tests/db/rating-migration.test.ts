@@ -86,6 +86,21 @@ before(async () => {
 after(async () => { await db.close(); });
 
 describe("expanded-source cohort read optimization", () => {
+  it("age-scoped standings preserve every rating, rank and tier within each complete age population", async () => {
+    await db.exec("begin");
+    try {
+      await db.exec(`select private.activate_rating_model('${M1}')`);
+      const all = (await db.query<{age_group:string}>("select * from public.wrestler_strength_current order by athlete_key")).rows;
+      for (const age of [6,8,10,12,14,16,18]) {
+        const scoped = (await db.query("select * from public.current_wrestler_strength($1) order by athlete_key", [age])).rows;
+        assert.deepEqual(scoped, all.filter(row => row.age_group === age+"U"));
+      }
+      await db.query(HEADERS_OFF);
+      await db.exec("set local role anon");
+      assert.equal(await count("select count(*) n from public.current_wrestler_strength(12)"),0);
+      await db.exec("reset role");
+    } finally { await db.exec("rollback"); }
+  });
   it("preserves all club records, roster and schedule metrics when resolving repeated literal team labels once", async () => {
     await db.exec("begin");
     try {
