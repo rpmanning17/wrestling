@@ -9,6 +9,7 @@ import {
   likelihoodScore,
 } from "@/lib/scoring";
 import { classifyMethod, CONTESTED_BY_DEFAULT, parseAgeGroup, parseBracketWeight } from "@/lib/rating/outcomes";
+import { ageGroupForBout } from "@/lib/bout-age";
 import { commonOpponents, headToHead, type Bout } from "@/lib/rating/relations";
 import type {
   PlacementSummary,
@@ -87,6 +88,7 @@ type EvidenceRow = {
   confidence_score: number;
   confidence_label: "confirmed" | "strong" | "moderate" | "limited";
   evidence_type: string;
+  source_match_id: string | null;
   reason: string;
 };
 
@@ -416,7 +418,7 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
       ? db.from("tournament_observations").select("event_date,event_name,city,athlete_name,team,division_label,age_group,experience_division,school_level,bracket_weight_label,bracket_weight_lbs,placement,confidence,identity_resolution").in("athlete_name", names).neq("identity_resolution", "placeholder").order("event_date", { ascending: false }).limit(1000)
       : empty,
     names.length
-      ? db.from("wrestler_evidence").select("athlete_name,team,event_date,event_name,city,age_group,division_birth_year_start,division_birth_year_end,experience_division,bracket_weight_lbs,confidence_score,confidence_label,evidence_type,reason").in("athlete_name", names).order("event_date", { ascending: false }).limit(2500)
+      ? db.from("wrestler_evidence").select("athlete_name,team,event_date,event_name,city,age_group,division_birth_year_start,division_birth_year_end,experience_division,bracket_weight_lbs,confidence_score,confidence_label,evidence_type,reason,source_match_id").in("athlete_name", names).order("event_date", { ascending: false }).limit(2500)
       : empty,
     names.length
       ? db.from("wrestler_ratings").select("athlete_name,age_group,division_birth_year_start,division_birth_year_end,weight_bucket,weight_band,bracket_weight_lbs,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,wins,losses,best_placement,decisive_wins").in("athlete_name", names).limit(1000)
@@ -431,8 +433,12 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
       ? db.from("wrestler_strength_current").select("athlete_key,athlete_name,bracket_weight_lbs,age_group,weight_bucket,weight_band,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason,division_birth_year_start,division_birth_year_end").in("athlete_key", ratingKeys).limit(1000)
       : empty,
   ]);
-  if ("error" in cohortResult && cohortResult.error) throw new Error("Current cohort standing unavailable. Try again.");
-  const currentCohorts: CurrentCohortRow[] = knownCohorts ?? ((cohortResult.data ?? []) as CohortStrengthRow[]).map((row) => ({
+  // The strength view is expensive and may time out during a source import.
+  // Preserve profile access by reading the lighter authoritative cohort view below;
+  // do not invent a standing or silently substitute legacy rankings.
+  const strengthError = "error" in cohortResult ? cohortResult.error : null;
+  if (strengthError) console.warn("Current strength view unavailable; using cohort-only fallback", strengthError.code);
+  const currentCohorts: CurrentCohortRow[] = knownCohorts ?? ((strengthError ? [] : (cohortResult.data ?? [])) as CohortStrengthRow[]).map((row) => ({
     athlete_key: row.athlete_key, age_group: row.age_group, bracket_weight_lbs: row.bracket_weight_lbs,
   }));
   const missingCohortKeys = ratingKeys.filter((key) => !currentCohorts.some((row) => row.athlete_key === key));
@@ -444,7 +450,7 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
   // A model counts as active only if the view answered without error and returned a row.
   const modelActive = !("error" in activeModelResult && activeModelResult.error) && ((activeModelResult.data as unknown[] | null) ?? []).length > 0;
   const powerRows = modelActive ? ((powerResult.data ?? []) as PowerRow[]) : [];
-  const cohortRows = modelActive ? ((cohortResult.data ?? []) as CohortStrengthRow[]) : [];
+  const cohortRows = modelActive && !strengthError ? ((cohortResult.data ?? []) as CohortStrengthRow[]) : [];
 
   const matches = [...(winsResult.data ?? []), ...(lossesResult.data ?? [])] as MatchRow[];
   const uniqueMatches = [...new Map(matches.map((match) => [match.id, match])).values()];
@@ -620,6 +626,7 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
           outcome: won ? "W" as const : "L" as const,
           result: [match.win_type, match.result].filter(Boolean).join(" · "),
           weight: match.weight_class,
+          ageGroup: ageGroupForBout(match, wrestlerEvidence),
         };
       }),
       placements: placements.slice(0, 8),
