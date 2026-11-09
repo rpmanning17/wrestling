@@ -1,5 +1,14 @@
 # USA Bracketing continuation — November 9, 2026
 
+## Additional bounded Rankings tuning (2026-11-09)
+
+After the earlier query improvement, read-only `EXPLAIN (ANALYZE, BUFFERS)` against production evaluated 12,043 cohorts in 4.97s, with 5,312 temporary blocks read and 8,263 written. Follow-up controlled trials were: default 4 MB 2.044s with temp spill; 16 MB 1.872s and 1.906s without spills; 32 MB 1.675s and 1.682s without spills. These are individual administrator-run full-view plans; none establishes app-role tail latency or repeated live-page success.
+
+A new additive migration `supabase/migrations/20261109210000_rankings_anon_work_mem.sql` was applied through the administrator migration connector as **production version 20261109202737**, setting only the PostgREST `anon` role's `work_mem` to 32 MB. PostgreSQL/PostgREST support impersonated role transaction settings. Read-back verified `anon` config `statement_timeout=3s`, `work_mem=32MB`. No source/model/access changes were made. Eight existing informational no-policy notices remain unchanged. Under increasing concurrency, watch memory and error logs; revert using a new migration (`ALTER ROLE anon RESET work_mem`), not an edit to applied SQL.
+
+**Release gate remains open** until repeated authenticated production Rankings loads and logs establish stability, followed by new person-based ratings calculation, full validation, source-fingerprint recheck and authorized activation.
+
+
 ## Verified outcome
 
 The ratings-input export is complete and verified. A semantics-preserving cohort query improvement is applied, but Rankings still intermittently times out. No new rating calculation, rating persistence, candidate promotion or activation was performed. Do not activate the older person candidate.
