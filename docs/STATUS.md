@@ -1,6 +1,12 @@
 
 # Status
 
+## 2026-11-09 — complete Rankings reliability gate passed before recalculation
+
+Commit `a30db1a` is production READY as `dpl_4u9w8kBB943ynZMrzpXk9hnJGbfi`; GitHub CI passed lint/typecheck/189 tests/build. Ten fresh protected browser reloads returned the likely list with numeric strength/rank/tier values for its rated wrestlers. The expanded strongest list also rendered; newly imported unrated rows correctly remain unavailable in the old model. Matching 21:13 UTC logs contain ten classification RPCs (186–1,264 ms) and ten standing RPCs (219–759 ms), all HTTP 200. Deployment warning/error/fatal logs for these requests are empty. Nine warm full page checks took 1.29–1.73 seconds; the first cold check took 6.73 seconds. No query timeout or security limit was increased. This is a bounded observed reliability gate, not a promise against every future failure.
+
+Source/assignment/people/alias fingerprints still match the complete private export. Rating calculation and activation now proceed as the next separate gate; no candidate or active model changed during reliability work.
+
 ## 2026-11-09 — transactional appearance indexes; standings read follow-up
 
 The first scoped release (`703e5fc`, production `dpl_C4ijbew5fQKjJDNfTPDKdmssyznD`) still had intermittent candidate timeouts. An indexed private per-source-side projection is now atomically maintained by a protected source trigger: 137,566 rows for 68,783 bouts. No source/assignment/rating row changed. Real anon plans now show age/athlete Index Cond lookups. Ten fresh protected production reloads rendered the page; the first five candidate HTTP requests took 605/1102/774/780/340 ms, all 200. **Standing reliability is not yet passed:** a later successful page rendered unavailable strength values after its separate full standing read timed out.

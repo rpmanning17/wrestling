@@ -42,6 +42,8 @@ tests/rating, tests/db      node:test suites (tests/db applies migrations in PGl
 
 ## Rating pipeline
 
+The current-source person exporter reads the four-table verified bounded snapshot and uses current source assignments directly, including null held sides. It verifies exact recorded source names and person/appearance coverage before calculating. `calculate-snapshot-candidate.ts` requires clean committed calculation sources, explicit as-of date and a new private output. The separate validator replays every serialized engine field and independently reconstructs reviewed outcomes, records, SOS and every daily Glicko/history state using a separate bisection volatility implementation. Neither command connects to the database. Full snapshot roots, current-assignment fingerprint, source-input v2 fingerprint and payload hashes accompany the candidate.
+
 Bounded connector exports preserve each row's original PostgreSQL `to_jsonb(row)::text` in ordered private JSON pages. `scripts/ratings/snapshot.ts` reconstructs and verifies all pages against full-row table fingerprints captured together in one SQL statement. Thus the verified reconstructed inputs correspond to that single MVCC snapshot; independent page counts are insufficient. The CLI writes only a private integrity report and cannot activate a model. See USA_IMPORT_CONTINUATION_20261109.md for ordering and fingerprint encoding.
 
 ```

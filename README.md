@@ -1,5 +1,14 @@
 # Mat Notes
 
+For a complete fingerprint-verified current-assignment export, the offline-only commands are:
+
+```powershell
+node --import tsx scripts/identity/calculate-snapshot-candidate.ts <private-snapshot-directory> YYYY-MM-DD
+node --import tsx scripts/identity/validate-snapshot-candidate.ts <private-snapshot-directory>
+```
+
+These refuse to overwrite candidate/validation files and never write to the database. The historical assignment-plan exporter retains its older source guard. See [RATING_OPERATIONS](docs/RATING_OPERATIONS.md) for supervised persistence and activation.
+
 Rankings query maintenance uses age-scoped invoker reads that retain each candidate's complete history and share the full current-cohort classifier. See [STATUS](docs/STATUS.md) for page verification and rating freshness; an applied database change alone is not a completed release.
 
 A personal, mobile-first Florida youth wrestling scouting site: look up wrestlers, compare a bracket, read results, placements and age/weight evidence, rank opponents, and keep scouting notes. Built with Next.js (App Router), Supabase (Postgres) and Vercel.
