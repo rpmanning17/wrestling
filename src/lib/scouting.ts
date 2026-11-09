@@ -9,6 +9,7 @@ import {
   likelihoodScore,
 } from "@/lib/scoring";
 import { classifyMethod, CONTESTED_BY_DEFAULT, parseAgeGroup, parseBracketWeight } from "@/lib/rating/outcomes";
+import { ageGroupForBout } from "@/lib/bout-age";
 import { commonOpponents, headToHead, type Bout } from "@/lib/rating/relations";
 import type {
   PlacementSummary,
@@ -416,7 +417,7 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
       ? db.from("tournament_observations").select("event_date,event_name,city,athlete_name,team,division_label,age_group,experience_division,school_level,bracket_weight_label,bracket_weight_lbs,placement,confidence,identity_resolution").in("athlete_name", names).neq("identity_resolution", "placeholder").order("event_date", { ascending: false }).limit(1000)
       : empty,
     names.length
-      ? db.from("wrestler_evidence").select("athlete_name,team,event_date,event_name,city,age_group,division_birth_year_start,division_birth_year_end,experience_division,bracket_weight_lbs,confidence_score,confidence_label,evidence_type,reason").in("athlete_name", names).order("event_date", { ascending: false }).limit(2500)
+      ? db.from("wrestler_evidence").select("athlete_name,team,event_date,event_name,city,age_group,division_birth_year_start,division_birth_year_end,experience_division,bracket_weight_lbs,confidence_score,confidence_label,evidence_type,reason,source_match_id").in("athlete_name", names).order("event_date", { ascending: false }).limit(2500)
       : empty,
     names.length
       ? db.from("wrestler_ratings").select("athlete_name,age_group,division_birth_year_start,division_birth_year_end,weight_bucket,weight_band,bracket_weight_lbs,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,wins,losses,best_placement,decisive_wins").in("athlete_name", names).limit(1000)
@@ -620,6 +621,7 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
           outcome: won ? "W" as const : "L" as const,
           result: [match.win_type, match.result].filter(Boolean).join(" · "),
           weight: match.weight_class,
+          ageGroup: ageGroupForBout(match, wrestlerEvidence),
         };
       }),
       placements: placements.slice(0, 8),
