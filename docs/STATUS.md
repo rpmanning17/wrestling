@@ -1,5 +1,14 @@
 # Status
 
+## 2026-11-09 — USA Bracketing production import and evidence-backed identities
+
+**Production data verified, rating refresh and UI deployment still pending this PR:** 68,783 source matches, including 1,047 newly imported contested USA Bracketing youth bouts from 13 events. Each has a preserved private source-evidence record. The 878 youth placement records were preserved privately; 648 were added as separate placement observations. Of 2,094 new match-side identity appearances, 1,926 are assigned using reviewed, reversible decisions and 168 are held; 230 new people were created rather than guessing unrelated matches. Of the 648 placement appearances, 491 are linked to an unambiguous assigned wrestler within the exact published bracket and 157 are held. Additional unknown-gender placements remain private; no placement created a bout. The November 7 Luke Palazzo–Nolan Manning published result retains its exact source UUID and a distinct owner-only note preserves the unrecorded Nathan Jorge exhibition without inventing a result.
+
+The *active* model remains name-key **a29c4460-5e56-4d22-902d-ea39c65bfcac**, covering 67,736 matches. The older 67,736-match person-keyed candidate is stale and **must not be activated**. A new source-frozen person-keyed run is required, including supervised validation and release. The committed source files in this PR include the additive provenance schema, guarded import functions, one-time reviewed identity release SQL and UI age-group display. The UI reads explicit age labels from source brackets or uniquely corroborated matching-event evidence; it displays unknown age instead of guessing. A failed complex strength-view lookup falls back to the independent cohort classifier, never to unvalidated rankings.
+
+The earlier source snapshots and migration-time counts in the sections below are historical. Rating freshness remains pending until a new model has been calculated against the 68,783-row source and activated. No claim that old person-keyed ratings include the new rows.
+
+
 ## 2026-11-05 — person identity implementation in review
 
 Draft PR #16 on branch `codex/person-identity` is stacked on club-alias catch-up PR #15 and includes the read-only audit from PR #14. The three additive person migrations were applied to production as `20261105181340`, `20261105181342` and `20261105181343`. The reviewed people, decisions and source assignments are imported. A person-keyed rating model `cd6d932e-289d-42e2-a79c-a699d1dedcfa` was stored, independently checked and promoted to **candidate**, not active. **The active production model remains `a29c4460-5e56-4d22-902d-ea39c65bfcac` with `name_key` identity. The new app code has not been deployed to production.** Existing source names and model results remain intact. App read-path changes take effect only after separately authorized activation of the candidate.
