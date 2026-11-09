@@ -8,7 +8,7 @@ declare
   prior public.matches%rowtype;
   prior_e private.usa_bracketing_bout_evidence%rowtype;
   match_uuid uuid; inserted integer := 0;
-  win text; lose text; raw_method text;
+  win text; lose text; winner_team text; loser_team text; raw_method text;
   package text; source_date date;
 begin
   if jsonb_typeof(payload) is distinct from 'array'
@@ -50,11 +50,11 @@ begin
        or lose <> m->>'loser_name' or win ~* '^(bye|wrestler [12]|tbd)$'
        or lose ~* '^(bye|wrestler [12]|tbd)$' then
        raise exception 'Invalid or mismatched match participants'; end if;
-    if m->>'winner_team' is distinct from case when raw->>'winner_side_original'='1'
-        then raw->>'participant1_team_original' else raw->>'participant2_team_original' end
-      or m->>'loser_team' is distinct from case when raw->>'winner_side_original'='1'
-        then raw->>'participant2_team_original' else raw->>'participant1_team_original' end
-      then raise exception 'Original team mismatch'; end if;
+    winner_team := case when raw->>'winner_side_original'='1' then raw->>'participant1_team_original' else raw->>'participant2_team_original' end;
+    loser_team := case when raw->>'winner_side_original'='1' then raw->>'participant2_team_original' else raw->>'participant1_team_original' end;
+    if m->>'winner_team' is distinct from winner_team or m->>'loser_team' is distinct from loser_team then
+      raise exception 'Original team mismatch';
+    end if;
     raw_method := raw->>'method_raw_original';
     if raw_method not in ('F','TF','Dec','MD','SV','TB')
        or m->>'win_type' <> case raw_method
