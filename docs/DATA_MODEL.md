@@ -1,5 +1,8 @@
 # Data model
 
+November 9 scoped-query follow-up: existing cohort views now use shared invoker functions with an optional age argument. NULL retains the full result. Both new functions require the same underlying table RLS; PUBLIC/authenticated execution is revoked and only existing app-role anon execution is granted. No source, assignment, rating, cohort vote or persistence change. See STATUS and USA_IMPORT_CONTINUATION_20261109.md.
+
+
 November 9 query follow-up: source migration `20261109183704_bound_cohort_input_duplicates.sql` is applied as production `20261109184313`. Only the invoker cohort view changes: identical raw classification tuples collapse before canonical joins, preserving the existing downstream DISTINCT result. No source table, identity, vote, rating, tier rule or permission changes. Full cohort and standing checksums are preserved; intermittent app-role timeout remains open. See USA_IMPORT_CONTINUATION_20261109.md.
 
 The 2026-11-05 finite club alias catch-up adds 27 literal rows to `public.club_aliases` and a denied private insertion ledger for guarded rollback. It retains original team text in `matches`, entries and observations. Club views resolve those rows at read time. Production version `20261105150602` is applied; see CLUB_NORMALIZATION.md.

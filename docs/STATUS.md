@@ -1,4 +1,14 @@
+
 # Status
+
+## 2026-11-09 — age-scoped rankings reads (applied; page deployment pending)
+
+Fresh protected production loads reproduced the ranking failure after the 32MB role change (two failures among five reloads). Configuration reload removed further measured temp writes but did not establish reliability. Rankings now calls an invoker function with an explicit age argument. It first selects athletes with any supporting age value, keeps their complete evidence histories, and applies the unchanged three-event classifier. The full views use the same functions with NULL. Person inputs additionally parse distinct weight/event labels once and collapse identical classification tuples; raw bouts and assignments are untouched.
+
+Applied migrations: age population **20261109204355**, inline trial **20261109204548**, person input bounds **20261109204714**, followed by fixed-search-path parameter planning (version recorded in the continuation). The final invoker functions use a static parameterized EXECUTE query to plan the actual argument while retaining a fixed empty search_path; no definer rights or public execution grants. Name/person scoped read-only trials returned the same 92/59 filtered candidates in ~0.78/0.84 seconds; final fixed-path name trial ~1.03 seconds. These are administrator measurements, not live app reliability evidence.
+
+All 12,043 name cohorts, 1,132 current standings and 11,750 person cohorts retain their complete-row hashes. Migration transactions abort on differing outputs. Regression fixtures compare full outputs and all supported age subsets, preserving mixed-age histories and denied anonymous reads. Local lint/typecheck/188 tests/build pass before deployment; final verification remains pending. Ratings still use the older active model. No new candidate calculated yet.
+
 
 ## 2026-11-09 — Follow-up Rankings memory tuning (production applied; live reliability not yet proven)
 

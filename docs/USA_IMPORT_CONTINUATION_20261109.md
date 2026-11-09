@@ -1,5 +1,22 @@
 # USA Bracketing continuation — November 9, 2026
 
+## Local continuation: scoped rankings query
+
+Private 221-page input snapshot reverified successfully. Fresh protected production browser loads reproduced digest 4274830494 after the memory change; among five post-config-refresh reloads two failed. App-role pg_stat_statements showed no additional temp writes after a PostgREST config refresh, but reads still timed out. No new rating run was calculated at this checkpoint.
+
+Applied sources / production versions:
+
+| Source migration | Production version |
+|---|---|
+| 20261109204500_bound_age_cohort_population.sql | 20261109204355 |
+| 20261109205000_inline_age_cohort_functions.sql | 20261109204548 |
+| 20261109205500_bound_person_cohort_inputs.sql | 20261109204714 |
+| 20261109210001_plan_cohorts_with_fixed_search_path.sql | 20261109204824 |
+
+The final stable invoker functions have an empty fixed search_path and plan a static parameterized query for each age argument. NULL preserves full views. Name/person ranking subset trials returned the same 92/59 candidates in ~0.78/~0.84 seconds; final fixed-path name trial ~1.03 seconds. Exact full hashes remain name cohorts f5022a61199b1a209ade7b230a500d45 (12,043), standings 64d2de6c084050d80fc15726ab13a834 (1,132), person cohorts 1e2fa7d933ecb90051c45842bb5eb0ba (11,750). Final security advisor returned only the eight existing informational denied-ledger findings; intermediate mutable-search-path warnings were resolved. No cache, definer permissions, timeout increase or identity/rating write.
+
+The page code now requests scoped reads for either active identity scheme. At this checkpoint it is not deployed; authenticated production stability, refreshed ratings and final release remain unverified. Roll back page reads by deploying the predecessor; full views preserve their original outputs. Any database rollback must be a new migration restoring prior definitions, never editing the applied files.
+
 ## Additional bounded Rankings tuning (2026-11-09)
 
 After the earlier query improvement, read-only `EXPLAIN (ANALYZE, BUFFERS)` against production evaluated 12,043 cohorts in 4.97s, with 5,312 temporary blocks read and 8,263 written. Follow-up controlled trials were: default 4 MB 2.044s with temp spill; 16 MB 1.872s and 1.906s without spills; 32 MB 1.675s and 1.682s without spills. These are individual administrator-run full-view plans; none establishes app-role tail latency or repeated live-page success.

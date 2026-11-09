@@ -1,5 +1,7 @@
 # Mat Notes
 
+Rankings query maintenance uses age-scoped invoker reads that retain each candidate's complete history and share the full current-cohort classifier. See [STATUS](docs/STATUS.md) for page verification and rating freshness; an applied database change alone is not a completed release.
+
 A personal, mobile-first Florida youth wrestling scouting site: look up wrestlers, compare a bracket, read results, placements and age/weight evidence, rank opponents, and keep scouting notes. Built with Next.js (App Router), Supabase (Postgres) and Vercel.
 
 **This repository is the authoritative record of the project.** Chat histories are not. Humans, Claude and ChatGPT/Codex all start from the documents below. Before changing anything, read them in this order:

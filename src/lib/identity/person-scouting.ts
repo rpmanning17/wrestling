@@ -245,7 +245,7 @@ export async function buildPersonProfiles(refs: WrestlerRef[]): Promise<Wrestler
 }
 
 export async function personRankingPools() {
-  const { data, error } = await supabase().from("person_cohort_current")
+  const { data, error } = await supabase().rpc("current_person_cohorts", { target_age: 12 })
     .select("athlete_key,athlete_name,team,age_group,bracket_weight_lbs")
     .eq("age_group", "12U").gte("bracket_weight_lbs", 65).lte("bracket_weight_lbs", 80)
     .order("evidence_date", { ascending: false }).limit(120);

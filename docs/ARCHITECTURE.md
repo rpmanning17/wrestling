@@ -1,5 +1,9 @@
 # Architecture
 
+## Scoped current cohorts
+
+The full cohort views and Rankings RPCs share `current_wrestler_cohorts(target_age)` and `current_person_cohorts(target_age)`. NULL evaluates every athlete. An explicit age reduces the athlete population before event/vote windows using any supporting source-age value; it retains every source row for selected athletes and the caller still filters the final classification. Thus the three-event classifier has one authority per identity scheme. Both functions are stable invokers with empty search_path and parameterized static query execution, without stored derived state. This forces planning for each actual argument while preserving access controls.
+
 ## Runtime
 
 The November 5 offline identity audit (`scripts/identity/audit.ts`) remains the read-only source-evidence discovery tool. The person-identity branch adds `revalidate-links.ts`, `plan.ts`, `calculate-candidate.ts`, `validate-candidate.ts`, `rollout-sql.ts` and `candidate-rollout-sql.ts` for agent-side decisions, immutable private output, and supervised connector batches. No identity-matching UI or public write endpoint exists. See IDENTITY_AUDIT.md and IDENTITY_OPERATIONS.md.
