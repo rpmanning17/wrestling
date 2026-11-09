@@ -8,7 +8,7 @@ declare
   prior public.matches%rowtype;
   prior_e private.usa_bracketing_bout_evidence%rowtype;
   match_uuid uuid; inserted integer := 0;
-  win text; lose text; winner_team text; loser_team text; raw_method text;
+  win text; lose text; winner_team text; loser_team text; raw_method text; mapped_method text;
   package text; source_date date;
 begin
   if jsonb_typeof(payload) is distinct from 'array'
@@ -56,11 +56,11 @@ begin
       raise exception 'Original team mismatch';
     end if;
     raw_method := raw->>'method_raw_original';
+    mapped_method := case raw_method when 'Dec' then 'DEC' when 'SV' then 'DEC' when 'TB' then 'DEC' else raw_method end;
     if raw_method not in ('F','TF','Dec','MD','SV','TB')
-       or m->>'win_type' <> case raw_method
-          when 'Dec' then 'DEC' when 'SV' then 'DEC' when 'TB' then 'DEC'
-          else raw_method end
-       then raise exception 'Unverified or non-contested outcome %', raw_method; end if;
+       or m->>'win_type' <> mapped_method then
+      raise exception 'Unverified or non-contested outcome %', raw_method;
+    end if;
     if e->>'style_basis'='source_division' and raw->>'style_verified' <> e->>'style'
        then raise exception 'Source style mismatch'; end if;
     if m->>'source_file' not like 'usabracketing/%/bouts/%'
