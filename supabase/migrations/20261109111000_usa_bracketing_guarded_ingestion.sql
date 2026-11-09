@@ -2,7 +2,7 @@
 -- No rating updates, no inferred identity merge, no admin outcomes.
 begin;
 create function private.import_usa_bracketing_verified(payload jsonb)
-returns integer language plpgsql security invoker set search_path = '' as $fn$
+returns integer language plpgsql security invoker set search_path = '' as $
 declare
   e jsonb; m jsonb; raw jsonb;
   prior public.matches%rowtype;
@@ -117,7 +117,7 @@ begin
     end if;
   end loop;
   return inserted;
-end $fn$;
+end $;
 revoke all on function private.import_usa_bracketing_verified(jsonb)
   from public, anon, authenticated, service_role;
 commit;
