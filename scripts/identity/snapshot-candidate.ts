@@ -8,6 +8,14 @@ import { configHash, inputFingerprint, sha256 } from "../ratings/common";
 import { SNAPSHOT_KINDS, type readVerifiedSnapshot } from "../ratings/snapshot";
 
 export type VerifiedSnapshot = ReturnType<typeof readVerifiedSnapshot>;
+export const VALIDATION_SOURCE_FILES = [
+  "scripts/identity/validate-snapshot-candidate.ts","scripts/identity/snapshot-candidate.ts",
+  "scripts/identity/snapshot-rollout-sql.ts","src/lib/rating/recovery.ts",
+  "scripts/ratings/snapshot.ts","scripts/ratings/common.ts","src/lib/rating/config.ts",
+  "src/lib/rating/prepare.ts","src/lib/rating/outcomes.ts","src/lib/rating/engine.ts",
+  "src/lib/rating/models.ts","src/lib/rating/glicko2.ts","src/lib/rating/walk.ts",
+  "src/lib/rating/persistence.ts","config/ratings.production.json",
+] as const;
 export type Assignment = { source_kind: string; source_id: string; recorded_name: string; person_id: string | null; revision: number };
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const text = (row: Record<string, unknown>, field: string) => {

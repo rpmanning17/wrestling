@@ -60,6 +60,15 @@ it("independent daily bisection replay validates all history, current state, rec
     execFileSync(process.execPath,["--import","tsx","scripts/identity/validate-snapshot-candidate.ts",directory],{stdio:"pipe"});
     const report=JSON.parse(readFileSync(path.join(directory,"person-candidate-validation.json"),"utf8"));
     assert.equal(report.historyChecked,4);assert.equal(report.ratingsChecked,2);assert.equal(report.repeatedPairs,1);
+    writeFileSync(path.join(directory,"person-candidate-validation-release.json"),JSON.stringify(report));
+    const stageArgs=["--import","tsx","scripts/identity/snapshot-rollout-sql.ts",directory,"stage",id(999)];
+    execFileSync(process.execPath,stageArgs,{stdio:"pipe"});
+    execFileSync(process.execPath,stageArgs,{stdio:"pipe"});
+    const staged=path.join(directory,"rollout-"+id(999));
+    const manifest=JSON.parse(readFileSync(path.join(staged,"manifest.json"),"utf8"));
+    assert.equal(manifest.files.length,4);
+    writeFileSync(path.join(staged,manifest.files[0].file),"changed request");
+    assert.throws(()=>execFileSync(process.execPath,stageArgs,{stdio:"pipe"}));
     candidate.history[0].rating!+=1;writeFileSync(file,JSON.stringify(candidate));
     assert.throws(()=>execFileSync(process.execPath,["--import","tsx","scripts/identity/validate-snapshot-candidate.ts",directory],{stdio:"pipe"}));
   } finally {

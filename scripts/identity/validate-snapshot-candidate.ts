@@ -3,12 +3,16 @@ import assert from "node:assert/strict";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { resolveConfig } from "../../src/lib/rating/config";
+import { calculateRatings } from "../../src/lib/rating/engine";
+import { prepareMatches } from "../../src/lib/rating/prepare";
 import { readVerifiedSnapshot } from "../ratings/snapshot";
 import { sha256 } from "../ratings/common";
-import { calculateSnapshotCandidate, personSnapshotInputs, type SnapshotCandidate } from "./snapshot-candidate";
+import { calculateSnapshotCandidate, personSnapshotInputs, VALIDATION_SOURCE_FILES, type SnapshotCandidate } from "./snapshot-candidate";
 
 const directory = process.argv[2];
 if (!directory) throw new Error("Verified private snapshot directory required");
+const reportName=process.argv[3]??"person-candidate-validation.json";
+if (!/^[a-zA-Z0-9._-]+\.json$/.test(reportName)) throw new Error("Private report basename required");
 const snapshot = readVerifiedSnapshot(directory), inputs = personSnapshotInputs(snapshot);
 const candidate = JSON.parse(readFileSync(path.join(directory,"person-rating-candidate.json"),"utf8")) as SnapshotCandidate;
 const production = resolveConfig(JSON.parse(readFileSync("config/ratings.production.json","utf8")));
@@ -58,13 +62,29 @@ assert.equal(bouts.length,candidate.model.matches_rated);
 bouts.sort((a,b)=>a.day-b.day||a.id.localeCompare(b.id));
 
 // Independent numerical implementation: bracketed bisection for volatility,
-// separate daily state/grouping code; no engine/models/walk/glicko imports.
+// separate daily state/grouping code. The engine above is only the reference
+// for exact payload replay and unrounded numerical comparison, never the audit update.
 const scale=173.7178, maxPhi=production.glicko.maxRd/scale;
+// The canonical Illinois solver stops at config.epsilon; bisection is tighter.
+// Compare unrounded states separately, then allow that same explicit numerical
+// bound in addition to half a persisted rounding unit. Exact payload replay above
+// remains mandatory; this tolerance cannot authorize altered stored fields.
+const stateTolerance=scale*production.glicko.epsilon;
+const sigmaTolerance=production.glicko.initialVolatility*production.glicko.epsilon;
+const reference=calculateRatings(prepareMatches(inputs.raw,inputs.aliases,production,inputs.sides).matches,
+  production,{asOfDate:candidate.model.as_of_date,recordHistory:true});
+const referenceHistory=new Map(reference.history.map(p=>[p.key+":"+new Date(p.endDay*86400000).toISOString().slice(0,10),p]));
+const referencePlayers=new Map(reference.players.map(p=>[p.key,p]));
 type State={mu:number;phi:number;sigma:number;last:number;games:number;wins:number;losses:number;first:string;date:string};
 const states=new Map<string,State>(), history=new Map(candidate.history.map(row=>[row.athlete_key+":"+row.period_end,row]));
 assert.equal(history.size,candidate.history.length);
+const numericMax=new Map<string,number>();
+let numericFailures=0;
 const close=(actual:number|null,expected:number,tolerance:number,label:string) => {
-  if (actual==null || !Number.isFinite(actual) || Math.abs(actual-expected)>tolerance) throw new Error("Independent numeric mismatch: "+label);
+  if (actual==null || !Number.isFinite(actual) || !Number.isFinite(expected)) throw new Error("Invalid numeric state: "+label);
+  const difference=Math.abs(actual-expected);
+  numericMax.set(label,Math.max(numericMax.get(label)??0,difference));
+  if (difference>tolerance) numericFailures++;
 };
 const preState=(key:string,day:number) => {
   const old=states.get(key);
@@ -107,9 +127,13 @@ for (let from=0;from<bouts.length;) {
     const point=history.get(key+":"+date);
     assert.ok(point,"Missing history period"); assert.equal(point.person_id,key);
     assert.equal(point.match_count,next.games);
-    close(point.rating,1500+mu*scale,0.00051,"history rating");
-    close(point.rating_deviation,phi*scale,0.00051,"history RD");
-    close(point.volatility,sigma,0.00000051,"history volatility");
+    const canonical=referenceHistory.get(key+":"+date)!;
+    close(canonical.rating,1500+mu*scale,stateTolerance,"unrounded history rating");
+    close(canonical.rd,phi*scale,stateTolerance,"unrounded history RD");
+    close(canonical.sigma,sigma,sigmaTolerance,"unrounded history volatility");
+    close(point.rating,1500+mu*scale,0.0005+stateTolerance,"history rating");
+    close(point.rating_deviation,phi*scale,0.0005+stateTolerance,"history RD");
+    close(point.volatility,sigma,0.0000005+sigmaTolerance,"history volatility");
     checkedHistory++;
   }
   from=to;
@@ -131,9 +155,15 @@ for(const row of candidate.rows) {
   assert.equal(row.person_id,key);assert.equal(row.athlete_name,inputs.people.get(key));
   assert.equal(row.wins,record.wins);assert.equal(row.losses,record.losses);assert.equal(row.match_count,p.games);
   assert.equal(row.first_match_date,p.first);assert.equal(row.last_match_date,p.date);
-  close(row.rating,state.rating,0.00051,"current rating");close(row.rating_deviation,state.rd,0.00051,"current RD");
-  close(row.volatility,state.sigma,0.00000051,"current volatility");
-  close(row.conservative_score,state.rating-production.uncertainty.k*state.rd,0.00051,"conservative rating");
+  const canonical=referencePlayers.get(key)!;
+  close(canonical.rating,state.rating,stateTolerance,"unrounded current rating");
+  close(canonical.rd,state.rd,stateTolerance,"unrounded current RD");
+  close(canonical.volatility,state.sigma,sigmaTolerance,"unrounded current volatility");
+  close(row.rating,state.rating,0.0005+stateTolerance,"current rating");
+  close(row.rating_deviation,state.rd,0.0005+stateTolerance,"current RD");
+  close(row.volatility,state.sigma,0.0000005+sigmaTolerance,"current volatility");
+  close(row.conservative_score,state.rating-production.uncertainty.k*state.rd,
+    0.0005+(1+production.uncertainty.k)*stateTolerance,"conservative rating");
   const opponentRatings=record.opponents.map(id=>current.get(id)!.rating);
   close(row.avg_opponent_rating,opponentRatings.reduce((a,b)=>a+b,0)/opponentRatings.length,0.00501,"SOS rating");
   close(row.sos_expected_win_pct,opponentRatings.reduce((a,b)=>a+1/(1+10**((b-production.metrics.sosReferenceRating)/400)),0)/opponentRatings.length,0.00000501,"SOS expectation");
@@ -143,6 +173,10 @@ const report={validated:true,sourceRows:inputs.raw.length,assignments:inputs.all
   ratingsChecked:candidate.rows.length,historyChecked:checkedHistory,repeatedPairs:[...pairs.values()].filter(n=>n>1).length,
   exclusions:excluded,assignmentFingerprint:inputs.assignmentFingerprint,
   inputFingerprint:candidate.model.input_fingerprint,ratingPayloadSha256:candidate.verification.ratingPayloadSha256,
-  historyPayloadSha256:candidate.verification.historyPayloadSha256,baseline:snapshot.baseline};
-writeFileSync(path.join(directory,"person-candidate-validation.json"),JSON.stringify(report,null,2)+"\n",{mode:0o600,flag:"wx"});
+  historyPayloadSha256:candidate.verification.historyPayloadSha256,baseline:snapshot.baseline,
+  numericMaximumDifferences:Object.fromEntries(numericMax),
+  numericalBounds:{unroundedRatingAndRd:stateTolerance,unroundedVolatility:sigmaTolerance},
+  validationSourceSha256:Object.fromEntries(VALIDATION_SOURCE_FILES.map(file=>[file,sha256(readFileSync(file,"utf8").replace(/\r\n/g,"\n"))]))};
+if(numericFailures) throw new Error("Independent numeric audit failed: "+JSON.stringify({numericFailures,max:Object.fromEntries(numericMax)}));
+writeFileSync(path.join(directory,reportName),JSON.stringify(report,null,2)+"\n",{mode:0o600,flag:"wx"});
 console.log(JSON.stringify(report));

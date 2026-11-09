@@ -1,6 +1,14 @@
 
 # Status
 
+## 2026-11-09 — fresh offline person candidate validated; not persisted or active
+
+Calculation commit `982a655` produced a new private payload from the verified 68,783-match snapshot and 138,661 current assignments. It rates 64,970 bouts / 11,650 people, with 35,421 history points and balanced 64,970 wins/losses. Excluded: 3,679 administrative, six unknown methods, 128 held-identity bouts. Zero exact-duplicate exclusions; 7,467 repeated opponent pairs remain. All 341 held appearances are unchanged.
+
+Exact whole-payload replay and independent outcomes/records/SOS/daily states/history checks pass. The separate tighter volatility solver exposed five comparisons just beyond a half-rounded-unit-only bound; unrounded comparison established only configured-iteration precision differences. Explicit epsilon-derived bounds and maximum deviations are recorded privately and in RANKINGS.md; canonical output is unchanged. Input fingerprint `9fdd702f52b77ea649fc3b5e117d052b65cf0e1b24f3f2a7632231875877a196`; assignment fingerprint `935db7eab2db00b57fca9aebd97b2032d2cb4ea71ddd3e4aad7381b7c810a3ba` matches live SQL.
+
+The new payload has not been inserted or activated at this checkpoint. The historical active and stale candidate remain intact. Next: final committed-validator report, guarded persistence, independent typed row checksums, locked promotion and authorized atomic activation, followed by person-path live verification.
+
 ## 2026-11-09 — complete Rankings reliability gate passed before recalculation
 
 Commit `a30db1a` is production READY as `dpl_4u9w8kBB943ynZMrzpXk9hnJGbfi`; GitHub CI passed lint/typecheck/189 tests/build. Ten fresh protected browser reloads returned the likely list with numeric strength/rank/tier values for its rated wrestlers. The expanded strongest list also rendered; newly imported unrated rows correctly remain unavailable in the old model. Matching 21:13 UTC logs contain ten classification RPCs (186–1,264 ms) and ten standing RPCs (219–759 ms), all HTTP 200. Deployment warning/error/fatal logs for these requests are empty. Nine warm full page checks took 1.29–1.73 seconds; the first cold check took 6.73 seconds. No query timeout or security limit was increased. This is a bounded observed reliability gate, not a promise against every future failure.
