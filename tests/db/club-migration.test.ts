@@ -72,9 +72,53 @@ describe("event-specific club normalization and rankings", () => {
       const clubs = await rows("person_club_rankings_current");
       const roster = await rows("person_club_roster_current");
       assert.ok(clubs.length > 0 && roster.length > 0);
+      const verifyInputs = async () => assert.equal(await count(`select count(*) n
+        from private.match_cohort_appearances p join public.matches m on m.id=p.source_match_id
+        left join public.source_identity_current_rows a on a.source_id=m.id::text
+          and a.source_kind=case p.side when 'winner' then 'match_winner' else 'match_loser' end
+        left join public.source_identity_current_rows o on o.source_id=m.id::text
+          and o.source_kind=case p.side when 'winner' then 'match_loser' else 'match_winner' end
+        where p.person_id is distinct from a.person_id or p.club_opponent_person_id is distinct from o.person_id
+          or p.club_season is distinct from replace(m.season,'–','-') or p.club_win_type is distinct from m.win_type
+          or p.club_opponent_team is distinct from case p.side when 'winner' then m.loser_team else m.winner_team end
+          or p.club_alias_key is distinct from regexp_replace(lower(trim(p.team)),'[^a-z0-9]+',' ','g')
+          or p.club_contested is distinct from (upper(trim(m.win_type)) in('F','DEC','MD','TF'))`),0);
+      await verifyInputs();
+      const verifyCounts = async () => {
+        const actual = (await db.query(`select season,team,person_id,bouts,wins,losses from private.club_person_source_counts order by season,team,person_id`)).rows;
+        const expected = (await db.query(`select p.club_season season,p.team,p.person_id,count(*)::integer bouts,
+          count(*) filter(where side='winner')::integer wins,count(*) filter(where side='loser')::integer losses
+          from private.match_cohort_appearances p where p.club_contested and p.person_id is not null
+          and p.club_opponent_person_id is not null and p.person_id<>p.club_opponent_person_id and nullif(trim(p.team),'') is not null
+          group by p.club_season,p.team,p.person_id order by season,team,person_id`)).rows;
+        assert.deepEqual(actual,expected);
+      };
+      await verifyCounts();
+      await db.exec("savepoint projection_changes");
+      await db.exec("update public.matches set season='2025-2026',winner_team='Edited-Team!',loser_team='Other Team',win_type='F'");
+      await verifyInputs();
+      await verifyCounts();
+      await db.exec("update public.source_identity_current_rows set person_id=null where source_kind='match_winner'");
+      await verifyInputs();
+      await verifyCounts();
+      await db.exec("delete from public.source_identity_current_rows where source_kind='match_loser'");
+      await verifyInputs();
+      await verifyCounts();
+      assert.equal((await db.query("select * from public.person_club_rankings_for_season('ALL',null)")).rows.length,0);
+      await db.exec("rollback to projection_changes");
+      await verifyInputs();
+      await verifyCounts();
+      assert.deepEqual(await rows("person_club_rankings_current"),clubs);
       for (const season of ["ALL", "2026-2027"]) {
         const summaries = (await db.query<Record<string, unknown>>(`select * from public.person_club_rankings_for_season($1,null) order by season,club_key`, [season])).rows;
         assert.deepEqual(summaries, clubs.filter(row => row.season === season));
+        for (const sort of ["wrestlers","bouts","avg_conservative","median_conservative","top_five_conservative","avg_opponent_rating"]) {
+          const directory = (await db.query(`select * from public.person_club_directory($1,$2) order by club_key`,[season,sort])).rows;
+          assert.deepEqual(directory,summaries.map(row => ({club_key:row.club_key,club_name:row.club_name,
+            bouts:row.bouts,wrestlers:row.wrestlers,sort_value:row[sort]==null ? null : String(row[sort])})));
+        }
+        assert.deepEqual((await db.query(`select * from public.person_club_rankings_for_keys($1,$2) order by season,club_key`,
+          [season,[...summaries.map(row => row.club_key),...summaries.map(row => row.club_key)]])).rows,summaries);
         for (const club of summaries) {
           assert.deepEqual((await db.query(`select * from public.person_club_roster_for_season($1,$2) order by season,club_key,athlete_key`, [season,club.club_key])).rows,
             roster.filter(row => row.season === season && row.club_key === club.club_key));
@@ -89,6 +133,10 @@ describe("event-specific club normalization and rankings", () => {
       await db.exec(`select set_config('request.headers','{}',true)`);
       assert.equal((await db.query("select * from public.person_club_rankings_for_season('ALL',null)")).rows.length,0);
       assert.equal((await db.query("select * from public.person_club_roster_for_season('ALL',null)")).rows.length,0);
+      assert.equal((await db.query("select * from public.person_club_directory('ALL','wrestlers')")).rows.length,0);
+      assert.equal((await db.query("select * from public.person_club_rankings_for_keys('ALL',array['alpha-wrestling-club'])")).rows.length,0);
+      assert.equal((await db.query("select * from private.club_person_source_counts")).rows.length,0);
+      await assert.rejects(()=>db.exec("delete from private.club_person_source_counts"),/permission denied/);
     } finally { await db.exec("rollback"); }
   });
   it("preserves punctuation-boundary spaces in alias keys and resolves each exact key", async () => {

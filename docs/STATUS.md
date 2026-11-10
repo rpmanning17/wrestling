@@ -1,6 +1,14 @@
 
 # Status
 
+## 2026-11-10 — bounded Free-plan club reads validated; page deployment pending
+
+The owner chose continued Free-plan optimization. **Current active model remains a29; 70b is archived intact.** A subsequent Clubs cold load still hit 57014, so the same full guarded rollback was applied. The new directory/detail path is implemented and its database migration is applied; application deployment and final activation are pending.
+
+Private transaction-maintained source counts contain 23,555 recorded season/team/person groups representing all 128,840 eligible club-side appearances. No real bout or repeat was removed. The restricted-role directory trial completed in ~96 ms. Details now calculate complete live metrics for four keys per request, at most two concurrent requests, with exact key reconciliation; roster and sort calculations use the same original formulas. A full production-source trial exposed the validated candidate only inside an administrator transaction and rolled back: all 4,284 club summary rows, 38,065 roster rows and every all-season directory sort value match the original views. Schedule comparisons use the existing read-audit rounding to 12 decimals for floating aggregate order; every other field compares exactly. This did not activate a model or expose candidate values to other sessions.
+
+Maintenance tests cover source season/team/outcome changes, reassignment/holds/deletion, rollback, every sort/season/club subset and denied reads. Obsolete trial source-cover/text/numeric-age indexes were retired; the retained person covering index was compacted. No timeout or security protection was weakened. Final production browser loads, query timings, privacy checks, PR update/merge remain pending.
+
 ## 2026-11-10 — comparison verified; club-read deployment pending
 
 Production app 4c73f78 verified the active person model in comparison: Nolan Manning is rated 1338 ±291, 0–1; Luke Palazzo 1662 ±291, 1–0. November 7 TOF-Folkstyle Spartan RTC #1 remains TF 16–1 (3:09), 12U, bracket 70–74. Search returned the resolved person and comparison showed numeric standings with no stale warning. The final Clubs navigation exposed a separate person-club query timeout; guarded rollback again restored the predecessor. **Current checkpoint: a29 active, 70b archived intact; club optimizations await app deployment and another guarded activation.**

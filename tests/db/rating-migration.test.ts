@@ -87,6 +87,8 @@ after(async () => { await db.close(); });
 
 describe("expanded-source cohort read optimization", () => {
   it("age-scoped standings preserve every rating, rank and tier within each complete age population", async () => {
+    assert.equal(await count(`select count(*) n from pg_indexes where schemaname='public'
+      and tablename='wrestler_model_ratings' and indexname='person_club_rating_covering_idx'`),1);
     await db.exec("begin");
     try {
       await db.exec(`select private.activate_rating_model('${M1}')`);

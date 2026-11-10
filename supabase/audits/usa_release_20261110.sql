@@ -1,4 +1,4 @@
--- USA Bracketing guarded rollback to the validated 67,736-match name model. Administrator only.
+-- USA Bracketing final read-only active release audit. Administrator only.
 -- Immutable source snapshot and all 47,071 typed stored rows were independently checked.
 -- No raw/identity deletion or overwrite. Abort if any guarded input has changed.
 begin;
