@@ -134,14 +134,16 @@ export async function getClub(
   season: ClubSeason,
 ): Promise<{ club: ClubSummary | null; wrestlers: ClubWrestler[]; aliases: string[]; error: string | null }> {
   const personMode = await personModelActive();
-  const [clubQuery, rosterQuery, aliasQuery] = await Promise.all([
-    (personMode ? client().rpc("person_club_rankings_for_season", { target_season: season, target_club: key })
-      : client().from("club_rankings_current")).select("*").eq("club_key", key).eq("season", season).maybeSingle(),
-    (personMode ? client().rpc("person_club_roster_for_season", { target_season: season, target_club: key })
-      : client().from("club_roster_current")).select("athlete_key,athlete_name,bouts,wins,losses,rating,rating_deviation,conservative_score,sos_expected_win_pct,avg_opponent_rating,rating_status")
-      .eq("club_key", key).eq("season", season).order("bouts", { ascending: false }).limit(150),
-    client().from("club_aliases").select("alias_key").eq("club_key", key).order("alias_key"),
-  ]);
+  // Summary and roster each aggregate the club's complete source appearances; run them one after
+  // another so they do not compete for the Free-plan CPU under the three-second limit.
+  const clubRequest = () => (personMode ? client().rpc("person_club_rankings_for_season", { target_season: season, target_club: key })
+    : client().from("club_rankings_current")).select("*").eq("club_key", key).eq("season", season).maybeSingle();
+  const rosterRequest = () => (personMode ? client().rpc("person_club_roster_for_season", { target_season: season, target_club: key })
+    : client().from("club_roster_current")).select("athlete_key,athlete_name,bouts,wins,losses,rating,rating_deviation,conservative_score,sos_expected_win_pct,avg_opponent_rating,rating_status")
+    .eq("club_key", key).eq("season", season).order("bouts", { ascending: false }).limit(150);
+  const aliasQuery = await client().from("club_aliases").select("alias_key").eq("club_key", key).order("alias_key");
+  const clubQuery = await clubRequest();
+  const rosterQuery = await rosterRequest();
   if (clubQuery.error || rosterQuery.error || !Array.isArray(rosterQuery.data)) return { club: null, wrestlers: [], aliases: [], error: "Club analytics are not ready." };
   const rosterRows = rosterQuery.data as Array<Omit<ClubWrestler, "cohort">>;
   const keys = rosterRows.map((row) => row.athlete_key);
@@ -177,10 +179,17 @@ async function personRosterStandings(keys: string[]) {
   if (cohorts.error || !Array.isArray(cohorts.data)) return { data: [], error: cohorts.error ?? new Error("Invalid cohort response") };
   const ages = [...new Set((cohorts.data as Array<{ age_group: string | null }>).flatMap(row =>
     String(row.age_group ?? "").match(/^(\d+)U$/)?.[1] ?? []).map(Number))];
-  const results = await Promise.all(ages.map(age => client().rpc("current_person_strength", { target_age: age })
-    .select("athlete_key,age_group,weight_band,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason")
-    .in("athlete_key", keys)));
-  return { data: results.flatMap(result => result.data ?? []), error: results.find(result => result.error)?.error };
+  // One age at a time: each call classifies that age's complete population, and running every age
+  // concurrently starved the Free-plan CPU past the unchanged three-second limit (Nov 10 57014s).
+  const data: Record<string, unknown>[] = [];
+  for (const age of ages) {
+    const result = await client().rpc("current_person_strength", { target_age: age })
+      .select("athlete_key,age_group,weight_band,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason")
+      .in("athlete_key", keys);
+    if (result.error) return { data: [], error: result.error };
+    data.push(...((result.data ?? []) as Record<string, unknown>[]));
+  }
+  return { data, error: undefined };
 }
 
 export function clubHref(key: string, season: ClubSeason) {
