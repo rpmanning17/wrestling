@@ -1,44 +1,27 @@
 
 # Status
 
-## 2026-11-10 20:35 UTC — CHECKPOINT: new model ACTIVE; Rankings/Compare verified; final Clubs gate on latest deploy pending
+## 2026-11-10 21:00 UTC — USA Bracketing release: new model ACTIVE, all live gates passed
 
-Live state, verified by direct reads at 20:35 UTC (session stopped here by the owner):
-- **Active model: `70b59c01-34ac-4ff0-bf2a-114571d4f41c` ACTIVE.** `a29c4460-5e56-4d22-902d-ea39c65bfcac` is ARCHIVED and intact (the rollback predecessor). Stale `cd6d932e-289d-42e2-a79c-a699d1dedcfa` is still a candidate and must never be activated.
-- **Production:** `dpl_Hte3BEhmwGXZQwgDrC4djsm34MzL` (wrestling-k8nib6gvq…), commit `2f4ed89`, READY and aliased to wrestling-plum.vercel.app. Branch head `2f4ed89`; GitHub `check` passed.
-- **PR #18:** still draft and unmerged. Its description has not been updated.
-- **Do not repeat:** the import, rating calculation or persistence (47,071 rows), or the activation.
-  - The activation at ~19:47 UTC passed every committed-audit guard, with expected pre-state 70b archived and a29 sole active.
-  - The read-only final audit `supabase/audits/usa_release_20261110.sql` then returned `verified_active_release = true` (about 20:31 UTC).
+**Active: `70b59c01-34ac-4ff0-bf2a-114571d4f41c`.** `a29c4460-5e56-4d22-902d-ea39c65bfcac` is ARCHIVED and intact (the guarded rollback target). Stale `cd6d932e-289d-42e2-a79c-a699d1dedcfa` remains a candidate and must never be activated. Production before merge: `dpl_Hte3BEhmwGXZQwgDrC4djsm34MzL`, commit `2f4ed89`.
 
-Changes this session:
-- `20261110210000_single_pass_person_ranking_pool.sql`: new invoker `current_person_cohort_strength(age)`. It classifies an age once and left-joins standings using the verbatim `current_person_strength` SQL.
-  - Applied to production with its in-migration age-12 equality check.
-  - Inside a rolled-back transaction with 70b active, every age (6U–14U; 1,303 cohort rows, 972 standings) matched `current_person_cohorts` and `current_person_strength` with zero differences.
-  - Admin timing: ~139 ms single call against ~273 ms for the old pair.
-- Rankings (`personRankingPools`) uses the new function. Pure splitter in `src/lib/identity/person-ranking-pool.ts`; DB test `tests/db/person-ranking-pool.test.ts`.
-- `src/lib/clubs.ts` now runs these sequentially instead of concurrently: roster per-age standings, club summary/roster, and directory summary batches (four keys, one call at a time). Formulas and reconciliation are unchanged.
-- Local: lint 0, typecheck 0, **195/195 tests**, build OK.
+The committed read-only audit `supabase/audits/usa_release_20261110.sql` returned `verified_active_release = true`. Full activation history, corrections and gate evidence are in `docs/USA_IMPORT_RELEASE_20261110.md`.
 
-Live verification (protected production browser loads, fresh contexts, cache-busting queries; correlated with Supabase edge and Postgres logs and Vercel runtime logs):
-- **Rankings on c1eecd5 + 70b: 10/10 HTTP 200** with numeric standings (526.50, 692.67, 697.73…) and no freshness banner. Supabase: 10 single-pass calls, 0 old-pair calls, 0 timeouts. Vercel: 0 errors. (Matchup Likelihood moves ±0.01 over time because it uses `Date.now()`.)
-- **Comparison/search:**
-  - Nolan Manning: 1338, RD 291, 0–1.
-  - Luke Palazzo: 1662, RD 291, 1–0; Cohort Strength 509.17, #26 of 42 in 12U 70–79 lb.
-  - Both cards: "TOF-Folkstyle Spartan RTC #1 · 2026-11-07 · 12U · 12U - 70-74 · TF 16-1 (3:09)". No banner, no error.
-- **Club rosters on 337d896: 10/10 OK** (five clubs × 2), numeric standings.
-- **Directory sorts on 337d896:** round 2 passed 6/6 (opponent-rating included). In round 1, wrestlers and bouts failed: two concurrent `person_club_rankings_for_keys` batches were cancelled (57014). `2f4ed89` serializes those batches. **The Clubs gate has not yet been re-run on `2f4ed89`.**
-- **Privacy:** noindex and no-store on every response. With empty request headers, anon got zero rows from the new function, `current_person_strength`, the club directory, matches and ratings. Security advisor shows only the eight known INFO `rls_enabled_no_policy` notices on deliberately denied ledgers; no warnings or errors.
-- **Open observation:** at ~20:32 an *unauthenticated* curl of `/rankings` returned 500 (`/` and `/clubs` returned 200). Not diagnosed. Check the Vercel and Supabase logs for that minute first; it may be another 57014.
+Release corrections in this PR:
+- Migration `20261110210000` adds `current_person_cohort_strength`, so Rankings classifies an age once. It matches the original functions for every production age.
+- `src/lib/clubs.ts` runs club detail, roster-standing and summary-batch reads sequentially.
+- Local lint, typecheck, 195/195 tests and build pass; GitHub `check` passed.
 
-Root cause of all failures this session (moderate confidence): Free-plan CPU starvation. The same cached query ranged from 141 ms to 4.9 s, with every buffer a shared hit, no concurrent backends and JIT off. The old model's name path also timed out (`current_wrestler_cohorts`, 19:41). Concurrency and duplicate classification were removed; per-query cost was not otherwise reduced.
-- The opponent-rating directory sort scans 128,840 appearances (~1.6–2.2 s even when warm). Pre-aggregating would only reduce it to ~94–98k groups.
-- No timeout, RLS, formula or raw data changed. No upgrade.
+Final production gate (20:54–20:58 UTC):
+- Clubs: 6 sorts ×2 and 5 rosters ×2 passed.
+- Rankings: 10/10 with numeric standings.
+- Comparison: Nolan 1338 ±291 0–1 and Luke 1662 ±291 1–0; Nov 7 TF 16-1 (3:09), 12U, 12U - 70-74.
+- No freshness banner. Supabase: 730 RPCs, 0 timeouts, 0 edge errors; Vercel: no error logs.
+- noindex/no-store present, anon denied without the app key, security advisor unchanged.
 
-Next session, in order:
-1. Re-run the Clubs gate on the live `2f4ed89`: six sorts × 2 and five rosters × 2. Re-run Rankings 10× and re-check `/rankings` errors.
-2. If it passes: update `docs/USA_IMPORT_RELEASE_20261110.md` and the PR #18 description, mark ready, merge, and verify the main deployment plus the active model. Owner authorized this after the gates pass.
-3. If the opponent-rating sort or the `/rankings` 500 still intermittently fails: report it as a Free-plan limit. Do not toggle models without a concrete correction. A guarded rollback restores a29 (predecessor counts 11,724/34,809, MD5 `2f6dcc16…`/`1893a665…`), but a29 hits the same timeouts.
+Known limits and open items:
+- Reliability is bounded by Free-plan CPU starvation (moderate confidence). Isolated 57014s are still possible, for example during heavy administrator SQL. The opponent-rating sort is the costliest read (~1.6–2.2 s warm).
+- **Access-control finding for the owner:** Vercel protection is `all_except_custom_domains`, and wrestling-plum.vercel.app served pages to an unauthenticated request. This contradicts REQUIREMENTS/D2. Not changed by this session; unknown whether it predates the release.
 
 ## 2026-11-10 19:15 UTC — directory fix verified live; Rankings gate failed (8/10); rolled back
 (Superseded by the 20:35 checkpoint above; kept as history.)
