@@ -1,5 +1,7 @@
 # Architecture
 
+Person Clubs reads use invoker `person_club_rankings_for_season(season,club)` and `person_club_roster_for_season(season,club)`. They reuse the original formulas with one materialized active-rating input, distinct team-label normalization and one transactional source/person bout input. They calculate only the selected season/club; roster standings classify selected people and rank their complete age populations. These materialized CTEs exist only within each live statement.
+
 Person cohort reads share `private.calculate_person_cohorts(age,people)`, a stable invoker with fixed empty search path. `current_person_cohorts(age)` preserves full age-population reads; `person_cohorts_by_ids(people)` preserves complete evidence histories only for requested people (null/empty IDs return none). Search and profiles use the latter. Profile strength requests each represented age's complete population and then filters the selected keys.
 
 The private source-side appearance projection also stores the current nullable person UUID. Source and current-assignment write statements share one transaction advisory lock; protected triggers synchronously maintain person IDs on source insert/replacement and assignment insert/update/delete. Reads remain concurrent. Classification and rating results are calculated from inputs, with no result-cache refresh window.

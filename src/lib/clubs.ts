@@ -84,8 +84,9 @@ export async function getClubs(
   query: string,
 ): Promise<{ clubs: ClubSummary[]; error: string | null }> {
   const personMode = await personModelActive();
-  let request = client()
-    .from(personMode ? "person_club_rankings_current" : "club_rankings_current")
+  let request = (personMode
+    ? client().rpc("person_club_rankings_for_season", { target_season: season, target_club: null })
+    : client().from("club_rankings_current"))
     .select("*")
     .eq("season", season)
     .gte("wrestlers", 1)
@@ -95,8 +96,8 @@ export async function getClubs(
   const term = query.replace(/[%_,]/g, "").trim().slice(0, 80);
   if (term) request = request.ilike("club_name", `%${term}%`);
   const { data, error } = await request;
-  if (error) return { clubs: [], error: "Club analytics are not ready. The database migration may still need to be applied." };
-  return { clubs: (data ?? []).map((row) => parseClub(row as Record<string, unknown>)), error: null };
+  if (error || !Array.isArray(data)) return { clubs: [], error: "Club analytics are not ready. The database migration may still need to be applied." };
+  return { clubs: data.map((row: Record<string, unknown>) => parseClub(row)), error: null };
 }
 
 export async function getClub(
@@ -105,19 +106,22 @@ export async function getClub(
 ): Promise<{ club: ClubSummary | null; wrestlers: ClubWrestler[]; aliases: string[]; error: string | null }> {
   const personMode = await personModelActive();
   const [clubQuery, rosterQuery, aliasQuery] = await Promise.all([
-    client().from(personMode ? "person_club_rankings_current" : "club_rankings_current").select("*").eq("club_key", key).eq("season", season).maybeSingle(),
-    client().from(personMode ? "person_club_roster_current" : "club_roster_current").select("athlete_key,athlete_name,bouts,wins,losses,rating,rating_deviation,conservative_score,sos_expected_win_pct,avg_opponent_rating,rating_status")
+    (personMode ? client().rpc("person_club_rankings_for_season", { target_season: season, target_club: key })
+      : client().from("club_rankings_current")).select("*").eq("club_key", key).eq("season", season).maybeSingle(),
+    (personMode ? client().rpc("person_club_roster_for_season", { target_season: season, target_club: key })
+      : client().from("club_roster_current")).select("athlete_key,athlete_name,bouts,wins,losses,rating,rating_deviation,conservative_score,sos_expected_win_pct,avg_opponent_rating,rating_status")
       .eq("club_key", key).eq("season", season).order("bouts", { ascending: false }).limit(150),
     client().from("club_aliases").select("alias_key").eq("club_key", key).order("alias_key"),
   ]);
-  if (clubQuery.error || rosterQuery.error) return { club: null, wrestlers: [], aliases: [], error: "Club analytics are not ready." };
-  const keys = (rosterQuery.data ?? []).map((row) => row.athlete_key);
-  const cohortQuery = keys.length ? await client().from(personMode ? "person_strength_current" : "wrestler_strength_current")
+  if (clubQuery.error || rosterQuery.error || !Array.isArray(rosterQuery.data)) return { club: null, wrestlers: [], aliases: [], error: "Club analytics are not ready." };
+  const rosterRows = rosterQuery.data as Array<Omit<ClubWrestler, "cohort">>;
+  const keys = rosterRows.map((row) => row.athlete_key);
+  const cohortQuery = keys.length ? personMode ? await personRosterStandings(keys) : await client().from("wrestler_strength_current")
     .select("athlete_key,age_group,weight_band,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason")
     .in("athlete_key", keys) : { data: [], error: null };
   if (cohortQuery.error) return { club: null, wrestlers: [], aliases: [], error: "Current cohort standings are unavailable. Try again." };
   const cohorts = new Map((cohortQuery.data ?? []).map((row) => [row.athlete_key, row as CohortStandingRow]));
-  const wrestlers = (rosterQuery.data ?? []).map((row) => ({
+  const wrestlers = rosterRows.map((row) => ({
     cohort: toCohortStanding(cohorts.get(row.athlete_key)),
     athlete_key: String(row.athlete_key),
     athlete_name: String(row.athlete_name),
@@ -137,6 +141,17 @@ export async function getClub(
     aliases: (aliasQuery.data ?? []).map((alias) => alias.alias_key as string),
     error: null,
   };
+}
+
+async function personRosterStandings(keys: string[]) {
+  const cohorts = await client().rpc("person_cohorts_by_ids", { person_ids: keys }).select("age_group");
+  if (cohorts.error || !Array.isArray(cohorts.data)) return { data: [], error: cohorts.error ?? new Error("Invalid cohort response") };
+  const ages = [...new Set((cohorts.data as Array<{ age_group: string | null }>).flatMap(row =>
+    String(row.age_group ?? "").match(/^(\d+)U$/)?.[1] ?? []).map(Number))];
+  const results = await Promise.all(ages.map(age => client().rpc("current_person_strength", { target_age: age })
+    .select("athlete_key,age_group,weight_band,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason")
+    .in("athlete_key", keys)));
+  return { data: results.flatMap(result => result.data ?? []), error: results.find(result => result.error)?.error };
 }
 
 export function clubHref(key: string, season: ClubSeason) {

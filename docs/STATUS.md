@@ -1,6 +1,12 @@
 
 # Status
 
+## 2026-11-10 — comparison verified; club-read deployment pending
+
+Production app 4c73f78 verified the active person model in comparison: Nolan Manning is rated 1338 ±291, 0–1; Luke Palazzo 1662 ±291, 1–0. November 7 TOF-Folkstyle Spartan RTC #1 remains TF 16–1 (3:09), 12U, bracket 70–74. Search returned the resolved person and comparison showed numeric standings with no stale warning. The final Clubs navigation exposed a separate person-club query timeout; guarded rollback again restored the predecessor. **Current checkpoint: a29 active, 70b archived intact; club optimizations await app deployment and another guarded activation.**
+
+New additive club migrations normalize distinct labels, bound active-rating reads once per query, scope season/club calculations and drive source bouts from the transactional person projection. Tests compare every summary and roster field with the original formulas under an active person model, plus complete season/club subsets and denied reads. Application roster standings use requested-person classification and complete age populations. No club formula, raw team, bout, source assignment or rating payload changed. The final active-release audit in supabase/audits/usa_release_20261110.sql checks all source and typed output roots plus the intact rollback predecessor without changing model state.
+
 ## 2026-11-10 — person Rankings passed; scoped comparison release pending
 
 The new person run was guardedly activated and ten fresh protected production reloads returned numeric standings without a stale-data warning or server error. First six strengths: 526.50, 692.67, 697.73, 561.97, 612.25, 572.88. Expanded standings show all 42 rated wrestlers in the 12U 70–79 lb cohort, including newly rated Luke Palazzo and Nolan Manning. At 17:49–17:51 UTC the measured classification/standing requests returned HTTP 200; full evidence will be recorded after the final deployment.

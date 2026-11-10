@@ -41,6 +41,56 @@ before(async () => {
 after(async () => { await db.close(); });
 
 describe("event-specific club normalization and rankings", () => {
+  it("keeps every person club metric and season/club subset identical with a live person model", async () => {
+    await db.exec("begin");
+    try {
+      await db.exec(`insert into public.wrestler_people(display_name)
+        select distinct name from (select winner_name name from public.matches union select loser_name from public.matches)n;
+        insert into public.identity_decisions(authority,disposition,source_checksum,rationale)
+        values('administrative','separate_people','fixture','Independent club fixture');
+        insert into public.identity_assignment_batches(decision_id) select id from public.identity_decisions;
+        insert into public.source_identity_current_rows(source_kind,source_id,recorded_name,person_id,revision,batch_id)
+        select s.kind,m.id::text,s.name,p.id,1,b.id from public.matches m
+        cross join lateral(values('match_winner',m.winner_name),('match_loser',m.loser_name))s(kind,name)
+        join public.wrestler_people p on p.display_name=s.name cross join public.identity_assignment_batches b;
+        insert into public.rating_models(model_version,status,identity_scheme,assignment_fingerprint,config,config_hash,input_fingerprint,
+        as_of_date,match_cutoff,rating_period_policy,rating_period_days,uncertainty_k,provisional_rd,established_rd,recency_policy,matches_total,matches_rated,wrestlers_rated)
+        values('club-fixture','building','person_uuid',repeat('c',64),'{}',repeat('a',64),repeat('b',64),'2026-11-09','2026-11-08','fixed_1d',1,1,120,80,'glicko2_inactivity_rd_growth',4,4,5);
+        insert into public.wrestler_model_ratings(model_id,person_id,athlete_key,athlete_name,rating,rating_deviation,volatility,
+        conservative_score,rating_status,match_count,wins,losses,first_match_date,last_match_date)
+        select m.id,p.id,p.id::text,p.display_name,1400+100*row_number()over(order by p.display_name),100,0.06,
+        1300+100*row_number()over(order by p.display_name),'developing',
+        (select count(*) from public.matches where winner_name=p.display_name or loser_name=p.display_name),
+        (select count(*) from public.matches where winner_name=p.display_name),
+        (select count(*) from public.matches where loser_name=p.display_name),'2026-10-24','2026-10-24'
+        from public.wrestler_people p cross join public.rating_models m;
+        update public.rating_models set status='active',assignment_fingerprint=(
+        select encode(sha256(convert_to(string_agg(source_kind||chr(31)||source_id||chr(31)||
+        encode(convert_to(recorded_name,'UTF8'),'hex')||chr(31)||coalesce(person_id::text,''),
+        chr(10) order by source_kind collate "C",source_id collate "C"),'UTF8')),'hex') from public.source_identity_current_rows);`);
+      const rows = async (view: string) => (await db.query<Record<string, unknown>>(`select * from public.${view} order by season,club_key${view.includes("roster") ? ",athlete_key" : ""}`)).rows;
+      const clubs = await rows("person_club_rankings_current");
+      const roster = await rows("person_club_roster_current");
+      assert.ok(clubs.length > 0 && roster.length > 0);
+      for (const season of ["ALL", "2026-2027"]) {
+        const summaries = (await db.query<Record<string, unknown>>(`select * from public.person_club_rankings_for_season($1,null) order by season,club_key`, [season])).rows;
+        assert.deepEqual(summaries, clubs.filter(row => row.season === season));
+        for (const club of summaries) {
+          assert.deepEqual((await db.query(`select * from public.person_club_roster_for_season($1,$2) order by season,club_key,athlete_key`, [season,club.club_key])).rows,
+            roster.filter(row => row.season === season && row.club_key === club.club_key));
+        }
+      }
+      const oldSql = readFileSync(path.join(migrations,"20261105182000_person_club_views.sql"),"utf8")
+        .replace(/^begin;|^commit;/gmi,"").replace(/create view /g,"create or replace view ");
+      await db.exec(oldSql);
+      assert.deepEqual(await rows("person_club_rankings_current"),clubs);
+      assert.deepEqual(await rows("person_club_roster_current"),roster);
+      await db.exec("set local role anon");
+      await db.exec(`select set_config('request.headers','{}',true)`);
+      assert.equal((await db.query("select * from public.person_club_rankings_for_season('ALL',null)")).rows.length,0);
+      assert.equal((await db.query("select * from public.person_club_roster_for_season('ALL',null)")).rows.length,0);
+    } finally { await db.exec("rollback"); }
+  });
   it("preserves punctuation-boundary spaces in alias keys and resolves each exact key", async () => {
     // PostgreSQL trims BEFORE replacing punctuation. A final JS trim would
     // silently collapse the two Gateway keys and the two Sunset keys.
