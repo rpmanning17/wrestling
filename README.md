@@ -1,5 +1,16 @@
 # Mat Notes
 
+For a complete fingerprint-verified current-assignment export, the offline-only commands are:
+
+```powershell
+node --import tsx scripts/identity/calculate-snapshot-candidate.ts <private-snapshot-directory> YYYY-MM-DD
+node --import tsx scripts/identity/validate-snapshot-candidate.ts <private-snapshot-directory>
+```
+
+These refuse to overwrite candidate/validation files and never write to the database. The historical assignment-plan exporter retains its older source guard. See [RATING_OPERATIONS](docs/RATING_OPERATIONS.md) for supervised persistence and activation.
+
+Rankings query maintenance uses age-scoped invoker reads that retain each candidate's complete history and share the full current-cohort classifier. See [STATUS](docs/STATUS.md) for page verification and rating freshness; an applied database change alone is not a completed release.
+
 A personal, mobile-first Florida youth wrestling scouting site: look up wrestlers, compare a bracket, read results, placements and age/weight evidence, rank opponents, and keep scouting notes. Built with Next.js (App Router), Supabase (Postgres) and Vercel.
 
 **This repository is the authoritative record of the project.** Chat histories are not. Humans, Claude and ChatGPT/Codex all start from the documents below. Before changing anything, read them in this order:
@@ -26,6 +37,8 @@ Agent-specific instructions: [`AGENTS.md`](AGENTS.md) (coding agents in general,
 - No credentials, database exports, or raw result archives are stored in this repository.
 
 ## Data
+
+November 9 continuation: production contains 68,783 bouts, including 1,047 USA Bracketing bouts, plus 648 new placement observations. The complete ratings-input export is verified in private 1,000-row checkpoints; active ratings still cover 67,736 bouts. Rankings timeouts remain intermittent. See [continuation verification](docs/USA_IMPORT_CONTINUATION_20261109.md). Verify a retained export offline with `node --import tsx scripts/ratings/verify-snapshot.ts <private-directory>`; this does not calculate or activate ratings.
 
 Match results live in `public.matches`. The verified November 4, 2026 snapshot contains 67,736 source rows, including 35,861 calendar-2025 bouts and 30 additional January-2026 bouts. The active canonical model rates 64,050 contested bouts across 11,724 wrestlers, with 34,809 history points. Each source file/row pair is unique for idempotent import. Known identity, rematch and source-label limitations remain; see [docs/RATING_RECOVERY_RELEASE.md](docs/RATING_RECOVERY_RELEASE.md).
 

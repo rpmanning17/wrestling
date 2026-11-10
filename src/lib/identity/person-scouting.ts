@@ -5,6 +5,7 @@ import { likelihoodExplanation, likelihoodScore } from "@/lib/scoring";
 import { headToHead, commonOpponents, type Bout } from "@/lib/rating/relations";
 import { classifyMethod, CONTESTED_BY_DEFAULT } from "@/lib/rating/outcomes";
 import { ageGroupForBout, type BoutAgeEvidence } from "@/lib/bout-age";
+import { splitPoolRows, type PoolRow } from "@/lib/identity/person-ranking-pool";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -37,13 +38,15 @@ type RatingRow = { model_version: string; as_of_date: string; rating: number | s
 async function allMatches(ids: string[], side: "winner" | "loser") {
   const output: MatchRow[] = [];
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await supabase().from("person_matches")
+    const { data, error } = await supabase().rpc("person_match_history", { person_ids: ids, match_side: side })
       .select("id,event_date,event_name,city,weight_class,winner_name,winner_team,winner_person_id,loser_name,loser_team,loser_person_id,result,win_type")
-      .in(`${side}_person_id`, ids).order("event_date", { ascending: false })
+      .order("event_date", { ascending: false })
       .order("id", { ascending: true }).range(from, from + 999);
     if (error) throw new Error("Resolved match history unavailable");
-    output.push(...(data ?? []) as MatchRow[]);
-    if (!data || data.length < 1000) break;
+    if (!Array.isArray(data)) throw new Error("Resolved match history returned an invalid response");
+    const rows = data as MatchRow[];
+    output.push(...rows);
+    if (rows.length < 1000) break;
   }
   return output;
 }
@@ -71,8 +74,8 @@ export async function findPeople(rawQuery: string): Promise<WrestlerSuggestion[]
   if (!ids.size) return [];
   const [people, cohorts] = await Promise.all([
     db.from("wrestler_people").select("id,display_name").in("id", [...ids]),
-    db.from("person_cohort_current").select("athlete_key,age_group,bracket_weight_lbs,team,evidence_date")
-      .in("athlete_key", [...ids]),
+    db.rpc("person_cohorts_by_ids", { person_ids: [...ids] })
+      .select("athlete_key,age_group,bracket_weight_lbs,team,evidence_date"),
   ]);
   if (people.error || cohorts.error) throw new Error("Person search unavailable");
   const cohort = new Map(((cohorts.data ?? []) as CohortRow[]).map(row => [row.athlete_key, row]));
@@ -99,14 +102,28 @@ function power(row: RatingRow | undefined): PowerRating | null {
     avgWinMargin: number(row.avg_win_margin), avgLossMargin: number(row.avg_loss_margin), trend: number(row.rating_trend) };
 }
 
-async function loadResolvedPersonProfiles(refs: WrestlerRef[]): Promise<WrestlerProfile[]> {
+async function loadResolvedPersonProfiles(refs: WrestlerRef[], knownCohorts?: CohortRow[],
+  knownStrength?: StrengthRow[]): Promise<WrestlerProfile[]> {
   const db = supabase();
   const ids = refs.map(ref => ref.personId).filter((id): id is string => Boolean(id && UUID.test(id)));
   if (ids.length !== refs.length) throw new Error("Select a resolved wrestler from search before viewing a person profile");
-  const [peopleResult, cohortsResult, strengthResult, ratingsResult, notesResult] = await Promise.all([
+  const cohortsResult = knownCohorts ? { data: knownCohorts, error: null }
+    : await db.rpc("person_cohorts_by_ids", { person_ids: ids })
+      .select("athlete_key,age_group,bracket_weight_lbs,team,evidence_date");
+  if (cohortsResult.error) throw new Error("Resolved profile classification unavailable");
+  const ages = [...new Set(((cohortsResult.data ?? []) as CohortRow[])
+    .flatMap(row => row.age_group?.match(/^(\d+)U$/)?.[1] ?? []).map(Number))];
+  const standings = async () => {
+    // Standings already computed in the same single classification pass (Rankings pool).
+    if (knownStrength) return { data: knownStrength, error: undefined };
+    const results = await Promise.all(ages.map(age => db.rpc("current_person_strength", { target_age: age })
+      .select("athlete_key,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason,weight_band,age_group,bracket_weight_lbs")
+      .in("athlete_key", ids)));
+    return { data: results.flatMap(result => result.data ?? []), error: results.find(result => result.error)?.error };
+  };
+  const [peopleResult, strengthResult, ratingsResult, notesResult] = await Promise.all([
     db.from("wrestler_people").select("id,display_name").in("id", ids),
-    db.from("person_cohort_current").select("athlete_key,age_group,bracket_weight_lbs,team,evidence_date").in("athlete_key", ids),
-    db.from("person_strength_current").select("athlete_key,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason,weight_band,age_group,bracket_weight_lbs").in("athlete_key", ids),
+    standings(),
     db.from("person_rating_current").select("person_id,model_version,as_of_date,rating,rating_deviation,conservative_score,rating_status,match_count,avg_opponent_rating,sos_expected_win_pct,quality_wins,quality_losses,pin_pct,bonus_pct,win_methods,loss_methods,avg_win_margin,avg_loss_margin,rating_trend").in("person_id", ids),
     db.from("wrestler_notes").select("id,person_id,wrestler_key,body,client_id,created_at").in("person_id", ids).order("created_at", { ascending: false }).limit(500),
   ]);
@@ -230,7 +247,8 @@ const unresolvedProfile = (ref: WrestlerRef): WrestlerProfile => ({
   latestDate: null, bouts: [], placements: [], notes: [],
 });
 
-export async function buildPersonProfiles(refs: WrestlerRef[]): Promise<WrestlerProfile[]> {
+export async function buildPersonProfiles(refs: WrestlerRef[], knownCohorts?: CohortRow[],
+  knownStrength?: StrengthRow[]): Promise<WrestlerProfile[]> {
   const resolved = await Promise.all(refs.map(async ref => {
     if (ref.personId && UUID.test(ref.personId)) return ref;
     if (ref.unknown) return ref;
@@ -238,21 +256,22 @@ export async function buildPersonProfiles(refs: WrestlerRef[]): Promise<Wrestler
     return candidates.length === 1 ? { ...ref, personId: candidates[0].personId } : ref;
   }));
   const valid = resolved.filter(ref => ref.personId && UUID.test(ref.personId));
-  const profiles = valid.length ? await loadResolvedPersonProfiles(valid) : [];
+  const profiles = valid.length ? await loadResolvedPersonProfiles(valid, knownCohorts, knownStrength) : [];
   const byId = new Map(profiles.map(profile => [profile.personId, profile]));
   return resolved.map(ref => ref.personId && byId.has(ref.personId)
     ? byId.get(ref.personId)! : unresolvedProfile(ref));
 }
 
 export async function personRankingPools() {
-  const { data, error } = await supabase().from("person_cohort_current")
-    .select("athlete_key,athlete_name,team,age_group,bracket_weight_lbs")
+  // One classification pass returns the pool and its complete-age-population standings together.
+  const { data, error } = await supabase().rpc("current_person_cohort_strength", { target_age: 12 })
+    .select("athlete_key,athlete_name,team,age_group,bracket_weight_lbs,evidence_date,strength_rated,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason,strength_weight_band,strength_bracket_weight_lbs")
     .eq("age_group", "12U").gte("bracket_weight_lbs", 65).lte("bracket_weight_lbs", 80)
     .order("evidence_date", { ascending: false }).limit(120);
   if (error) throw new Error("Person cohort classification unavailable");
-  const refs = ((data ?? []) as Array<{ athlete_key: string; athlete_name: string; team: string }>).map(row =>
-    ({ personId: row.athlete_key, name: row.athlete_name, team: row.team }));
-  const profiles = await buildPersonProfiles(refs);
+  const { cohorts, strength } = splitPoolRows((data ?? []) as PoolRow[]);
+  const refs = cohorts.map(row => ({ personId: row.athlete_key, name: row.athlete_name, team: row.team }));
+  const profiles = await buildPersonProfiles(refs, cohorts, strength);
   return { likelyProfiles: [...profiles].sort((a, b) => b.likelihood - a.likelihood).slice(0, 6),
     strongestProfiles: profiles.filter(profile => profile.latestWeight != null && Math.floor(profile.latestWeight / 10) === 7)
       .sort((a, b) => (b.strength ?? -1) - (a.strength ?? -1)) };

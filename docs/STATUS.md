@@ -1,4 +1,133 @@
+
 # Status
+
+## 2026-11-10 21:00 UTC — USA Bracketing release: new model ACTIVE, all live gates passed
+
+**Active: `70b59c01-34ac-4ff0-bf2a-114571d4f41c`.** `a29c4460-5e56-4d22-902d-ea39c65bfcac` is ARCHIVED and intact (the guarded rollback target). Stale `cd6d932e-289d-42e2-a79c-a699d1dedcfa` remains a candidate and must never be activated. Production before merge: `dpl_Hte3BEhmwGXZQwgDrC4djsm34MzL`, commit `2f4ed89`.
+
+The committed read-only audit `supabase/audits/usa_release_20261110.sql` returned `verified_active_release = true`. Full activation history, corrections and gate evidence are in `docs/USA_IMPORT_RELEASE_20261110.md`.
+
+Release corrections in this PR:
+- Migration `20261110210000` adds `current_person_cohort_strength`, so Rankings classifies an age once. It matches the original functions for every production age.
+- `src/lib/clubs.ts` runs club detail, roster-standing and summary-batch reads sequentially.
+- Local lint, typecheck, 195/195 tests and build pass; GitHub `check` passed.
+
+Final production gate (20:54–20:58 UTC):
+- Clubs: 6 sorts ×2 and 5 rosters ×2 passed.
+- Rankings: 10/10 with numeric standings.
+- Comparison: Nolan 1338 ±291 0–1 and Luke 1662 ±291 1–0; Nov 7 TF 16-1 (3:09), 12U, 12U - 70-74.
+- No freshness banner. Supabase: 730 RPCs, 0 timeouts, 0 edge errors; Vercel: no error logs.
+- noindex/no-store present, anon denied without the app key, security advisor unchanged.
+
+Known limits and open items:
+- Reliability is bounded by Free-plan CPU starvation (moderate confidence). Isolated 57014s are still possible, for example during heavy administrator SQL. The opponent-rating sort is the costliest read (~1.6–2.2 s warm).
+- **Access-control finding for the owner:** Vercel protection is `all_except_custom_domains`, and wrestling-plum.vercel.app served pages to an unauthenticated request. This contradicts REQUIREMENTS/D2. Not changed by this session; unknown whether it predates the release.
+
+## 2026-11-10 19:15 UTC — directory fix verified live; Rankings gate failed (8/10); rolled back
+(Superseded by the 20:35 checkpoint above; kept as history.)
+
+Production `dpl_AM1J9FmZR7x33J6aVJPtG1oSkfjo` (commit `3521cf9`) was aliased to wrestling-plum.vercel.app; branch CI `check` passed. **Current: a29c4460 ACTIVE, 70b59c01 ARCHIVED intact, stale cd6d932e still candidate (never activated).**
+
+At ~19:05 UTC a guarded activation transaction ran once. It was derived mechanically from `supabase/audits/usa_release_20261110.sql`: the same metadata, config, count/record, identity, typed-output-root, four-table source and assignment fingerprints, and predecessor checksums, with expected pre-state 70b candidate / a29 sole active. It then called `private.activate_rating_model` and post-checked 70b sole active, a29 archived, cd6d candidate. All guards passed and it committed.
+
+Live protected browser checks with 70b active (fresh contexts, cache-busting queries):
+- Clubs: all six sorts returned HTTP 200 with 200+ clubs, no freshness banner and no error (3.6–6.7 s cold page loads). The 42703 `sort_value` failure is fixed. The Florida Scorpions roster rendered numeric strengths, ranks and ratings.
+- Every response carried `x-robots-tag: noindex, nofollow, noarchive` and `cache-control: private, no-cache, no-store…`.
+- Rankings: 8 of 10 fresh reloads returned 200 with numeric standings (first strengths 526.50, 909.21, 692.67…) and no banner. Reloads 5 and 6 returned 500.
+  - Vercel: `Resolved profile data unavailable` (request pxfzv, digest 1302037118) and `Person cohort classification unavailable` (z896t, digest 670410799).
+  - Supabase: `rpc/current_person_strength` (started 19:09:57.68) and `rpc/current_person_cohorts` (19:10:03.63) were each cancelled at 3 s by the anon `statement_timeout` (Postgres log 19:10:00.736 and 19:10:06.862).
+
+The gate failed, so the same complete guarded rollback restored a29 (predecessor counts and checksums verified first). Comparison checks and the final active-release audit were not run in this window.
+
+Diagnosis (no fix applied yet):
+- Both failing RPCs run the full 12U `private.calculate_person_cohorts(12,null)`; a page load runs it twice (the cohorts RPC, then again inside `current_person_strength`).
+- With every buffer a shared hit (no disk reads), the same call measured 4,888 ms, then 1,875 ms followed by ~141 ms ×5, then 177/146/145 ms. No concurrent backends were active; JIT is off. EXECUTE…USING plans each call with real parameters, so a generic plan is not the cause.
+- `pg_stat_statements` for the anon cohorts call: 22 calls, mean 641 ms, max 2,899 ms, standard deviation 723 ms.
+- Large CPU-bound variance with cached buffers is consistent with Free-plan burstable-CPU throttling after heavy work (the activation hashing and the six Clubs loads preceded the failures). This is **moderate confidence, unverified**: CPU metrics are not available through the tools used.
+
+The concrete correction under consideration is removing the duplicate full classification per Rankings load, without weakening the timeout, RLS or the formula. It has not been implemented. Do not reactivate 70b without a concrete correction and a fresh full gate.
+
+## 2026-11-10 — bounded Free-plan club reads validated; page deployment pending
+
+The owner chose continued Free-plan optimization. **Current active model remains a29; 70b is archived intact.** A subsequent Clubs cold load still hit 57014, so the same full guarded rollback was applied. The new directory/detail path is implemented and its database migration is applied; application deployment and final activation are pending.
+
+Private transaction-maintained source counts contain 23,555 recorded season/team/person groups representing all 128,840 eligible club-side appearances. No real bout or repeat was removed. The restricted-role directory trial completed in ~96 ms. Details now calculate complete live metrics for four keys per request, at most two concurrent requests, with exact key reconciliation; roster and sort calculations use the same original formulas. A full production-source trial exposed the validated candidate only inside an administrator transaction and rolled back: all 4,284 club summary rows, 38,065 roster rows and every all-season directory sort value match the original views. Schedule comparisons use the existing read-audit rounding to 12 decimals for floating aggregate order; every other field compares exactly. This did not activate a model or expose candidate values to other sessions.
+
+Maintenance tests cover source season/team/outcome changes, reassignment/holds/deletion, rollback, every sort/season/club subset and denied reads. Obsolete trial source-cover/text/numeric-age indexes were retired; the retained person covering index was compacted. No timeout or security protection was weakened. Final production browser loads, query timings, privacy checks, PR update/merge remain pending.
+
+## 2026-11-10 — comparison verified; club-read deployment pending
+
+Production app 4c73f78 verified the active person model in comparison: Nolan Manning is rated 1338 ±291, 0–1; Luke Palazzo 1662 ±291, 1–0. November 7 TOF-Folkstyle Spartan RTC #1 remains TF 16–1 (3:09), 12U, bracket 70–74. Search returned the resolved person and comparison showed numeric standings with no stale warning. The final Clubs navigation exposed a separate person-club query timeout; guarded rollback again restored the predecessor. **Current checkpoint: a29 active, 70b archived intact; club optimizations await app deployment and another guarded activation.**
+
+New additive club migrations normalize distinct labels, bound active-rating reads once per query, scope season/club calculations and drive source bouts from the transactional person projection. Tests compare every summary and roster field with the original formulas under an active person model, plus complete season/club subsets and denied reads. Application roster standings use requested-person classification and complete age populations. No club formula, raw team, bout, source assignment or rating payload changed. The final active-release audit in supabase/audits/usa_release_20261110.sql checks all source and typed output roots plus the intact rollback predecessor without changing model state.
+
+## 2026-11-10 — person Rankings passed; scoped comparison release pending
+
+The new person run was guardedly activated and ten fresh protected production reloads returned numeric standings without a stale-data warning or server error. First six strengths: 526.50, 692.67, 697.73, 561.97, 612.25, 572.88. Expanded standings show all 42 rated wrestlers in the 12U 70–79 lb cohort, including newly rated Luke Palazzo and Nolan Manning. At 17:49–17:51 UTC the measured classification/standing requests returned HTTP 200; full evidence will be recorded after the final deployment.
+
+Comparison search then exposed a different full-population classifier timeout. **The guarded rollback restored a29c4460-5e56-4d22-902d-ea39c65bfcac active; 70b59c01-34ac-4ff0-bf2a-114571d4f41c is archived intact.** No rating/history/source/identity writes were replayed. Earlier history/classification attempts also used the same verified rollback. Candidate output and rollback roots remain checked by every activation/rollback transaction.
+
+Applied November 10 read migrations (source suffix → production version): bound_person_cohort_assignment_reads → 20261110173227; set_oriented_person_cohort_reads → 20261110173705; batch_person_cohort_appearance_reads → 20261110173945; cover_person_cohort_lookup_indexes → 20261110174439; index_transactional_person_appearances → 20261110174715; scope_person_profile_cohorts → 20261110175326. Intermediate plans remain in immutable migration history; they did not alone pass live reliability. The final indexed person input projection and requested-person classifier preserve all 11,750 full classification rows and MD5 1e2fa7d933ecb90051c45842bb5eb0ba. Source/assignment updates maintain the projection synchronously; nullable held sides remain null. Tests cover changes, deletion, invalid IDs, rollback, all ages, requested people and denied access. Security advisor has only the eight existing informational denied-ledger notices, no warning/error.
+
+Search/profile code now uses the shared requested-person classifier and full age-population standings. Deployment, reactivation and complete comparison/privacy verification are pending at this checkpoint. The three-second app limit, RLS, no-store/noindex and formula remain unchanged.
+
+## 2026-11-10 — complete persistence verified; live person-history release fix in progress
+
+All 189 guarded persistence batches and 189 independent read-only verification batches completed: 11,650 ratings plus 35,421 history rows, zero field mismatches. New run `70b59c01-34ac-4ff0-bf2a-114571d4f41c` has exact counts/records/person keys. Full typed output roots are ratings `1f1bad5b14753d5be78bb768da397c9250ccbb796cba0d21c50d614263b45e86` and history `8105c92c2b2b6abe47725ce9ae366dfe347891058d5e1d0f50a5a55498661e0e` (SHA256 of ordered 250-row chunk SHA256s, each over full-row MD5 leaves). All source/assignment/people/alias roots still match the private snapshot on November 10.
+
+Locked readiness, promotion and atomic activation guards passed. First activation was verified at 17:10 UTC, but its first live Rankings request exposed `Resolved match history unavailable`. The guarded rollback restored old active `a29c4460-5e56-4d22-902d-ea39c65bfcac`; the complete new run is archived intact. No rating/history/source/identity row was overwritten or replayed. Rollback predecessor hashes also passed.
+
+New invoker `person_match_history` is applied as migration `20261110171743`, source `20261110171443_bound_person_match_history.sql`. It drives requested person assignments through UUID primary-key lookups and preserves the original text equality, opposite held sides, all source fields and complete pagination. Trial: first 1,000 rows ~292 ms, with actual anon plan proving person and match indexes. Regression fixtures include 1,002 same-name bouts, held opposite sides, duplicate requested IDs, full paging and authorization denial. Page code switches to this RPC; deployment and person-path verification remain pending at this checkpoint. The new model must pass the same complete guards again before reactivation.
+
+## 2026-11-09 — fresh offline person candidate validated; not persisted or active
+
+Calculation commit `982a655` produced a new private payload from the verified 68,783-match snapshot and 138,661 current assignments. It rates 64,970 bouts / 11,650 people, with 35,421 history points and balanced 64,970 wins/losses. Excluded: 3,679 administrative, six unknown methods, 128 held-identity bouts. Zero exact-duplicate exclusions; 7,467 repeated opponent pairs remain. All 341 held appearances are unchanged.
+
+Exact whole-payload replay and independent outcomes/records/SOS/daily states/history checks pass. The separate tighter volatility solver exposed five comparisons just beyond a half-rounded-unit-only bound; unrounded comparison established only configured-iteration precision differences. Explicit epsilon-derived bounds and maximum deviations are recorded privately and in RANKINGS.md; canonical output is unchanged. Input fingerprint `9fdd702f52b77ea649fc3b5e117d052b65cf0e1b24f3f2a7632231875877a196`; assignment fingerprint `935db7eab2db00b57fca9aebd97b2032d2cb4ea71ddd3e4aad7381b7c810a3ba` matches live SQL.
+
+The new payload has not been inserted or activated at this checkpoint. The historical active and stale candidate remain intact. Next: final committed-validator report, guarded persistence, independent typed row checksums, locked promotion and authorized atomic activation, followed by person-path live verification.
+
+## 2026-11-09 — complete Rankings reliability gate passed before recalculation
+
+Commit `a30db1a` is production READY as `dpl_4u9w8kBB943ynZMrzpXk9hnJGbfi`; GitHub CI passed lint/typecheck/189 tests/build. Ten fresh protected browser reloads returned the likely list with numeric strength/rank/tier values for its rated wrestlers. The expanded strongest list also rendered; newly imported unrated rows correctly remain unavailable in the old model. Matching 21:13 UTC logs contain ten classification RPCs (186–1,264 ms) and ten standing RPCs (219–759 ms), all HTTP 200. Deployment warning/error/fatal logs for these requests are empty. Nine warm full page checks took 1.29–1.73 seconds; the first cold check took 6.73 seconds. No query timeout or security limit was increased. This is a bounded observed reliability gate, not a promise against every future failure.
+
+Source/assignment/people/alias fingerprints still match the complete private export. Rating calculation and activation now proceed as the next separate gate; no candidate or active model changed during reliability work.
+
+## 2026-11-09 — transactional appearance indexes; standings read follow-up
+
+The first scoped release (`703e5fc`, production `dpl_C4ijbew5fQKjJDNfTPDKdmssyznD`) still had intermittent candidate timeouts. An indexed private per-source-side projection is now atomically maintained by a protected source trigger: 137,566 rows for 68,783 bouts. No source/assignment/rating row changed. Real anon plans now show age/athlete Index Cond lookups. Ten fresh protected production reloads rendered the page; the first five candidate HTTP requests took 605/1102/774/780/340 ms, all 200. **Standing reliability is not yet passed:** a later successful page rendered unavailable strength values after its separate full standing read timed out.
+
+Applied follow-ups: projection `20261109210141`, driven name indexes `20261109210512`, scoped shared standings `20261109210826`, driven person indexes `20261109210917`. Full name cohort/standing/person cohort hashes remain unchanged. Person scoped cohort trial: 343 rows in ~335 ms. Security advisor has no new warnings/errors. New regression coverage verifies source insert/update/delete/rollback synchronization, denied projection writes and complete age-population standings. Page code now scopes standing reads, reuses person classifications and skips unused legacy heuristic queries; this follow-up page deployment remains pending at this checkpoint. Active ratings are still the older model.
+
+## 2026-11-09 — age-scoped rankings reads (applied; page deployment pending)
+
+Fresh protected production loads reproduced the ranking failure after the 32MB role change (two failures among five reloads). Configuration reload removed further measured temp writes but did not establish reliability. Rankings now calls an invoker function with an explicit age argument. It first selects athletes with any supporting age value, keeps their complete evidence histories, and applies the unchanged three-event classifier. The full views use the same functions with NULL. Person inputs additionally parse distinct weight/event labels once and collapse identical classification tuples; raw bouts and assignments are untouched.
+
+Applied migrations: age population **20261109204355**, inline trial **20261109204548**, person input bounds **20261109204714**, followed by fixed-search-path parameter planning (version recorded in the continuation). The final invoker functions use a static parameterized EXECUTE query to plan the actual argument while retaining a fixed empty search_path; no definer rights or public execution grants. Name/person scoped read-only trials returned the same 92/59 filtered candidates in ~0.78/0.84 seconds; final fixed-path name trial ~1.03 seconds. These are administrator measurements, not live app reliability evidence.
+
+All 12,043 name cohorts, 1,132 current standings and 11,750 person cohorts retain their complete-row hashes. Migration transactions abort on differing outputs. Regression fixtures compare full outputs and all supported age subsets, preserving mixed-age histories and denied anonymous reads. Local lint/typecheck/188 tests/build pass before deployment; final verification remains pending. Ratings still use the older active model. No new candidate calculated yet.
+
+
+## 2026-11-09 — Follow-up Rankings memory tuning (production applied; live reliability not yet proven)
+
+After the November 9 cohort-view optimization, a diagnostic admin-role EXPLAIN observed 4.97 seconds for the full 12,043-row cohort view, with substantial temp-file spill. Five controlled later trials on the same 68,783-match production source found 4 MB ~2.04s (temp spill), 16 MB ~1.87–1.91s (no temp spill), and 32 MB ~1.67–1.68s (no temp spill). These are query-plan tests, not measurements of the authenticated app page or guarantees of stability.
+
+**Applied production migration `20261109202737`** (`rankings_anon_work_mem`), source `20261109210000_rankings_anon_work_mem.sql`: `ALTER ROLE anon SET work_mem = '32MB'`. PostgREST applies impersonated role settings to request transactions. Verified `anon` still has `statement_timeout=3s` and now `work_mem=32MB`; authorization/RLS, views, source matches, active rating model and app code were not changed. Security advisor still reports only eight previously known RLS-no-policy informational notices on deliberately denied private ledgers. Per-operation memory and concurrent query use should be monitored; rollback through a **new** migration `ALTER ROLE anon RESET work_mem` if necessary.
+
+**Still pending:** repeated actual protected production Rankings loads, error log review, rating candidate calculation from verified 221-page export and independent validation followed by separately authorized activation. Do not report this as complete or promote the stale candidate.
+
+
+## 2026-11-09 — verified bounded export; rankings timeout remains open
+
+Continued from deployed main `b571038` / PR #17, with no open PRs found. Reverified 68,783 matches, 1,047 USA Bracketing bouts across 13 events, 648 imported placements (878 preserved privately), 1,926/2,094 assigned bout sides and 491/648 assigned placement appearances. Uncertain identities remain held.
+
+Completed a private **ratings-input export**, not a calculated ratings payload: 221 pages of at most 1,000 rows, containing 68,783 matches, 138,661 current source assignments, 11,750 people and one wrestler alias. Full-row ordered fingerprints match an atomic four-table SQL baseline; a fresh production manifest is identical. Files are in ignored `exports/usa-20261109/`; `scripts/ratings/verify-snapshot.ts` validates completeness and rejects changed, reordered, extra or missing pages. No new model was calculated, persisted or activated. The active model is still `a29c4460-5e56-4d22-902d-ea39c65bfcac`; the old person candidate remains stale and must not be activated.
+
+Reproduced the live Rankings server error and correlated Vercel digest `4274830494` with a database statement timeout. A semantics-preserving earlier duplicate collapse was applied as production migration **20261109184313**, source **20261109183704_bound_cohort_input_duplicates.sql**. All 12,043 cohort rows and 1,132 standing rows retain identical full-row checksums. Active 11,724 ratings and 34,809 history rows retain their checksums. Planner statistics were refreshed after confirming the post-import statistics gap. **This improves the query but does not resolve the intermittent failure:** two post-change browser loads succeeded and one still timed out. Measured administrator query time remains about 2.1–2.3 seconds against the app role's unchanged three-second limit. No cache, privileged read function, timeout increase, formula change or access expansion was introduced.
+
+Lint, typecheck, **187 tests** and production build pass using the installed pnpm entry point with dependency auto-install disabled; build used dummy values. Live comparison, freshness warning and expanded ranking output were observed; this is not a claim of complete production stability. Detailed verification, private checkpoint recovery and outstanding release gates: [USA_IMPORT_CONTINUATION_20261109.md](USA_IMPORT_CONTINUATION_20261109.md).
+
+**Next:** finish the rankings read optimization under actual app-role execution, then calculate and independently validate a fresh person-based candidate from the verified snapshot. Recheck live source/assignment fingerprints before any separately authorized activation. Preserve the old active model and uncertain identities.
 
 ## 2026-11-09 — USA Bracketing production import and evidence-backed identities
 

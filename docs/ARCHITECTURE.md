@@ -1,10 +1,28 @@
 # Architecture
 
+The Free-plan club directory reads transaction-maintained source counts (season/recorded team/person), then the server requests complete live summaries in four-key batches, one call at a time (concurrent batches were cancelled together at the three-second limit under Free-plan CPU starvation). Club detail pages likewise read the summary, roster and each roster age's standings sequentially. All requested keys must reconcile exactly. `person_club_directory` shares the original sort metrics; `person_club_rankings_for_keys` bounds source reads using literal alias-key indexes. Ratings, aliases, schedules and final club results are calculated live. Roster aggregation sums the same source counts before reading current ratings. Tests compare every sort metric, summary and roster row with the original formulas, including mutations, holds and rollback.
+
+Club input reads also use the same synchronous source-side projection: normalized source season/team keys, original win type and nullable opposite person ID are maintained with source/assignment changes. This avoids repeated full source joins and per-bout parsing. Alias mappings and active rating values are still read live in each statement; club summaries remain calculated results.
+
+Person Clubs reads use invoker `person_club_rankings_for_season(season,club)` and `person_club_roster_for_season(season,club)`. They reuse the original formulas with one materialized active-rating input, distinct team-label normalization and one transactional source/person bout input. They calculate only the selected season/club; roster standings classify selected people and rank their complete age populations. These materialized CTEs exist only within each live statement.
+
+Person cohort reads share `private.calculate_person_cohorts(age,people)`, a stable invoker with fixed empty search path. `current_person_cohorts(age)` preserves full age-population reads; `person_cohorts_by_ids(people)` preserves complete evidence histories only for requested people (null/empty IDs return none). Search and profiles use the latter. Profile strength requests each represented age's complete population and then filters the selected keys.
+
+The private source-side appearance projection also stores the current nullable person UUID. Source and current-assignment write statements share one transaction advisory lock; protected triggers synchronously maintain person IDs on source insert/replacement and assignment insert/update/delete. Reads remain concurrent. Classification and rating results are calculated from inputs, with no result-cache refresh window.
+
+## Scoped current cohorts
+
+Source matches also maintain a private indexed appearance projection in the same insert/update/delete transaction. It contains source-side classification inputs, with no cohort or rating result cache. Name/age indexes drive scoped reads; live aliases/assignments are joined afterward. `current_wrestler_strength` and `current_person_strength` take the same optional age argument, and their NULL calls back the full strength views. Ranking profiles reuse the candidate classification and ask for complete age-population standings. Active models skip the unused legacy heuristic query.
+
+The full cohort views and Rankings RPCs share `current_wrestler_cohorts(target_age)` and `current_person_cohorts(target_age)`. NULL evaluates every athlete. An explicit age reduces the athlete population before event/vote windows using any supporting source-age value; it retains every source row for selected athletes and the caller still filters the final classification. Thus the three-event classifier has one authority per identity scheme. Both functions are stable invokers with empty search_path and parameterized static query execution, without stored derived state. This forces planning for each actual argument while preserving access controls.
+
 ## Runtime
 
 The November 5 offline identity audit (`scripts/identity/audit.ts`) remains the read-only source-evidence discovery tool. The person-identity branch adds `revalidate-links.ts`, `plan.ts`, `calculate-candidate.ts`, `validate-candidate.ts`, `rollout-sql.ts` and `candidate-rollout-sql.ts` for agent-side decisions, immutable private output, and supervised connector batches. No identity-matching UI or public write endpoint exists. See IDENTITY_AUDIT.md and IDENTITY_OPERATIONS.md.
 
 ## Person identity path (database prepared; app deployment and activation pending)
+
+Person history reads use `person_match_history(person_ids,match_side)`, a stable invoker function over current assignments and original matches. Requested identities drive UUID match primary-key lookups; original text equality preserves exact appearance semantics. It reads the opposite side separately, keeping null held identities. The server still pages complete histories by date and UUID. No match-history cache or identity reassignment is introduced.
 
 `wrestler_people.id` is a permanent UUID. Every original match side, tournament entry and observation has an independent versioned assignment in `source_identity_assignments`; `source_identity_current_rows` is the indexed current state and `source_identity_current` the invoker view. `identity_decisions` records authority and evidence; batches and revisions support compensating rollback. Unassigned source rows retain their original names and cannot enter a person history. Existing notes remain unattributed until linked by evidence; new notes under a person model carry `person_id`.
 
@@ -35,6 +53,10 @@ tests/rating, tests/db      node:test suites (tests/db applies migrations in PGl
 ```
 
 ## Rating pipeline
+
+The current-source person exporter reads the four-table verified bounded snapshot and uses current source assignments directly, including null held sides. It verifies exact recorded source names and person/appearance coverage before calculating. `calculate-snapshot-candidate.ts` requires clean committed calculation sources, explicit as-of date and a new private output. The separate validator replays every serialized engine field and independently reconstructs reviewed outcomes, records, SOS and every daily Glicko/history state using a separate bisection volatility implementation. Neither command connects to the database. Full snapshot roots, current-assignment fingerprint, source-input v2 fingerprint and payload hashes accompany the candidate.
+
+Bounded connector exports preserve each row's original PostgreSQL `to_jsonb(row)::text` in ordered private JSON pages. `scripts/ratings/snapshot.ts` reconstructs and verifies all pages against full-row table fingerprints captured together in one SQL statement. Thus the verified reconstructed inputs correspond to that single MVCC snapshot; independent page counts are insufficient. The CLI writes only a private integrity report and cannot activate a model. See USA_IMPORT_CONTINUATION_20261109.md for ordering and fingerprint encoding.
 
 ```
 public.matches ──read──▶ prepareMatches ──▶ calculateRatings ──▶ batch write ──▶ rating_models (building→candidate→active)

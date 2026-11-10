@@ -404,7 +404,12 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
   const empty = { data: [] as unknown[] };
 
   const ratingKeys = [...new Set(names.map(identity))];
-  const [winsResult, lossesResult, entriesResult, observationsResult, evidenceResult, ratingsResult, notesResult, activeModelResult, powerResult, cohortResult] = await Promise.all([
+  const activeModelResult = await db.from("wrestler_rating_current").select("model_version").limit(1);
+  const modelActive = !activeModelResult.error && (activeModelResult.data ?? []).length > 0;
+  const scopedAge = knownCohorts?.length && knownCohorts.every(row => row.age_group === "12U") ? 12 : null;
+  const standingRead = scopedAge == null ? db.from("wrestler_strength_current")
+    : db.rpc("current_wrestler_strength", { target_age: scopedAge });
+  const [winsResult, lossesResult, entriesResult, observationsResult, evidenceResult, ratingsResult, notesResult, powerResult, cohortResult] = await Promise.all([
     names.length
       ? db.from("matches").select("id,event_date,event_name,city,weight_class,winner_name,winner_team,loser_name,loser_team,result,win_type").in("winner_name", names).order("event_date", { ascending: false }).limit(1000)
       : empty,
@@ -420,17 +425,15 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
     names.length
       ? db.from("wrestler_evidence").select("athlete_name,team,event_date,event_name,city,age_group,division_birth_year_start,division_birth_year_end,experience_division,bracket_weight_lbs,confidence_score,confidence_label,evidence_type,reason,source_match_id").in("athlete_name", names).order("event_date", { ascending: false }).limit(2500)
       : empty,
-    names.length
+    names.length && !modelActive
       ? db.from("wrestler_ratings").select("athlete_name,age_group,division_birth_year_start,division_birth_year_end,weight_bucket,weight_band,bracket_weight_lbs,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,wins,losses,best_placement,decisive_wins").in("athlete_name", names).limit(1000)
       : empty,
     db.from("wrestler_notes").select("id,wrestler_key,body,client_id,created_at").in("wrestler_key", keys).order("created_at", { ascending: false }).limit(500),
-    // Opponent-adjusted model. Errors (view not migrated yet) are tolerated: the legacy view is the fallback.
-    db.from("wrestler_rating_current").select("model_version").limit(1),
     ratingKeys.length
       ? db.from("wrestler_rating_current").select("athlete_key,model_version,as_of_date,rating,rating_deviation,conservative_score,rating_status,match_count,avg_opponent_rating,sos_expected_win_pct,quality_wins,quality_losses,pin_pct,bonus_pct,win_methods,loss_methods,avg_win_margin,avg_loss_margin,rating_trend").in("athlete_key", ratingKeys)
       : empty,
     names.length
-      ? db.from("wrestler_strength_current").select("athlete_key,athlete_name,bracket_weight_lbs,age_group,weight_bucket,weight_band,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason,division_birth_year_start,division_birth_year_end").in("athlete_key", ratingKeys).limit(1000)
+      ? standingRead.select("athlete_key,athlete_name,bracket_weight_lbs,age_group,weight_bucket,weight_band,evidence_date,confidence_score,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason,division_birth_year_start,division_birth_year_end").in("athlete_key", ratingKeys).limit(1000)
       : empty,
   ]);
   // The strength view is expensive and may time out during a source import.
@@ -448,7 +451,6 @@ export async function buildProfiles(refs: WrestlerRef[], knownCohorts?: CurrentC
     currentCohorts.push(...(missing.data ?? []) as CurrentCohortRow[]);
   }
   // A model counts as active only if the view answered without error and returned a row.
-  const modelActive = !("error" in activeModelResult && activeModelResult.error) && ((activeModelResult.data as unknown[] | null) ?? []).length > 0;
   const powerRows = modelActive ? ((powerResult.data ?? []) as PowerRow[]) : [];
   const cohortRows = modelActive && !strengthError ? ((cohortResult.data ?? []) as CohortStrengthRow[]) : [];
 
@@ -679,8 +681,8 @@ export async function likelyNolanPool() {
 /** Both ranking lists share their candidate and classification snapshot. */
 export async function rankingPools() {
   if (await personModelActive()) return personRankingPools();
-  const { data, error } = await supabase().from("wrestler_cohort_current")
-    .select("athlete_key,athlete_name,team,age_group,bracket_weight_lbs")
+  const { data, error } = await supabase().rpc("current_wrestler_cohorts", { target_age: 12 })
+    .select("athlete_key,athlete_name,team,age_group,bracket_weight_lbs,evidence_date")
     .eq("age_group", "12U").gte("bracket_weight_lbs", 65).lte("bracket_weight_lbs", 80)
     .order("evidence_date", { ascending: false }).limit(120);
   if (error) throw new Error("Current ranking classification unavailable");

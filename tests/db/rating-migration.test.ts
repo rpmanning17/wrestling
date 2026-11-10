@@ -86,6 +86,23 @@ before(async () => {
 after(async () => { await db.close(); });
 
 describe("expanded-source cohort read optimization", () => {
+  it("age-scoped standings preserve every rating, rank and tier within each complete age population", async () => {
+    assert.equal(await count(`select count(*) n from pg_indexes where schemaname='public'
+      and tablename='wrestler_model_ratings' and indexname='person_club_rating_covering_idx'`),1);
+    await db.exec("begin");
+    try {
+      await db.exec(`select private.activate_rating_model('${M1}')`);
+      const all = (await db.query<{age_group:string}>("select * from public.wrestler_strength_current order by athlete_key")).rows;
+      for (const age of [6,8,10,12,14,16,18]) {
+        const scoped = (await db.query("select * from public.current_wrestler_strength($1) order by athlete_key", [age])).rows;
+        assert.deepEqual(scoped, all.filter(row => row.age_group === age+"U"));
+      }
+      await db.query(HEADERS_OFF);
+      await db.exec("set local role anon");
+      assert.equal(await count("select count(*) n from public.current_wrestler_strength(12)"),0);
+      await db.exec("reset role");
+    } finally { await db.exec("rollback"); }
+  });
   it("preserves all club records, roster and schedule metrics when resolving repeated literal team labels once", async () => {
     await db.exec("begin");
     try {
@@ -131,6 +148,11 @@ describe("expanded-source cohort read optimization", () => {
       await db.exec(readFileSync(path.join(MIGRATIONS, "20261104201302_bound_expanded_cohort_reads.sql"), "utf8")
         .replace(/^begin;\s*/, "").replace(/commit;\s*$/, ""));
       assert.deepEqual(await snapshot(), optimized);
+      const rawCount = await count("select count(*) n from public.matches");
+      await db.exec(readFileSync(path.join(MIGRATIONS, "20261109183704_bound_cohort_input_duplicates.sql"), "utf8")
+        .replace(/^begin;\s*/, "").replace(/commit;\s*$/, ""));
+      assert.deepEqual(await snapshot(), optimized);
+      assert.equal(await count("select count(*) n from public.matches"), rawCount);
       const options = (await db.query<{ reloptions: string[] }>(
         "select reloptions from pg_class where oid='public.wrestler_cohort_current'::regclass")).rows[0].reloptions;
       assert.ok(options.includes("security_invoker=true"));

@@ -1,0 +1,13 @@
+-- Bound the memory budget for the personal application's restricted PostgREST
+-- anon role. PostgREST applies impersonated-role GUCs per request.
+-- No timeout, authorization, view, RLS, or rating-model change.
+--
+-- 2026-11-09 read-only production EXPLAIN, cohort-count view (ms):
+-- 4 MB: 2044, with temp read/write; 16 MB: 1872/1906, no temp;
+-- 32 MB: 1675/1682, no temp. Prior 4 MB run reached 4968 ms.
+-- The setting is per sort/hash operation, not a global memory allocation.
+-- Personal app is low-concurrency; watch total database memory if workload grows.
+--
+-- Rollback (new reviewed migration only):
+--   alter role anon reset work_mem;
+alter role anon set work_mem = '32MB';
