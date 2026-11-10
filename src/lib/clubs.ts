@@ -109,12 +109,12 @@ async function getPersonClubs(season: ClubSeason, sort: ClubSort, query: string)
   if (directory.error || !Array.isArray(directory.data)) return { clubs: [], error: "Club directory unavailable. Try again." };
   const keys = (directory.data as Array<{ club_key: string }>).map(row => row.club_key);
   const summaries = new Map<string, ClubSummary>();
-  // Keep both each query's source population and concurrent database work bounded.
-  for (let from = 0; from < keys.length; from += 8) {
-    const results = await Promise.all([keys.slice(from,from+4), keys.slice(from+4,from+8)]
-      .filter(batch => batch.length).map(batch => client().rpc("person_club_rankings_for_keys", {
-        target_season: season, target_keys: batch,
-      }).select("*")));
+  // Keep each query's source population bounded (four keys) and run batches one at a time: two
+  // concurrent batches of the largest clubs were cancelled together at the 3s limit (Nov 10 57014s).
+  for (let from = 0; from < keys.length; from += 4) {
+    const results = [await client().rpc("person_club_rankings_for_keys", {
+      target_season: season, target_keys: keys.slice(from, from + 4),
+    }).select("*")];
     for (const result of results) {
       if (result.error || !Array.isArray(result.data)) return { clubs: [], error: "Complete club summaries unavailable. Try again." };
       for (const row of result.data as Array<Record<string, unknown>>) {
