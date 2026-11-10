@@ -37,13 +37,15 @@ type RatingRow = { model_version: string; as_of_date: string; rating: number | s
 async function allMatches(ids: string[], side: "winner" | "loser") {
   const output: MatchRow[] = [];
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await supabase().from("person_matches")
+    const { data, error } = await supabase().rpc("person_match_history", { person_ids: ids, match_side: side })
       .select("id,event_date,event_name,city,weight_class,winner_name,winner_team,winner_person_id,loser_name,loser_team,loser_person_id,result,win_type")
-      .in(`${side}_person_id`, ids).order("event_date", { ascending: false })
+      .order("event_date", { ascending: false })
       .order("id", { ascending: true }).range(from, from + 999);
     if (error) throw new Error("Resolved match history unavailable");
-    output.push(...(data ?? []) as MatchRow[]);
-    if (!data || data.length < 1000) break;
+    if (!Array.isArray(data)) throw new Error("Resolved match history returned an invalid response");
+    const rows = data as MatchRow[];
+    output.push(...rows);
+    if (rows.length < 1000) break;
   }
   return output;
 }

@@ -1,6 +1,14 @@
 
 # Status
 
+## 2026-11-10 — complete persistence verified; live person-history release fix in progress
+
+All 189 guarded persistence batches and 189 independent read-only verification batches completed: 11,650 ratings plus 35,421 history rows, zero field mismatches. New run `70b59c01-34ac-4ff0-bf2a-114571d4f41c` has exact counts/records/person keys. Full typed output roots are ratings `1f1bad5b14753d5be78bb768da397c9250ccbb796cba0d21c50d614263b45e86` and history `8105c92c2b2b6abe47725ce9ae366dfe347891058d5e1d0f50a5a55498661e0e` (SHA256 of ordered 250-row chunk SHA256s, each over full-row MD5 leaves). All source/assignment/people/alias roots still match the private snapshot on November 10.
+
+Locked readiness, promotion and atomic activation guards passed. First activation was verified at 17:10 UTC, but its first live Rankings request exposed `Resolved match history unavailable`. The guarded rollback restored old active `a29c4460-5e56-4d22-902d-ea39c65bfcac`; the complete new run is archived intact. No rating/history/source/identity row was overwritten or replayed. Rollback predecessor hashes also passed.
+
+New invoker `person_match_history` is applied as migration `20261110171743`, source `20261110171443_bound_person_match_history.sql`. It drives requested person assignments through UUID primary-key lookups and preserves the original text equality, opposite held sides, all source fields and complete pagination. Trial: first 1,000 rows ~292 ms, with actual anon plan proving person and match indexes. Regression fixtures include 1,002 same-name bouts, held opposite sides, duplicate requested IDs, full paging and authorization denial. Page code switches to this RPC; deployment and person-path verification remain pending at this checkpoint. The new model must pass the same complete guards again before reactivation.
+
 ## 2026-11-09 — fresh offline person candidate validated; not persisted or active
 
 Calculation commit `982a655` produced a new private payload from the verified 68,783-match snapshot and 138,661 current assignments. It rates 64,970 bouts / 11,650 people, with 35,421 history points and balanced 64,970 wins/losses. Excluded: 3,679 administrative, six unknown methods, 128 held-identity bouts. Zero exact-duplicate exclusions; 7,467 repeated opponent pairs remain. All 341 held appearances are unchanged.
