@@ -101,7 +101,7 @@ export async function getClubs(
 
 async function getPersonClubs(season: ClubSeason, sort: ClubSort, query: string) {
   let request = client().rpc("person_club_directory", { target_season: season, target_sort: sort })
-    .select("club_key").order("sort_value", { ascending: false, nullsFirst: false })
+    .select("club_key,club_name,sort_value,bouts").order("sort_value", { ascending: false, nullsFirst: false })
     .order("bouts", { ascending: false }).limit(200);
   const term = query.replace(/[%_,]/g, "").trim().slice(0, 80);
   if (term) request = request.ilike("club_name", `%${term}%`);
