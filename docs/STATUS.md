@@ -1,6 +1,29 @@
 
 # Status
 
+## 2026-11-10 19:15 UTC — directory fix verified live; Rankings gate failed (8/10); rolled back
+
+Production `dpl_AM1J9FmZR7x33J6aVJPtG1oSkfjo` (commit `3521cf9`) was aliased to wrestling-plum.vercel.app; branch CI `check` passed. **Current: a29c4460 ACTIVE, 70b59c01 ARCHIVED intact, stale cd6d932e still candidate (never activated).**
+
+At ~19:05 UTC a guarded activation transaction ran once. It was derived mechanically from `supabase/audits/usa_release_20261110.sql`: the same metadata, config, count/record, identity, typed-output-root, four-table source and assignment fingerprints, and predecessor checksums, with expected pre-state 70b candidate / a29 sole active. It then called `private.activate_rating_model` and post-checked 70b sole active, a29 archived, cd6d candidate. All guards passed and it committed.
+
+Live protected browser checks with 70b active (fresh contexts, cache-busting queries):
+- Clubs: all six sorts returned HTTP 200 with 200+ clubs, no freshness banner and no error (3.6–6.7 s cold page loads). The 42703 `sort_value` failure is fixed. The Florida Scorpions roster rendered numeric strengths, ranks and ratings.
+- Every response carried `x-robots-tag: noindex, nofollow, noarchive` and `cache-control: private, no-cache, no-store…`.
+- Rankings: 8 of 10 fresh reloads returned 200 with numeric standings (first strengths 526.50, 909.21, 692.67…) and no banner. Reloads 5 and 6 returned 500.
+  - Vercel: `Resolved profile data unavailable` (request pxfzv, digest 1302037118) and `Person cohort classification unavailable` (z896t, digest 670410799).
+  - Supabase: `rpc/current_person_strength` (started 19:09:57.68) and `rpc/current_person_cohorts` (19:10:03.63) were each cancelled at 3 s by the anon `statement_timeout` (Postgres log 19:10:00.736 and 19:10:06.862).
+
+The gate failed, so the same complete guarded rollback restored a29 (predecessor counts and checksums verified first). Comparison checks and the final active-release audit were not run in this window.
+
+Diagnosis (no fix applied yet):
+- Both failing RPCs run the full 12U `private.calculate_person_cohorts(12,null)`; a page load runs it twice (the cohorts RPC, then again inside `current_person_strength`).
+- With every buffer a shared hit (no disk reads), the same call measured 4,888 ms, then 1,875 ms followed by ~141 ms ×5, then 177/146/145 ms. No concurrent backends were active; JIT is off. EXECUTE…USING plans each call with real parameters, so a generic plan is not the cause.
+- `pg_stat_statements` for the anon cohorts call: 22 calls, mean 641 ms, max 2,899 ms, standard deviation 723 ms.
+- Large CPU-bound variance with cached buffers is consistent with Free-plan burstable-CPU throttling after heavy work (the activation hashing and the six Clubs loads preceded the failures). This is **moderate confidence, unverified**: CPU metrics are not available through the tools used.
+
+The concrete correction under consideration is removing the duplicate full classification per Rankings load, without weakening the timeout, RLS or the formula. It has not been implemented. Do not reactivate 70b without a concrete correction and a fresh full gate.
+
 ## 2026-11-10 — bounded Free-plan club reads validated; page deployment pending
 
 The owner chose continued Free-plan optimization. **Current active model remains a29; 70b is archived intact.** A subsequent Clubs cold load still hit 57014, so the same full guarded rollback was applied. The new directory/detail path is implemented and its database migration is applied; application deployment and final activation are pending.
