@@ -73,8 +73,8 @@ export async function findPeople(rawQuery: string): Promise<WrestlerSuggestion[]
   if (!ids.size) return [];
   const [people, cohorts] = await Promise.all([
     db.from("wrestler_people").select("id,display_name").in("id", [...ids]),
-    db.from("person_cohort_current").select("athlete_key,age_group,bracket_weight_lbs,team,evidence_date")
-      .in("athlete_key", [...ids]),
+    db.rpc("person_cohorts_by_ids", { person_ids: [...ids] })
+      .select("athlete_key,age_group,bracket_weight_lbs,team,evidence_date"),
   ]);
   if (people.error || cohorts.error) throw new Error("Person search unavailable");
   const cohort = new Map(((cohorts.data ?? []) as CohortRow[]).map(row => [row.athlete_key, row]));
@@ -105,14 +105,21 @@ async function loadResolvedPersonProfiles(refs: WrestlerRef[], knownCohorts?: Co
   const db = supabase();
   const ids = refs.map(ref => ref.personId).filter((id): id is string => Boolean(id && UUID.test(id)));
   if (ids.length !== refs.length) throw new Error("Select a resolved wrestler from search before viewing a person profile");
-  const scopedAge = knownCohorts?.length && knownCohorts.every(row => row.age_group === "12U") ? 12 : null;
-  const standingRead = scopedAge == null ? db.from("person_strength_current")
-    : db.rpc("current_person_strength", { target_age: scopedAge });
-  const [peopleResult, cohortsResult, strengthResult, ratingsResult, notesResult] = await Promise.all([
+  const cohortsResult = knownCohorts ? { data: knownCohorts, error: null }
+    : await db.rpc("person_cohorts_by_ids", { person_ids: ids })
+      .select("athlete_key,age_group,bracket_weight_lbs,team,evidence_date");
+  if (cohortsResult.error) throw new Error("Resolved profile classification unavailable");
+  const ages = [...new Set(((cohortsResult.data ?? []) as CohortRow[])
+    .flatMap(row => row.age_group?.match(/^(\d+)U$/)?.[1] ?? []).map(Number))];
+  const standings = async () => {
+    const results = await Promise.all(ages.map(age => db.rpc("current_person_strength", { target_age: age })
+      .select("athlete_key,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason,weight_band,age_group,bracket_weight_lbs")
+      .in("athlete_key", ids)));
+    return { data: results.flatMap(result => result.data ?? []), error: results.find(result => result.error)?.error };
+  };
+  const [peopleResult, strengthResult, ratingsResult, notesResult] = await Promise.all([
     db.from("wrestler_people").select("id,display_name").in("id", ids),
-    knownCohorts ? { data: knownCohorts, error: null }
-      : db.from("person_cohort_current").select("athlete_key,age_group,bracket_weight_lbs,team,evidence_date").in("athlete_key", ids),
-    standingRead.select("athlete_key,strength_score,cohort_rank,cohort_size,cohort_tier,tier_unavailable_reason,weight_band,age_group,bracket_weight_lbs").in("athlete_key", ids),
+    standings(),
     db.from("person_rating_current").select("person_id,model_version,as_of_date,rating,rating_deviation,conservative_score,rating_status,match_count,avg_opponent_rating,sos_expected_win_pct,quality_wins,quality_losses,pin_pct,bonus_pct,win_methods,loss_methods,avg_win_margin,avg_loss_margin,rating_trend").in("person_id", ids),
     db.from("wrestler_notes").select("id,person_id,wrestler_key,body,client_id,created_at").in("person_id", ids).order("created_at", { ascending: false }).limit(500),
   ]);

@@ -1,5 +1,9 @@
 # Architecture
 
+Person cohort reads share `private.calculate_person_cohorts(age,people)`, a stable invoker with fixed empty search path. `current_person_cohorts(age)` preserves full age-population reads; `person_cohorts_by_ids(people)` preserves complete evidence histories only for requested people (null/empty IDs return none). Search and profiles use the latter. Profile strength requests each represented age's complete population and then filters the selected keys.
+
+The private source-side appearance projection also stores the current nullable person UUID. Source and current-assignment write statements share one transaction advisory lock; protected triggers synchronously maintain person IDs on source insert/replacement and assignment insert/update/delete. Reads remain concurrent. Classification and rating results are calculated from inputs, with no result-cache refresh window.
+
 ## Scoped current cohorts
 
 Source matches also maintain a private indexed appearance projection in the same insert/update/delete transaction. It contains source-side classification inputs, with no cohort or rating result cache. Name/age indexes drive scoped reads; live aliases/assignments are joined afterward. `current_wrestler_strength` and `current_person_strength` take the same optional age argument, and their NULL calls back the full strength views. Ranking profiles reuse the candidate classification and ask for complete age-population standings. Active models skip the unused legacy heuristic query.

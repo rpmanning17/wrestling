@@ -1,6 +1,16 @@
 
 # Status
 
+## 2026-11-10 — person Rankings passed; scoped comparison release pending
+
+The new person run was guardedly activated and ten fresh protected production reloads returned numeric standings without a stale-data warning or server error. First six strengths: 526.50, 692.67, 697.73, 561.97, 612.25, 572.88. Expanded standings show all 42 rated wrestlers in the 12U 70–79 lb cohort, including newly rated Luke Palazzo and Nolan Manning. At 17:49–17:51 UTC the measured classification/standing requests returned HTTP 200; full evidence will be recorded after the final deployment.
+
+Comparison search then exposed a different full-population classifier timeout. **The guarded rollback restored a29c4460-5e56-4d22-902d-ea39c65bfcac active; 70b59c01-34ac-4ff0-bf2a-114571d4f41c is archived intact.** No rating/history/source/identity writes were replayed. Earlier history/classification attempts also used the same verified rollback. Candidate output and rollback roots remain checked by every activation/rollback transaction.
+
+Applied November 10 read migrations (source suffix → production version): bound_person_cohort_assignment_reads → 20261110173227; set_oriented_person_cohort_reads → 20261110173705; batch_person_cohort_appearance_reads → 20261110173945; cover_person_cohort_lookup_indexes → 20261110174439; index_transactional_person_appearances → 20261110174715; scope_person_profile_cohorts → 20261110175326. Intermediate plans remain in immutable migration history; they did not alone pass live reliability. The final indexed person input projection and requested-person classifier preserve all 11,750 full classification rows and MD5 1e2fa7d933ecb90051c45842bb5eb0ba. Source/assignment updates maintain the projection synchronously; nullable held sides remain null. Tests cover changes, deletion, invalid IDs, rollback, all ages, requested people and denied access. Security advisor has only the eight existing informational denied-ledger notices, no warning/error.
+
+Search/profile code now uses the shared requested-person classifier and full age-population standings. Deployment, reactivation and complete comparison/privacy verification are pending at this checkpoint. The three-second app limit, RLS, no-store/noindex and formula remain unchanged.
+
 ## 2026-11-10 — complete persistence verified; live person-history release fix in progress
 
 All 189 guarded persistence batches and 189 independent read-only verification batches completed: 11,650 ratings plus 35,421 history rows, zero field mismatches. New run `70b59c01-34ac-4ff0-bf2a-114571d4f41c` has exact counts/records/person keys. Full typed output roots are ratings `1f1bad5b14753d5be78bb768da397c9250ccbb796cba0d21c50d614263b45e86` and history `8105c92c2b2b6abe47725ce9ae366dfe347891058d5e1d0f50a5a55498661e0e` (SHA256 of ordered 250-row chunk SHA256s, each over full-row MD5 leaves). All source/assignment/people/alias roots still match the private snapshot on November 10.
