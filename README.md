@@ -116,3 +116,7 @@ Canonical recovery uses `config/ratings.recovery-20261104.json` and the read-onl
 A small server-rendered warning on all pages compares the active rating model's source-bout count to the current results table. If counts differ, the app warns that ratings may be stale. Equal counts **do not prove** source/alias freshness (same-count edits are not detected); the full input fingerprint and operational review remain authoritative. Released through merged PR #10. GitHub CI passed 154/154 tests, lint, typecheck and build; Vercel reports the production deployment READY. The warning's actual appearance on authenticated pages has not yet been independently browser-verified.
 
 Read-only production migration-version mapping: [docs/MIGRATION_HISTORY_AUDIT.md](docs/MIGRATION_HISTORY_AUDIT.md). Applied SQL versions are **not yet reconciled**; do not run `supabase db push` until the mapping and actual applied SQL are verified.
+
+## Tournament imports and rating releases (2026-11-12)
+
+Agent-operated: see [docs/RELEASE_PIPELINE.md](docs/RELEASE_PIPELINE.md). An agent stores the raw export and a run request in private tables. It dispatches `gh workflow run tournament-release.yml -f run_id=<id> -f phase=plan`, approves the identity plan hash, then dispatches `phase=release`, which ends with live verification. `phase=rollback` restores the predecessor. The one-time owner setup is a role password and a GitHub environment secret.

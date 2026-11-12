@@ -1,5 +1,8 @@
 # Match ingestion: normalized CSV validation and guarded staging
 
+> **Current procedure (2026-11-12): [RELEASE_PIPELINE.md](RELEASE_PIPELINE.md).** Tournament imports, identity resolution and rating releases run through the agent-operated CI pipeline. The material below documents the underlying guards it reuses and the historical manual procedure; do not hand-run connector batches for a new tournament.
+
+
 **Status:** offline staging merged in PR #10; application code deployed READY. The staging CLI has not been used for a production import, and no imports or schema changes were performed. Raw Flo/Trackwrestling converters are still external and must be audited separately. This path accepts only **normalized Mat Notes match CSVs** (such as `mat_notes_2025_matches.csv`), not arbitrary Flo CSVs.
 
 ## Existing normalized shape

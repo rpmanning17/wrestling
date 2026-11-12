@@ -14,7 +14,7 @@ Instructions for Claude working in this repository. `AGENTS.md` holds the rules 
 - State confidence and mark unverified production facts as unverified. Do not guess database contents; query them, or provide a read-only SQL file (see `supabase/audits/`).
 - Keep the owner's attribution trailers on commits and PRs as configured by the session.
 - Ask the owner a question only when a decision genuinely needs their input; otherwise make a conservative assumption, document it in `docs/DECISIONS.md`, and continue.
-- Never paste or commit secrets. Writing ratings needs `SUPABASE_SERVICE_ROLE_KEY`; it belongs only in the owner's local environment.
+- Never paste or commit secrets. Tournament imports and rating releases run through `docs/RELEASE_PIPELINE.md`. CI uses the `matnotes_release` role from the `production-data` GitHub environment secret; never move bulk data through the conversation or deploy ad-hoc privileged endpoints. The legacy service-key writer (`pnpm ratings:calculate` without `--dry-run`) is not used for releases.
 
 ## Commands
 

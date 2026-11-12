@@ -142,3 +142,29 @@ Current age-division and bracket-weight estimates use the three most recent dist
 **D39. Keep the validated formula and gate person-model activation on assignment integrity (2026-11-05, implementation in review).** Reuse the production daily Glicko-2 and decision-0.8 calculation with UUID keys. A model records an assignment fingerprint; a database trigger checks the current fingerprint, complete winner/loser coverage, person IDs and wins/losses before active promotion. The app switches all person-sensitive reads together only when an active model declares `person_uuid`; legacy reads remain while the old active model is in place. No assignment change is allowed while a person model is active. Rejected: silently mixing name and person ratings, dropping uncertain bouts into the wrong history, or activating the offline candidate without supervised validation and owner authorization.
 
 **D40. Fit Free-plan reads by removing duplicate and concurrent work, not by raising limits (2026-11-10).** Rankings classifies an age once (`current_person_cohort_strength`, reusing the strength SQL verbatim and verified equal for every production age). Club detail, roster-standing and summary-batch reads run sequentially. Live logs showed concurrent full-age classifications and paired batches cancelled together at the three-second anon limit; cached query times varied 141 ms–4.9 s, consistent with burstable-CPU starvation. Pages take somewhat longer but return complete, exact data. Rejected: raising `statement_timeout`, a paid compute upgrade (owner chose Free), asynchronous caches or materialized ratings-dependent club aggregates (stale-data risk), and rolling back to the predecessor (its read path times out the same way and omits the 1,047 new bouts).
+
+**D41. Run imports and rating releases as an agent-operated CI pipeline with a scoped database role (2026-11-12).**
+- **Problem:** two sessions failed to import a 26-bout tournament. The release needs a ~220k-row snapshot and ~47k guarded row writes, which cannot move through an AI connector's context. The session also had no credential.
+- **Decision:** a GitHub Actions `workflow_dispatch` job in a protected `production-data` environment runs `scripts/release/run.ts`. It uses a dedicated `matnotes_release` role, whose password the owner sets once.
+  - Raw sources, plans and reports live in RLS-locked private tables.
+  - CI inputs and logs carry only UUIDs, counts and hashes, because the repo is public.
+  - The pipeline reuses the existing validator, guarded importers, snapshot verifier, calculator, independent validator, rollout generator and activation function.
+  - Identity plans are approved by hash from the administrator connection, which the CI role cannot do.
+- **Rejected:**
+  - temporary privileged Edge Functions (a token-gated SQL bridge was deployed once on 2026-11-12, never used, and stubbed);
+  - service-role keys in the app or the repo;
+  - an in-app import UI;
+  - committing raw results or plans;
+  - chunking bulk payloads through the conversation;
+  - a parallel import or rating implementation.
+
+**D42. Allow first assignments under an active person model; make rollback to a person model explicit (2026-11-12).**
+- **First assignments.** D39 blocked all identity writes while a person model was active. New tournaments could then only be assigned by falling back to the old name-key model, which degraded the live site. Activation proves every then-existing source row had a current assignment, so a revision-0 assignment can only concern a row the active model never rated.
+  - `apply_identity_batch` now accepts exactly those rows while a person model is active.
+  - Changing an existing assignment still requires archiving the person model.
+- **Rollback.** The activation trigger made any person model unrecoverable after the next import, because its source count no longer matched. `private.rollback_rating_model(target, expected_current)` reactivates an archived model with complete output under a lock. It uses a transaction-local marker the trigger honours only for archived targets.
+  - Ordinary activation keeps every freshness check.
+- **Rejected:**
+  - removing the freshness checks;
+  - temporarily activating the pre-person model for every import;
+  - deleting imported rows to make an old model look fresh again.

@@ -1,5 +1,8 @@
 # Person identity release and rollback
 
+> **Current procedure (2026-11-12): [RELEASE_PIPELINE.md](RELEASE_PIPELINE.md).** Tournament imports, identity resolution and rating releases run through the agent-operated CI pipeline. The material below documents the underlying guards it reuses and the historical manual procedure; do not hand-run connector batches for a new tournament.
+
+
 This branch implements agent-side wrestler matching and a person-keyed read path. There is no matching UI. Original bouts, names, results, entries and observations are never edited by identity resolution. The old active model remains `a29c4460-5e56-4d22-902d-ea39c65bfcac` until a separately authorized activation.
 
 ## Actual production rollout, 2026-11-05
