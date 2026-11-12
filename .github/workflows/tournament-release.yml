@@ -1,0 +1,60 @@
+name: Tournament release
+# Agent-operated import/identity/rating release. See docs/RELEASE_PIPELINE.md.
+# Inputs carry only a run UUID; raw results and identity plans stay in private database rows.
+# This repository is public: the CLI prints counts, hashes and UUIDs only.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: private.import_runs id
+        required: true
+      phase:
+        description: plan | release | verify | rollback
+        required: true
+        type: choice
+        options: [plan, release, verify, rollback]
+      rollback_target:
+        description: Optional archived model UUID for rollback (defaults to the run's predecessor)
+        required: false
+permissions:
+  contents: read
+concurrency:
+  group: tournament-release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production-data
+    timeout-minutes: 90
+    env:
+      MATNOTES_DATABASE_URL: ${{ secrets.MATNOTES_DATABASE_URL }}
+      RUN_ID: ${{ inputs.run_id }}
+      PHASE: ${{ inputs.phase }}
+      ROLLBACK_TARGET: ${{ inputs.rollback_target }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.25.0 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Validate inputs and credential
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]] || { echo "run_id must be a UUID"; exit 1; }
+          [[ -z "$ROLLBACK_TARGET" || "$ROLLBACK_TARGET" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]] || { echo "rollback_target must be a UUID"; exit 1; }
+          [[ -n "$MATNOTES_DATABASE_URL" ]] || { echo "MATNOTES_DATABASE_URL secret is not configured in the production-data environment"; exit 1; }
+      - name: Run release phase
+        run: |
+          set -euo pipefail
+          extra=()
+          [[ -n "$ROLLBACK_TARGET" ]] && extra=(--target "$ROLLBACK_TARGET")
+          node --import tsx scripts/release/run.ts --run "$RUN_ID" --phase "$PHASE" --work "$RUNNER_TEMP/matnotes-release" "${extra[@]}"
+      - name: Remove private working files
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/matnotes-release"

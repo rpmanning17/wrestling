@@ -1,6 +1,20 @@
 
 # Status
 
+## 2026-11-12 — Agent-operated release pipeline; Somerset Sunday Fall Brawl import pending its first CI run
+
+**Production ratings unchanged: active `70b59c01-34ac-4ff0-bf2a-114571d4f41c`; `a29c4460-5e56-4d22-902d-ea39c65bfcac` archived.** This PR adds the reusable import/identity/rating release pipeline ([RELEASE_PIPELINE.md](RELEASE_PIPELINE.md), D41, D42). It is the required procedure for every tournament from now on.
+
+- The CLI, adapters, migration `20261112160000`, CI workflow, PGlite tests and a full local end-to-end run (two synthetic tournaments, resume, rollback) are complete.
+- **Owner one-time setup required before the first CI run:** the `matnotes_release` password plus the `production-data` environment secret `MATNOTES_DATABASE_URL`. See the runbook.
+- **Somerset Sunday Fall Brawl** (2026-11-08):
+  - The raw CSV has 88 rows; SHA-256 `2d4629851ed92023b0caaf3b04c2878bf127e4362d5d7b31278d9c2c271d6045`.
+  - The release imports the 26 youth rows (10U 6, 12U 8, 14U 12) and excludes 62 JV/V rows.
+  - It is staged as a private import run, and plan → approve → release follows once the secret exists.
+  - A prior read-only analysis expected 48 linked sides, one new person (2 sides) and 2 held sides (10U 66-78, no weight-compatible history). The CI plan recomputes this.
+- `release-bridge-20261112` is a stub Edge Function that returns 410 for every request. It was deployed during the failed session and never used. The owner should delete it (Dashboard → Edge Functions); this session's Supabase tools cannot delete functions.
+- Observed during local verification: live `/rankings` returned isolated HTTP 500s ("Person cohort classification unavailable", 4 occurrences 2026-11-10 to 2026-11-12). This is the known Free-plan timeout. The new verification gate records it per load.
+
 ## 2026-11-10 21:00 UTC — USA Bracketing release: new model ACTIVE, all live gates passed
 
 **Active: `70b59c01-34ac-4ff0-bf2a-114571d4f41c`.** `a29c4460-5e56-4d22-902d-ea39c65bfcac` is ARCHIVED and intact (the guarded rollback target). Stale `cd6d932e-289d-42e2-a79c-a699d1dedcfa` remains a candidate and must never be activated. Production before merge: `dpl_Hte3BEhmwGXZQwgDrC4djsm34MzL`, commit `2f4ed89`.

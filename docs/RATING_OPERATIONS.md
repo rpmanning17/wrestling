@@ -1,5 +1,8 @@
 # Import and rating operations
 
+> **Current procedure (2026-11-12): [RELEASE_PIPELINE.md](RELEASE_PIPELINE.md).** Tournament imports, identity resolution and rating releases run through the agent-operated CI pipeline. The material below documents the underlying guards it reuses and the historical manual procedure; do not hand-run connector batches for a new tournament.
+
+
 Current baseline and preservation evidence: [RATING_RECOVERY_RELEASE.md](RATING_RECOVERY_RELEASE.md). This is the current procedure; historical activation/handoff commands are not instructions to repeat the November 4 recovery. No automatic refresh job is installed. Importing results changes source/evidence views immediately but does **not** recalculate stored Glicko ratings.
 
 ## 1. Import and freeze inputs

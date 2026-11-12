@@ -110,3 +110,24 @@ A newly generated normalized match source must preserve `source_file` and `sourc
 The global warning compares the live source count to the active model's `matches_total`, not a database-maintained fingerprint or last-modified timestamp. Equal counts can hide same-count edits; source/alias fingerprint checks remain necessary for authoritative recalculation.
 
 Migration-version differences are recorded without modification at `docs/MIGRATION_HISTORY_AUDIT.md`. Never apply previously deployed local migrations simply because their source filename has a different version.
+
+## Release pipeline tables and guards (migration 20261112160000)
+
+- `private.import_sources`: original tournament bytes (`bytea`), provider (`flo`/`trackwrestling`/`usa_bracketing`/`normalized`), original filename, and a SHA-256 enforced by a check constraint. Never edited.
+- `private.import_runs`: one release request per source.
+  - `request` holds the source_file label, divisions, expectations and owner overrides.
+  - `plan` holds every bout side's identity resolution; `plan_sha256` is its digest and excludes row UUIDs.
+  - `approved_plan_sha256` can be set only by the administrator connection.
+  - `status` and the `report` evidence are also stored here.
+- `private.import_run_events`: append-only phase log.
+- All three tables have RLS on and no anon/authenticated access.
+- `private.apply_identity_batch`: while a `person_uuid` model is active, it accepts only first assignments (`expected_revision = 0` and no current row). These are sources the active model never rated. Changing an existing assignment still requires archiving the person model.
+- `private.guard_person_rating_activation` is unchanged for ordinary activation. `private.rollback_rating_model(target, expected_current)` may reactivate an archived, complete person model with older source coverage. It sets a transaction-local marker the trigger recognizes only for an archived target.
+- `private.import_usa_bracketing_verified` no longer refuses while a person model is active. Its body is otherwise identical to the applied 20261109113000 source. New rows have no assignment until the pipeline assigns them.
+- Login role `matnotes_release` (BYPASSRLS, no superuser/createrole; password set once by the owner):
+  - **insert:** sources/runs/events, matches, people, decisions, batches, models, ratings, history;
+  - **update:** `rating_models.status`, plus run status/plan/report only;
+  - **MAINTAIN:** for release locks;
+  - **execute:** identity, activation and rollback functions;
+  - **reads:** every function and private relation the app's `anon` role can read.
+  - It cannot update or delete matches, and it cannot approve plans.

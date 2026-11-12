@@ -39,3 +39,4 @@ This repository, not any chat history, is the source of truth. **Before changing
 | Tables, views, identity or age/weight inference | `docs/DATA_MODEL.md` |
 | Rating math, outcomes, defaults, backtests | `docs/RANKINGS.md` (and regenerate `docs/BACKTEST_REPORT.md`) |
 | A choice with trade-offs | `docs/DECISIONS.md` |
+| Tournament import / rating release procedure | `docs/RELEASE_PIPELINE.md` (and record the run in `docs/STATUS.md`) |

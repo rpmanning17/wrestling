@@ -12,7 +12,8 @@
     "ratings:calculate": "node --env-file-if-exists=.env.local --import tsx scripts/ratings/calculate.ts",
     "ratings:backtest": "node --env-file-if-exists=.env.local --import tsx scripts/ratings/backtest.ts",
     "matches:prepare": "node --import tsx scripts/imports/prepare-matches.ts",
-    "identity:audit": "node --import tsx scripts/identity/audit.ts"
+    "identity:audit": "node --import tsx scripts/identity/audit.ts",
+    "release:run": "node --import tsx scripts/release/run.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -28,6 +29,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
+    "postgres": "3.4.5",
     "tsx": "^4.23.15",
     "typescript": "^5"
   },
